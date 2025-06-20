@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Mic, Upload, CheckCircle, ArrowRight, ArrowLeft, Pencil, Info, Play, ImagePlus, X, Plus } from 'lucide-react';
+import AudioRecorder from '@/app/components/AudioRecorder';
 
 // New Stepper Component
 const Stepper = ({ currentStep, steps }) => (
@@ -218,14 +219,7 @@ export default function SubmitPage() {
                                     </ul>
                                   </div>
                                 </div>
-                                <div className="text-center py-8 border border-dashed border-stone-300 rounded-lg">
-                                  <Mic size={40} className="mx-auto text-stone-400 mb-4"/>
-                                  <p className="text-stone-500">Audio Recorder UI</p>
-                                   <label htmlFor="audio-upload-record" className="mt-4 inline-block p-2 px-4 rounded-lg bg-stone-800 text-white hover:bg-stone-900 cursor-pointer transition-colors text-sm">
-                                        (Simulate Upload)
-                                        <input id="audio-upload-record" type="file" accept="audio/*" className="hidden" onChange={(e) => setAudioFile(e.target.files[0])}/>
-                                    </label>
-                                </div>
+                                <AudioRecorder onRecordingComplete={setAudioFile} />
                               </div>
                             )}
 
