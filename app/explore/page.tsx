@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link'; // Use this in your project
 import Image from 'next/image'; // Use this in your project
+import dynamic from 'next/dynamic';
 import { Search, ChevronDown, Map, List, X, Mic } from 'lucide-react';
 
 
@@ -15,6 +16,11 @@ const allStories: Story[] = [
   { id: '5', imageUrl: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?q=80&w=1886&auto=format&fit=crop', title: 'Summer on the Coast', speaker: 'Chloe O’Connell', excerpt: 'The salt in the air, the sound of the waves... every summer was a lifetime of its own.', tags: ['Childhood', 'Ireland', 'Family'] },
   { id: '6', imageUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1964&auto=format&fit=crop', title: 'Streetlight Symphonies', speaker: 'David Chen', excerpt: 'In the neon glow of Hong Kong, I found my rhythm. The city has its own music if you just listen.', tags: ['City Life', 'Art', 'Hong Kong'], location: { name: 'Hong Kong', lat: 22.3193, lng: 114.1694 } },
 ];
+
+const StoryMap = dynamic(() => import('../components/StoryMap'), {
+    ssr: false, // This ensures the component is not rendered on the server
+    loading: () => <div className="w-full h-[600px] bg-stone-200 rounded-xl flex items-center justify-center"><p>Loading map...</p></div>
+  });
 
 const popularTags = ['Family', 'Tradition', 'Migration', 'Childhood', 'Community', 'Work', 'Hope', 'New York'];
 
@@ -37,11 +43,10 @@ const StoryCard = ({ imageUrl, title, speaker, tags, excerpt }: Story) => (
   </div>
 );
 
-// --- Main Explore Page Component ---
 export default function ExplorePage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTag, setActiveTag] = useState<string | null>(null);
-    const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'map'
+    const [viewMode, setViewMode] = useState('grid');
 
     const filteredStories = useMemo(() => {
         return allStories.filter(story => {
@@ -53,33 +58,30 @@ export default function ExplorePage() {
 
     return (
         <div className="bg-stone-50 min-h-screen text-stone-800 font-sans">
-            {/* Navbar */}
             <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-stone-200">
                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-20">
-                        <a href="/" className="flex items-center">
+                        <Link href="/" className="flex items-center">
                             <span className="text-2xl font-bold text-stone-900 tracking-tighter">🎤 Echo</span>
-                        </a>
+                        </Link>
                         <div className="hidden md:flex items-center space-x-10">
-                            <a href="/about" className="text-stone-600 hover:text-stone-900 transition-colors text-base">About</a>
-                            <a href="/submit" className="text-stone-600 hover:text-stone-900 transition-colors text-base">Record a Memory</a>
-                            <a href="/explore" className="text-stone-800 font-bold transition-colors text-base">Explore</a>
+                            <Link href="/about" className="text-stone-600 hover:text-stone-900 transition-colors text-base">About</Link>
+                            <Link href="/submit" className="text-stone-600 hover:text-stone-900 transition-colors text-base">Record a Memory</Link>
+                            <Link href="/explore" className="text-stone-800 font-bold transition-colors text-base">Explore</Link>
                         </div>
                         <div className="flex items-center">
-                           <a href="#login" className="text-stone-600 hover:text-stone-900 border border-stone-300 hover:border-stone-500 px-4 py-2 rounded-lg transition-colors shadow-sm">Login</a>
+                           <Link href="/login" className="text-stone-600 hover:text-stone-900 border border-stone-300 hover:border-stone-500 px-4 py-2 rounded-lg transition-colors shadow-sm">Login</Link>
                         </div>
                     </div>
                 </div>
             </nav>
 
-            {/* Main Content */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <header className="text-center mb-12">
                     <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-900">Explore Stories</h1>
                     <p className="mt-4 max-w-2xl mx-auto text-lg text-stone-600">Discover a living archive of voices, memories, and wisdom from around the world.</p>
                 </header>
 
-                {/* Filter and View Toggle Controls */}
                 <div className="sticky top-20 z-40 bg-stone-50/80 backdrop-blur-md py-4 mb-8 rounded-lg">
                     <div className="flex flex-col md:flex-row gap-4 items-center">
                         <div className="relative w-full md:flex-1">
@@ -107,7 +109,6 @@ export default function ExplorePage() {
                             </div>
                         </div>
                     </div>
-                     {/* Tag Bar */}
                     <div className="mt-4 flex items-center gap-2 pb-2 overflow-x-auto">
                         <button 
                             onClick={() => setActiveTag(null)}
@@ -127,36 +128,33 @@ export default function ExplorePage() {
                     </div>
                 </div>
 
-                {/* Conditional Content: Grid, Map, or Empty State */}
                 {viewMode === 'grid' && (
                     <>
                         {filteredStories.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {filteredStories.map(story => (
-                                    <a key={story.id} href={`/story/${story.id}`}>
-                                        <StoryCard {...story} />
-                                    </a>
+                                    <StoryCard key={story.id} {...story} />
                                 ))}
                             </div>
                         ) : (
                             <div className="text-center py-24 border-2 border-dashed border-stone-300 rounded-xl">
                                 <h3 className="text-2xl font-serif text-stone-800">No stories match your search.</h3>
                                 <p className="mt-4 text-stone-600">Why not be the first to share one?</p>
-                                <a href="/submit" className="mt-6 inline-flex items-center gap-2 bg-stone-800 text-white px-6 py-3 rounded-lg text-lg font-semibold hover:bg-stone-900 transition-all shadow-md">
+                                <Link href="/submit" className="mt-6 inline-flex items-center gap-2 bg-stone-800 text-white px-6 py-3 rounded-lg text-lg font-semibold hover:bg-stone-900 transition-all shadow-md">
                                     <Mic size={20} /> Record a Memory
-                                </a>
+                                </Link>
                             </div>
                         )}
                     </>
                 )}
 
                 {viewMode === 'map' && (
-                    <div className="w-full h-[600px] bg-stone-200 rounded-xl border border-stone-300 flex items-center justify-center">
-                        <p className="text-stone-500 font-semibold">[ Interactive Map View Placeholder ]</p>
-                        {/* In a real implementation, you would render your Mapbox/Leaflet component here */}
-                    </div>
+                    <StoryMap stories={filteredStories} />
                 )}
             </main>
         </div>
     );
 }
+
+
+

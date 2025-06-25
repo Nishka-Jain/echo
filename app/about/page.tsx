@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Leaf, Globe, BookHeart, Wind, Users } from 'lucide-react';
-import AnimatedSection from '/app/components/AnimatedSection;
+import AnimatedSection from '../components/AnimatedSection';
 
 // StatCard component for displaying key numbers
 interface StatCardProps {
@@ -34,7 +34,7 @@ export default function AboutPage() {
                         <div className="hidden md:flex items-center space-x-10">
                             <a href="/about" className="text-stone-800 font-bold transition-colors text-base">About</a>
                             <a href="/submit" className="text-stone-600 hover:text-stone-900 transition-colors text-base">Record a Memory</a>
-                            <a href="/#explore" className="text-stone-600 hover:text-stone-900 transition-colors text-base">Explore</a>
+                            <a href="/explore" className="text-stone-600 hover:text-stone-900 transition-colors text-base">Explore</a>
                         </div>
                         <div className="flex items-center">
                            <a href="#login" className="text-stone-600 hover:text-stone-900 border border-stone-300 hover:border-stone-500 px-4 py-2 rounded-lg transition-colors shadow-sm">Login</a>
