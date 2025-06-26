@@ -9,8 +9,8 @@ const config: Config = {
   theme: {
     extend: {
         fontFamily: {
-            sans: ['var(--font-lato)'],              // Body text
-            serif: ['var(--font-playfair-display)'], // Headings
+          sans: ['var(--font-manrope)', 'sans-serif'], // Sets Manrope as the default body font
+          serif: ['Lora', 'serif'],      // Sets Lora as the default headline font
         },
     },
   },
