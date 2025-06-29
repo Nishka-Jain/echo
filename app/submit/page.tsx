@@ -104,10 +104,10 @@ export default function SubmitPage() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!isSubmittable) {
-            alert("Please ensure all required fields are filled.");
-            return;
-        }
+        // if (!isSubmittable) {
+        //     alert("Please ensure all required fields are filled.");
+        //     return;
+        // }
         const storyData = { 
             title: storyTitle, 
             speaker_name: speakerName, 
