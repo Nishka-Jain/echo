@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@types/leaflet": "^1.9.19",
+    "framer-motion": "^12.19.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.514.0",
     "next": "15.3.3",

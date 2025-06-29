@@ -265,23 +265,30 @@ return (
         </section>
       </AnimatedSection>
       
-    <AnimatedSection>
-      <section className="bg-white border-y border-stone-200">
-        <div className="max-w-7xl mx-auto px-10 sm:px-10 lg:px-15 py-24 text-center">
-            <Heart className="mx-auto h-12 w-12 text-amber-500/80 mb-4" />
-            <blockquote className="text-2xl sm:text-3xl font-serif text-stone-900">
-              <p>"Hearing my grandfather's voice again, telling his stories... it's a gift I can't put a price on. Echo brought a piece of him back to us."</p>
-            </blockquote>
-            <cite className="mt-6 block font-medium text-stone-600 not-italic">- Sarah L., Community Historian</cite>
-        </div>
-      </section>
-    </AnimatedSection>
+      <AnimatedSection>
+          <section className="bg-white border-y border-stone-200 py-22 sm:py-28">
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 className="font-serif text-4xl lg:text-5xl text-stone-900">Become a Part of the Archive Today</h2>
+                <div className="prose prose-xl max-w-none text-stone-600 leading-relaxed mt-8">
+                
+                  <p>
+                    Whether you're a student, a teacher, a family historian, or simply someone with a story to share, Echo is for you. Join us in building a lasting resource for generations to come.
+                  </p>
+                </div>
+                <div className="mt-10">
+                  <Link href="/submit" className="px-8 py-4 bg-stone-800 text-white font-semibold rounded-lg hover:bg-stone-900 transition-all shadow-md transform hover:-translate-y-1">
+                      Record a Memory
+                  </Link>
+                </div>
+            </div>
+          </section>
+        </AnimatedSection>
 
     <footer className="bg-stone-900 text-stone-300">
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               <div className="col-span-2 md:col-span-1">
-                  <Link href="/" className="text-xl font-bold text-white">🎤 Echo</Link>
+                  <Link href="/" className="text-xl font-bold text-white">Echo</Link>
                   <p className="mt-2 text-stone-400 text-sm">Hold onto the stories that hold us together.</p>
               </div>
               <div>

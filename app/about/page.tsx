@@ -84,16 +84,17 @@ export default function AboutPage() {
                     <h2 className="font-serif text-3xl lg:text-4xl text-stone-900 mb-6">
                       The Disappearing Voice
                     </h2>
-                    <div className="prose prose-lg max-w-none text-stone-600 leading-relaxed space-y-6">
+                    <div className="prose prose-lg max-w-none text-stone-600 leading-relaxed space-y-6"
+                     style={{ fontSize: 'clamp(1rem, 4cqi, 1.125rem)' }}>
                       <p>
                         In a world of fleeting digital text, the most personal and profound method of storytelling,<span className="font-semibold text-stone-800"> the human voice</span>, is often lost. Priceless family memories, cultural traditions, and the histories of entire communities disappear when the last person who remembers them is gone. 
                       </p>
 
                       <p>
-                        It's the unwritten histories of our own families and the quiet wisdom of our local communities that are most at risk. The detailed craft of an artisan, the firsthand account of a pivotal event, the secret to a perfect holiday dish: these fragments of our heritage are often not considered 'important' enough for formal archives, yet they are the very threads that weave the fabric of our lives.
+                        It's the unwritten histories of our own families and the quiet wisdom of our local communities that are most at risk. The detailed craft of an artisan, the firsthand account of a pivotal event, the secret to a perfect dish: these fragments of our heritage are often not considered 'important' enough for formal archives, yet they are the very threads that weave the fabric of our lives.
                       </p>
                       <p>
-                        <span className="font-semibold text-stone-800">Echo is our answer.</span> We provide the tools for anyone, from a high school student interviewing a community elder to a grandchild recording a grandparent's life story, to capture and preserve these voices forever. Together, we are building a living archive where the wisdom of the past is always present to inform the future.
+                        <span className="font-semibold text-stone-800">Echo is the answer.</span> Together, we are building a living archive where the wisdom of the past is always present to inform the future.
                       </p>
                     </div>
                   </div>
@@ -103,7 +104,7 @@ export default function AboutPage() {
             </section>
           </AnimatedSection>
         
-        <section className="bg-stone-800 text-white py-22 sm:py-28">
+        <section className="bg-stone-900 text-white py-22 sm:py-28">
           <div className="max-w-5xl mx-auto px-4 sm:px-8 lg:px-10">
             <AnimatedSection>
               <div className="text-center">
@@ -112,21 +113,21 @@ export default function AboutPage() {
               </div>
               <div className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-16">
                 <div className="flex gap-6">
-                  <div className="flex-shrink-0"><BookHeart className="h-8 w-8 text-amber-400"/></div>
+                  <div className="flex-shrink-0"><BookHeart className="h-8 w-8 text-white"/></div>
                   <div>
                     <h3 className="text-2xl font-semibold">Preserve with Purpose</h3>
                     <p className="mt-2 text-stone-300 leading-relaxed">We conserve not just voices but the identities, traditions, and irreplaceable wisdom they carry.</p>
                   </div>
                 </div>
                 <div className="flex gap-6">
-                  <div className="flex-shrink-0"><Users className="h-8 w-8 text-amber-400"/></div>
+                  <div className="flex-shrink-0"><Users className="h-8 w-8 text-white"/></div>
                   <div>
                     <h3 className="text-2xl font-semibold">Connect Generations</h3>
                     <p className="mt-2 text-stone-300 leading-relaxed">We empower young people to become historians, forging powerful connections with their elders.</p>
                   </div>
                 </div>
                 <div className="flex gap-6">
-                  <div className="flex-shrink-0"><Globe className="h-8 w-8 text-amber-400"/></div>
+                  <div className="flex-shrink-0"><Globe className="h-8 w-8 text-white"/></div>
                   <div>
                     <h3 className="text-2xl font-semibold">Democratize Archives</h3>
                     <p className="mt-2 text-stone-300 leading-relaxed">We believe personal histories and cultural narratives should be accessible to all, not locked away.</p>
@@ -134,7 +135,7 @@ export default function AboutPage() {
                   </div>
                 </div>
                 <div className="flex gap-6">
-                  <div className="flex-shrink-0"><Leaf className="h-8 w-8 text-amber-400"/></div>
+                  <div className="flex-shrink-0"><Leaf className="h-8 w-8 text-white"/></div>
                   <div>
                     <h3 className="text-2xl font-semibold">Sustain Wisdom</h3>
                     <p className="mt-2 text-stone-300 leading-relaxed">True sustainability isn't just about the planet; it's about ensuring human wisdom endures.</p>
@@ -170,24 +171,6 @@ export default function AboutPage() {
                   </cite>
                 </div>
               </div>
-            </div>
-          </section>
-        </AnimatedSection>
-
-        <AnimatedSection>
-          <section className="bg-white border-y border-stone-200 py-24 sm:py-32">
-            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <h2 className="font-serif text-3xl lg:text-4xl text-stone-900">Become a Part of the Archive Today</h2>
-                <div className="prose prose-lg max-w-none text-stone-600 leading-relaxed mt-6">
-                  <p>
-                    Whether you're a student, a teacher, a family historian, or simply someone with a story to share, Echo is for you. Join us in building a lasting resource for generations to come.
-                  </p>
-                </div>
-                <div className="mt-10">
-                  <Link href="/submit" className="px-8 py-4 bg-stone-800 text-white font-semibold rounded-lg hover:bg-stone-900 transition-all shadow-md transform hover:-translate-y-1">
-                      Record a Memory
-                  </Link>
-                </div>
             </div>
           </section>
         </AnimatedSection>
