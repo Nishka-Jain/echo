@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useRef, ReactNode } from 'react';
+import React, { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Mic, Heart, ArrowRight, MapIcon } from 'lucide-react';
+import { Mic, Heart, ArrowRight, MapIcon, Menu, X } from 'lucide-react'; // Added Menu and X icons
 import AnimatedSection from '@/app/components/AnimatedSection';
 import dynamic from 'next/dynamic';
 
@@ -13,6 +13,15 @@ const HomepageMap = dynamic(() => import('./components/HomepageMap'), {
   ssr: false,
   loading: () => <div className="w-full h-full bg-stone-200 animate-pulse"></div>,
 });
+
+// NOTE: I've updated the alt text for the mission images to be more descriptive and unique as suggested in the accessibility review.
+const missionImages = [
+    { src: "/vendorcolor.jpg" , alt: 'A diverse group of friends sharing a meal and conversation around a wooden table.' },
+    { src: "/dragcolor.jpg", alt: 'A vibrant workshop scene with a diverse group of people collaborating and engaging.' },
+    { src: "/womanvendor.jpg", alt: 'An older woman smiling warmly from behind her stall at a local market.' },
+    { src: "/womenoutside.jpg", alt: 'Two women, one younger and one older, sitting on a bench outside, sharing a moment.' },
+    { src: "/food.jpg", alt: 'Close-up on hands preparing food, symbolizing tradition and family recipes.' },
+];
 
 const featuredStories: Story[] = [
   {
@@ -47,24 +56,30 @@ const featuredStories: Story[] = [
   }
 ];
 
-const missionImages = [
-    { src: "/vendorcolor.jpg" , alt: 'A group of friends laughing and talking together at a table.' },
-    { src: "/dragcolor.jpg", alt: 'A diverse group of people collaborating in a workshop.' },
-    { src: "/womanvendor.jpg", alt: 'The hands of an older person and a younger person touching.' },
-    { src: "/womenoutside.jpg", alt: 'The hands of an older person and a younger person touching.' },
-    { src: "/food.jpg", alt: 'The hands of an older person and a younger person touching.' },
-];
-
 export default function HomePage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false); // State for mobile menu
 
+  // Effect for image carousel
   useEffect(() => {
       const timer = setInterval(() => {
           setCurrentImageIndex(prevIndex => (prevIndex + 1) % missionImages.length);
-      }, 7000); // Rotate image every 7 seconds
-
-      return () => clearInterval(timer); // Cleanup timer on component unmount
+      }, 7000); 
+      return () => clearInterval(timer);
   }, []);
+
+  // Effect to prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
+
 
 return (
   <div className="bg-white text-stone-800 font-sans">
@@ -74,7 +89,7 @@ return (
       {/* Background Image Layer */}
       <div className="absolute inset-0">
           <Image
-              src="/market.jpg" // Assumes 'market.jpg' is in your /public folder
+              src="/market.jpg"
               alt="A bustling market scene, representing the diversity of human stories."
               fill
               style={{ objectFit: 'cover' }}
@@ -85,25 +100,58 @@ return (
 
       {/* Content Layer */}
       <div className="relative z-10 flex h-full flex-col">
+        {/* --- NAVBAR START --- */}
         <nav className="bg-transparent">
           <div className="max-w-7xl mx-auto px-6 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-20 border-b border-white/20">
               <Link href="/" className="text-2xl font-bold tracking-tighter">
                   Echo
               </Link>
+              
+              {/* Desktop Navigation */}
               <div className="hidden md:flex items-center space-x-10">
                 <Link href="/about" className="text-stone-300 hover:text-white transition-colors text-base">About</Link>
                 <Link href="/submit" className="text-stone-300 hover:text-white transition-colors text-base">Record a Memory</Link>
                 <Link href="/explore" className="text-stone-300 hover:text-white transition-colors text-base">Explore</Link>
               </div>
-              <div className="flex items-center">
-                 <Link href="/login" className="text-white hover:bg-white/20 border border-white/50 px-4 py-2 rounded-lg transition-colors shadow-sm">
+
+              {/* Login and Mobile Menu Toggle */}
+              <div className="flex items-center gap-4">
+                 <Link href="/login" className="hidden sm:block text-white hover:bg-white/20 border border-white/50 px-4 py-2 rounded-lg transition-colors shadow-sm">
                   Login
                 </Link>
+                <div className="md:hidden">
+                  <button 
+                    onClick={() => setMobileMenuOpen(!isMobileMenuOpen)} 
+                    className="inline-flex items-center justify-center p-2 rounded-md text-stone-200 hover:text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+                    aria-controls="mobile-menu" 
+                    aria-expanded={isMobileMenuOpen}
+                  >
+                    <span className="sr-only">Open main menu</span>
+                    {isMobileMenuOpen ? <X className="block h-6 w-6" /> : <Menu className="block h-6 w-6" />}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
+
+          {/* Mobile menu, show/hide based on menu state. */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden" id="mobile-menu">
+              <div className="px-6 pt-2 pb-4 space-y-1 sm:px-3 bg-stone-900/90 backdrop-blur-sm">
+                <Link href="/about" className="text-stone-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">About</Link>
+                <Link href="/submit" className="text-stone-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Record a Memory</Link>
+                <Link href="/explore" className="text-stone-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Explore</Link>
+                <div className="border-t border-stone-700 pt-4 mt-2 sm:hidden">
+                    <Link href="/login" className="block text-center w-full text-white bg-white/10 hover:bg-white/20 border border-white/50 px-4 py-2 rounded-lg transition-colors shadow-sm">
+                        Login
+                    </Link>
+                </div>
+              </div>
+            </div>
+          )}
         </nav>
+        {/* --- NAVBAR END --- */}
 
         <header className="flex flex-grow items-center justify-center text-center">
           <div className="max-w-5xl mx-auto px-6 sm:px-6 lg:px-8">
@@ -139,7 +187,8 @@ return (
                         Learn more about our values <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1" size={20} />
                      </Link>
                 </div>
-                 <div className="md:col-span-3 relative aspect-[4/3] md:aspect-video shadow-lg border border-stone-200 overflow-hidden">
+                 {/* --- IMAGE CAROUSEL START --- */}
+                 <div className="md:col-span-3 relative aspect-[4/3] md:aspect-video shadow-lg border border-stone-200 overflow-hidden rounded-xl">
                     {missionImages.map((image, index) => (
                         <Image
                             key={image.src}
@@ -151,7 +200,22 @@ return (
                             priority={index === 0}
                         />
                     ))}
+                    {/* Carousel Indicators */}
+                    <div className="absolute bottom-5 left-0 right-0 flex justify-center gap-3">
+                      {missionImages.map((_, index) => (
+                        <button
+                          key={`dot-${index}`}
+                          onClick={() => setCurrentImageIndex(index)}
+                          className={`h-2 rounded-full transition-all duration-300 ${
+                            currentImageIndex === index ? 'w-5 bg-white shadow-md' : 'w-2 bg-white/50 hover:bg-white'
+                          }`}
+                          aria-label={`Go to slide ${index + 1}`}
+                          aria-current={currentImageIndex === index}
+                        />
+                      ))}
+                    </div>
                  </div>
+                 {/* --- IMAGE CAROUSEL END --- */}
             </div>
         </div>
       </section>

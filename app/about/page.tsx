@@ -1,208 +1,235 @@
 "use client";
 
-import React, { useState, useEffect, useRef, ReactNode } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Leaf, Globe, BookHeart, Wind, Users } from 'lucide-react';
+import { BookHeart, Globe, Leaf, Users } from 'lucide-react';
 import AnimatedSection from '../components/AnimatedSection';
 
-// StatCard component for displaying key numbers
-interface StatCardProps {
-    icon: React.ReactNode;
-    value: string | number;
-    label: string;
-  }
-
-const StatCard = ({ icon, value, label }: StatCardProps) => (
-    <div className="bg-stone-100/80 p-6 rounded-xl text-center">
-        <div className="flex justify-center mb-4 text-amber-600">{icon}</div>
-        <p className="text-4xl font-bold font-serif text-stone-900">{value}</p>
-        <p className="text-stone-600 mt-1">{label}</p>
-    </div>
-);
-
 export default function AboutPage() {
-    return (
-        <div className="bg-white text-stone-800 font-sans">
-            {/* Navbar */}
-            <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-stone-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-20">
-                        <a href="/" className="flex items-center">
-                            <span className="text-2xl font-bold text-stone-900 tracking-tighter">🎤 Echo</span>
-                        </a>
-                        <div className="hidden md:flex items-center space-x-10">
-                            <a href="/about" className="text-stone-800 font-bold transition-colors text-base">About</a>
-                            <a href="/submit" className="text-stone-600 hover:text-stone-900 transition-colors text-base">Record a Memory</a>
-                            <a href="/explore" className="text-stone-600 hover:text-stone-900 transition-colors text-base">Explore</a>
-                        </div>
-                        <div className="flex items-center">
-                           <a href="#login" className="text-stone-600 hover:text-stone-900 border border-stone-300 hover:border-stone-500 px-4 py-2 rounded-lg transition-colors shadow-sm">Login</a>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            {/* Main Content Area */}
-            <main className="overflow-x-hidden">
-                
-                {/* Hero Section */}
-                <header className="bg-white pt-24 pb-28 sm:pt-32 sm:pb-36">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-5 gap-12 items-center">
-                        <AnimatedSection>
-                            <div className="relative lg:col-span-2 w-full max-w-md mx-auto lg:max-w-none rounded-xl overflow-hidden shadow-2xl shadow-stone-200">
-                               <div className="aspect-square">
-                                   <img
-                                     src="https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=1973&auto=format&fit=crop"
-                                     alt="Close-up of an elderly person's hands writing in a journal, representing the act of preserving a story."
-                                     className="object-cover w-full h-full"
-                                   />
-                               </div>
-                            </div>
-                        </AnimatedSection>
-                        <div className="text-left lg:col-span-3">
-                          <AnimatedSection>
-                              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif tracking-tight text-stone-900">
-                                Every voice matters.
-                              </h1>
-                              <blockquote className="mt-6 border-l-4 border-amber-500 pl-6">
-                                <p className="text-xl text-stone-600 leading-relaxed">
-                                  At Echo, our mission is to preserve and amplify the stories, voices, and cultural wisdom that are too often forgotten or ignored.
-                                </p>
-                              </blockquote>
-                          </AnimatedSection>
-                        </div>
-                    </div>
-                </header>
-
-                {/* Our Mission Section */}
-                <section className="py-28 sm:py-36 bg-stone-50 border-y border-stone-200">
-                    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <AnimatedSection>
-                            <div className="text-center">
-                                 <h2 className="text-3xl sm:text-4xl font-serif text-stone-900">From Voice to Legacy</h2>
-                                 <p className="mt-4 text-lg text-stone-600 max-w-3xl mx-auto">
-                                    We bridge the gap between powerful oral histories and a global audience. By transcribing, translating, and tagging themes like environment, migration, survival, and tradition, we make these stories searchable, shareable, and timeless.
-                                 </p>
-                            </div>
-                        </AnimatedSection>
-                        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <AnimatedSection>
-                                {/* Added microinteraction hover effect */}
-                                <div className="text-center p-8 bg-white rounded-xl border border-stone-200 h-full transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
-                                    <Leaf size={32} className="mx-auto text-amber-600 mb-4"/>
-                                    <h3 className="text-xl font-semibold text-stone-900">Conserve Identity</h3>
-                                    <p className="mt-2 text-stone-600 text-base leading-relaxed">We don't just save voices; we preserve the ideas, traditions, and identities they carry.</p>
-                                </div>
-                            </AnimatedSection>
-                             <AnimatedSection>
-                                <div className="text-center p-8 bg-white rounded-xl border border-stone-200 h-full transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
-                                    <Globe size={32} className="mx-auto text-amber-600 mb-4"/>
-                                    <h3 className="text-xl font-semibold text-stone-900">Global & Accessible</h3>
-                                    <p className="mt-2 text-stone-600 text-base leading-relaxed">Making stories from endangered languages and personal archives available to all.</p>
-                                </div>
-                            </AnimatedSection>
-                             <AnimatedSection>
-                                <div className="text-center p-8 bg-white rounded-xl border border-stone-200 h-full transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
-                                    <BookHeart size={32} className="mx-auto text-amber-600 mb-4"/>
-                                    <h3 className="text-xl font-semibold text-stone-900">A Shared Future</h3>
-                                    <p className="mt-2 text-stone-600 text-base leading-relaxed">Ensuring that crucial wisdom remains a part of our collective human story.</p>
-                                </div>
-                            </AnimatedSection>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Sustainability Section - Added Pull Quote */}
-                <section className="bg-stone-800 text-white py-28 sm:py-36">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="grid md:grid-cols-2 gap-16 items-center">
-                             <AnimatedSection>
-                                <div>
-                                     <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8">Sustainability Through Storytelling</h2>
-                                     <div className="space-y-8 text-lg text-stone-300 leading-relaxed">
-                                        <p>
-                                            <span className="text-xl font-semibold text-white">Sustainability isn't just about the environment</span> but the continued coexistence of people, cultures, and ideas. While climate sustainability focuses on our planet's resources, cultural sustainability ensures that heritage, language, and tradition endure and adapt in a rapidly changing world.
-                                        </p>
-                                        <p className="border-l-4 border-amber-500 pl-6 text-xl font-serif italic text-stone-200">
-                                            Echo embodies this. We provide a space for people today to share and discover meaningful oral stories, including many that would otherwise never be translated or archived.
-                                        </p>
-                                     </div>
-                                </div>
-                            </AnimatedSection>
-                            <AnimatedSection>
-                                <div className="flex justify-center">
-                                     <img src="https://images.unsplash.com/photo-1531545514256-b1400bc00f31?q=80&w=2070&auto=format&fit=crop" alt="A diverse group of people collaborating and sharing ideas in a bright room" className="rounded-xl object-cover shadow-2xl"/>
-                                </div>
-                            </AnimatedSection>
-                        </div>
-                    </div>
-                </section>
-                
-                {/* Protecting Tomorrow's Wisdom Section */}
-                <section className="py-28 sm:py-36">
-                    <AnimatedSection>
-                        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                            <h2 className="text-3xl sm:text-4xl font-serif text-stone-900">Meeting Today's Needs, Protecting Tomorrow's Wisdom</h2>
-                            <p className="mt-4 text-lg text-stone-600 max-w-3xl mx-auto">
-                                We are not only fulfilling a need for more recorded oral history in today's world, but we are also building something that will grow stronger over time—a lasting resource for generations to come. This is the epitome of sustainability.
-                            </p>
-                        </div>
-                    </AnimatedSection>
-                    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <AnimatedSection><StatCard icon={<Wind size={40}/>} value="220+" label="Languages lost in India since 1961"/></AnimatedSection>
-                        <AnimatedSection><StatCard icon={<Users size={40}/>} value="Billions" label="of stories waiting to be told"/></AnimatedSection>
-                        <AnimatedSection><StatCard icon={<BookHeart size={40}/>} value="1 Voice" label="can become a global resource"/></AnimatedSection>
-                    </div>
-                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center mt-20">
-                         <AnimatedSection>
-                             <p className="text-lg text-stone-700 leading-relaxed">
-                                Echo strengthens the foundation that future generations will rely on to understand their heritage, languages, and environmental past. As entire knowledge systems fade, Echo steps in to ensure valuable wisdom isn't lost forever.
-                             </p>
-                         </AnimatedSection>
-                     </div>
-                </section>
-            
-            </main>
-
-            {/* Footer */}
-            <footer className="bg-stone-900 text-stone-300">
-                <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-                    {/* Footer content remains the same */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                        <div className="col-span-2 md:col-span-1">
-                            <a href="/" className="text-xl font-bold text-white">🎤 Echo</a>
-                            <p className="mt-2 text-stone-400 text-sm">Hold onto the stories that hold us together.</p>
-                        </div>
-                        <div>
-                            <h4 className="font-semibold text-white tracking-wider uppercase">Navigate</h4>
-                            <ul className="mt-4 space-y-2">
-                                <li><a href="/about" className="hover:text-amber-400 transition-colors">About</a></li>
-                                <li><a href="/submit" className="hover:text-amber-400 transition-colors">Record a Memory</a></li>
-                                <li><a href="/explore" className="hover:text-amber-400 transition-colors">Explore</a></li>
-                            </ul>
-                        </div>
-                        <div>
-                             <h4 className="font-semibold text-white tracking-wider uppercase">Resources</h4>
-                            <ul className="mt-4 space-y-2">
-                                <li><a href="/families" className="hover:text-amber-400 transition-colors">For Families</a></li>
-                                <li><a href="/educators" className="hover:text-amber-400 transition-colors">For Educators</a></li>
-                                <li><a href="/communities" className="hover:text-amber-400 transition-colors">For Communities</a></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 className="font-semibold text-white tracking-wider uppercase">Contact</h4>
-                            <ul className="mt-4 space-y-2">
-                                <li><a href="/contact" className="hover:text-amber-400 transition-colors">Contact Us</a></li>
-                                <li><a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors">Twitter</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div className="mt-8 border-t border-stone-800 pt-8 text-center text-sm text-stone-500">
-                        <p>&copy; {new Date().getFullYear()} Echo. All rights reserved.</p>
-                    </div>
-                </div>
-            </footer>
+  return (
+    <div className="bg-white text-stone-800 font-sans">
+      
+      {/* --- NAVBAR (This is your existing navbar) --- */}
+      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-stone-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <Link href="/" className="flex items-center">
+                <span className="text-2xl font-bold text-stone-900 tracking-tighter">Echo</span>
+            </Link>
+            <div className="hidden md:flex items-center space-x-10">
+              <Link href="/about" className="text-stone-800 font-bold transition-colors text-base">About</Link>
+              <Link href="/submit" className="text-stone-600 hover:text-stone-900 transition-colors text-base">Record a Memory</Link>
+              <Link href="/explore" className="text-stone-600 hover:text-stone-900 transition-colors text-base">Explore</Link>
+            </div>
+            <div className="flex items-center">
+               <Link href="/login" className="text-stone-600 hover:text-stone-900 border border-stone-300 hover:border-stone-500 px-4 py-2 rounded-lg transition-colors shadow-sm">Login</Link>
+            </div>
+          </div>
         </div>
-    );
+      </nav>
+
+      <main className="overflow-hidden">
+        <AnimatedSection>
+            <header className="bg-white pt-20 pb-12 sm:pt-22 sm:pb-10">
+              <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                    <h1 className="text-4xl sm:text-5xl lg:text-7xl font-serif tracking-tight text-stone-900">
+                      A Bridge Between Generations.
+                    </h1>
+                    <p className="mt-8 max-w-3xl mx-auto text-lg lg:text-xl text-stone-600 leading-relaxed">
+                      Echo empowers students and families alike to preserve the irreplaceable wisdom of human experience, ensuring that every voice can be heard for generations to come.
+                    </p>
+              </div>
+            </header>
+        </AnimatedSection>
+        
+        {/* === NEW: "The Problem" section with creative image collage === */}
+        <AnimatedSection>
+            <section className="pt-12 pb-24 sm:pt-20 sm:pb-28">
+              <div className="max-w-7xl mx-auto px-8 sm:px-10 lg:px-12">
+                <div className="grid md:grid-cols-2 gap-16 md:gap-24">
+
+                  <div className="flex items-center">
+                    <div className="grid grid-cols-3 grid-rows-3 gap-4 h-[500px] w-full">
+                      <div className="col-span-2 row-span-1 relative rounded-lg overflow-hidden">
+                        <Image src="/bwfishing.jpg" alt="Description" layout="fill" className="object-cover" />
+                      </div>
+
+                    {/* Image 2: Spans 2 rows */}
+                      <div className="col-span-1 row-span-2 relative rounded-lg overflow-hidden">
+                        <Image src="/bwtunnel.jpg" alt="Description" layout="fill" className="object-cover" />
+                      </div>
+
+                    {/* Image 3: Standard 1x1 */}
+                      <div className="col-span-1 row-span-1 relative rounded-lg overflow-hidden">
+                        <Image src="/bwkid.jpg" alt="Description" layout="fill" className="object-cover" />
+                      </div>
+
+                      <div className="col-span-1 row-span-1 relative rounded-lg overflow-hidden">
+                        <Image src="/drag.jpg" alt="Description" layout="fill" className="object-cover" />
+                      </div>
+                    
+                    {/* Image 4: Spans 2 columns, 2 rows */}
+                      <div className="col-span-2 row-span-2 relative rounded-lg overflow-hidden">
+                        <Image src="/bwboat.jpg" alt="Description" layout="fill" className="object-cover" />
+                      </div>
+
+                      <div className="col-span-1 row-span-2 relative rounded-lg overflow-hidden">
+                        <Image src="/bwwoman.jpg" alt="Description" layout="fill" className="object-cover" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h2 className="font-serif text-3xl lg:text-4xl text-stone-900 mb-6">
+                      The Disappearing Voice
+                    </h2>
+                    <div className="prose prose-lg max-w-none text-stone-600 leading-relaxed space-y-6">
+                      <p>
+                        In a world of fleeting digital text, the most personal and profound method of storytelling,<span className="font-semibold text-stone-800"> the human voice</span>, is often lost. Priceless family memories, cultural traditions, and the histories of entire communities disappear when the last person who remembers them is gone. 
+                      </p>
+
+                      <p>
+                        It's the unwritten histories of our own families and the quiet wisdom of our local communities that are most at risk. The detailed craft of an artisan, the firsthand account of a pivotal event, the secret to a perfect holiday dish: these fragments of our heritage are often not considered 'important' enough for formal archives, yet they are the very threads that weave the fabric of our lives.
+                      </p>
+                      <p>
+                        <span className="font-semibold text-stone-800">Echo is our answer.</span> We provide the tools for anyone, from a high school student interviewing a community elder to a grandchild recording a grandparent's life story, to capture and preserve these voices forever. Together, we are building a living archive where the wisdom of the past is always present to inform the future.
+                      </p>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </section>
+          </AnimatedSection>
+        
+        <section className="bg-stone-800 text-white py-22 sm:py-28">
+          <div className="max-w-5xl mx-auto px-4 sm:px-8 lg:px-10">
+            <AnimatedSection>
+              <div className="text-center">
+                <h2 className="font-serif text-3xl lg:text-5xl">Our Guiding Principles</h2>
+                <p className="mt-4 text-lg text-stone-300 max-w-2xl mx-auto">These ideas are the foundation of everything we build.</p>
+              </div>
+              <div className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-16">
+                <div className="flex gap-6">
+                  <div className="flex-shrink-0"><BookHeart className="h-8 w-8 text-amber-400"/></div>
+                  <div>
+                    <h3 className="text-2xl font-semibold">Preserve with Purpose</h3>
+                    <p className="mt-2 text-stone-300 leading-relaxed">We conserve not just voices but the identities, traditions, and irreplaceable wisdom they carry.</p>
+                  </div>
+                </div>
+                <div className="flex gap-6">
+                  <div className="flex-shrink-0"><Users className="h-8 w-8 text-amber-400"/></div>
+                  <div>
+                    <h3 className="text-2xl font-semibold">Connect Generations</h3>
+                    <p className="mt-2 text-stone-300 leading-relaxed">We empower young people to become historians, forging powerful connections with their elders.</p>
+                  </div>
+                </div>
+                <div className="flex gap-6">
+                  <div className="flex-shrink-0"><Globe className="h-8 w-8 text-amber-400"/></div>
+                  <div>
+                    <h3 className="text-2xl font-semibold">Democratize Archives</h3>
+                    <p className="mt-2 text-stone-300 leading-relaxed">We believe personal histories and cultural narratives should be accessible to all, not locked away.</p>
+
+                  </div>
+                </div>
+                <div className="flex gap-6">
+                  <div className="flex-shrink-0"><Leaf className="h-8 w-8 text-amber-400"/></div>
+                  <div>
+                    <h3 className="text-2xl font-semibold">Sustain Wisdom</h3>
+                    <p className="mt-2 text-stone-300 leading-relaxed">True sustainability isn't just about the planet; it's about ensuring human wisdom endures.</p>
+                  </div>
+                </div>
+              </div>
+            </AnimatedSection>
+          </div>
+        </section>
+
+        {/* === NEW: "Founder's Story" section for a personal touch === */}
+        <AnimatedSection>
+          <section className="bg-white py-22 sm:py-28">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="grid md:grid-cols-3 gap-12 items-center">
+                <div className="md:col-span-1">
+                  {/* Remember to replace this with a real photo in your /public folder */}
+                  <Image 
+                    src="/founder-photo.jpg" 
+                    alt="Portrait of the founder of Echo."
+                    width={500}
+                    height={500}
+                    className="object-cover rounded-full aspect-square shadow-lg mx-auto"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <blockquote className="text-xl lg:text-2xl font-serif text-stone-800 leading-relaxed">
+                    "I created Echo after realizing my grandfather's incredible stories of immigrating to America existed only in my memory. I wanted to build something that would let anyone capture that magic—that voice—before it's gone forever. Echo is a promise to him, and to everyone with a story to tell."
+                  </blockquote>
+                  <cite className="mt-6 block font-semibold text-stone-900 not-italic">
+                    Nishka Jain
+                    <span className="ml-2 font-normal text-stone-600">Co-Founder of Echo</span>
+                  </cite>
+                </div>
+              </div>
+            </div>
+          </section>
+        </AnimatedSection>
+
+        <AnimatedSection>
+          <section className="bg-white border-y border-stone-200 py-24 sm:py-32">
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 className="font-serif text-3xl lg:text-4xl text-stone-900">Become a Part of the Archive Today</h2>
+                <div className="prose prose-lg max-w-none text-stone-600 leading-relaxed mt-6">
+                  <p>
+                    Whether you're a student, a teacher, a family historian, or simply someone with a story to share, Echo is for you. Join us in building a lasting resource for generations to come.
+                  </p>
+                </div>
+                <div className="mt-10">
+                  <Link href="/submit" className="px-8 py-4 bg-stone-800 text-white font-semibold rounded-lg hover:bg-stone-900 transition-all shadow-md transform hover:-translate-y-1">
+                      Record a Memory
+                  </Link>
+                </div>
+            </div>
+          </section>
+        </AnimatedSection>
+      </main>
+
+      {/* --- FOOTER (Your original footer) --- */}
+      <footer className="bg-stone-900 text-stone-300">
+        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div className="col-span-2 md:col-span-1">
+                    <Link href="/" className="text-xl font-bold text-white">Echo</Link>
+                    <p className="mt-2 text-stone-400 text-sm">Hold onto the stories that hold us together.</p>
+                </div>
+                <div>
+                    <h4 className="font-semibold text-white tracking-wider uppercase">Navigate</h4>
+                    <ul className="mt-4 space-y-2">
+                        <li><Link href="/about" className="hover:text-amber-400 transition-colors">About</Link></li>
+                        <li><Link href="/submit" className="hover:text-amber-400 transition-colors">Record a Memory</Link></li>
+                        <li><Link href="/explore" className="hover:text-amber-400 transition-colors">Explore</Link></li>
+                    </ul>
+                </div>
+                <div>
+                     <h4 className="font-semibold text-white tracking-wider uppercase">Resources</h4>
+                    <ul className="mt-4 space-y-2">
+                        <li><Link href="/families" className="hover:text-amber-400 transition-colors">For Families</Link></li>
+                        <li><Link href="/educators" className="hover:text-amber-400 transition-colors">For Educators</Link></li>
+                        <li><Link href="/communities" className="hover:text-amber-400 transition-colors">For Communities</Link></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 className="font-semibold text-white tracking-wider uppercase">Contact</h4>
+                    <ul className="mt-4 space-y-2">
+                        <li><Link href="/contact" className="hover:text-amber-400 transition-colors">Contact Us</Link></li>
+                        <li><a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors">Twitter</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div className="mt-8 border-t border-stone-800 pt-8 text-center text-sm text-stone-500">
+                <p>&copy; {new Date().getFullYear()} Echo. All rights reserved.</p>
+            </div>
+        </div>
+      </footer>
+    </div>
+  );
 }
