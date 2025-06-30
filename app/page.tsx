@@ -284,42 +284,48 @@ return (
           </section>
         </AnimatedSection>
 
-    <footer className="bg-stone-900 text-stone-300">
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              <div className="col-span-2 md:col-span-1">
-                  <Link href="/" className="text-xl font-bold text-white">Echo</Link>
-                  <p className="mt-2 text-stone-400 text-sm">Hold onto the stories that hold us together.</p>
+        <footer className="bg-stone-900 text-stone-300">
+          <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8 text-center">
+
+            {/* Brand Name */}
+            <Link href="/" className="text-2xl font-bold text-white">
+              Echo
+            </Link>
+            
+            {/* Tagline */}
+            <p className="mt-4 text-stone-400 max-w-md mx-auto">
+              Hold onto the stories that hold us together.
+            </p>
+
+            {/* All Links & Socials in a single row */}
+            <div className="mt-8 flex justify-center items-center gap-6 text-sm font-medium text-stone-300">
+              <Link href="/about" className="hover:text-white transition-colors">About</Link>
+              <Link href="/submit" className="hover:text-white transition-colors">Submit</Link>
+              <Link href="/explore" className="hover:text-white transition-colors">Explore</Link>
+              <Link href="/about#contact" className="hover:text-white transition-colors">Contact</Link>
+              
+              {/* A small visual separator */}
+              <div className="h-4 w-px bg-stone-700"></div>
+
+              {/* Social Icons */}
+              <div className="flex items-center gap-5">
+                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-white transition-colors">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+                </a>
+                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-white transition-colors">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                </a>
+                <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-white transition-colors">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="m9.5 9.5 5 5"/><path d="m14.5 9.5-5 5"/></svg>
+                </a>
               </div>
-              <div>
-                  <h4 className="font-semibold text-white tracking-wider uppercase">Navigate</h4>
-                  <ul className="mt-4 space-y-2">
-                      <li><Link href="/about" className="hover:text-amber-400 transition-colors">About</Link></li>
-                      <li><Link href="/submit" className="hover:text-amber-400 transition-colors">Record a Memory</Link></li>
-                      <li><Link href="/explore" className="hover:text-amber-400 transition-colors">Explore</Link></li>
-                  </ul>
-              </div>
-              <div>
-                   <h4 className="font-semibold text-white tracking-wider uppercase">Resources</h4>
-                  <ul className="mt-4 space-y-2">
-                      <li><Link href="/families" className="hover:text-amber-400 transition-colors">For Families</Link></li>
-                      <li><Link href="/educators" className="hover:text-amber-400 transition-colors">For Educators</Link></li>
-                      <li><Link href="/communities" className="hover:text-amber-400 transition-colors">For Communities</Link></li>
-                  </ul>
-              </div>
-              <div>
-                  <h4 className="font-semibold text-white tracking-wider uppercase">Contact</h4>
-                  <ul className="mt-4 space-y-2">
-                      <li><Link href="/contact" className="hover:text-amber-400 transition-colors">Contact Us</Link></li>
-                      <li><a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors">Twitter</a></li>
-                  </ul>
-              </div>
+            </div>
+            
+            {/* Copyright */}
+            <p className="mt-10 text-xs text-stone-500">&copy; {new Date().getFullYear()} Echo. All rights reserved.</p>
+
           </div>
-          <div className="mt-8 border-t border-stone-800 pt-8 text-center text-sm text-stone-500">
-              <p>&copy; {new Date().getFullYear()} Echo. All rights reserved.</p>
-          </div>
-      </div>
-    </footer>
+        </footer>
   </div>
 );
 }

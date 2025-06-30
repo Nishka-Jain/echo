@@ -1,10 +1,18 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Mic, Square, Pause, Play, Check, RotateCcw, FastForward, Scissors, X } from 'lucide-react';
+import { Mic, Square, Pause, Play, Check, RotateCcw, Scissors, X } from 'lucide-react';
 
-// A helper function to convert an AudioBuffer to a WAV Blob
-const audioBufferToWav = (buffer) => {
+// Define types for better code quality. These are placeholders for the actual WaveSurfer types.
+// If you install @types/wavesurfer.js, you could get more specific types.
+type WaveSurferInstance = any;
+type RecordPluginInstance = any;
+type RegionsPluginInstance = any;
+type Region = any;
+
+// Helper function to convert an AudioBuffer to a WAV Blob
+const audioBufferToWav = (buffer: AudioBuffer): Blob => {
+    // ... (The low-level audio conversion logic remains unchanged)
     const numChannels = buffer.numberOfChannels;
     const sampleRate = buffer.sampleRate;
     const format = 1; // PCM
@@ -15,17 +23,14 @@ const audioBufferToWav = (buffer) => {
     const bufferSize = 44 + dataSize;
     const arrayBuffer = new ArrayBuffer(bufferSize);
     const view = new DataView(arrayBuffer);
-
-    const writeString = (view, offset, string) => {
+    const writeString = (view: DataView, offset: number, string: string) => {
         for (let i = 0; i < string.length; i++) {
             view.setUint8(offset + i, string.charCodeAt(i));
         }
     };
-    // RIFF header
     writeString(view, 0, 'RIFF');
     view.setUint32(4, bufferSize - 8, true);
     writeString(view, 8, 'WAVE');
-    // fmt chunk
     writeString(view, 12, 'fmt ');
     view.setUint32(16, 16, true);
     view.setUint16(20, format, true);
@@ -34,10 +39,8 @@ const audioBufferToWav = (buffer) => {
     view.setUint32(28, sampleRate * blockAlign, true);
     view.setUint16(32, blockAlign, true);
     view.setUint16(34, bitDepth, true);
-    // data chunk
     writeString(view, 36, 'data');
     view.setUint32(40, dataSize, true);
-
     let offset = 44;
     for (let i = 0; i < buffer.length; i++) {
         for (let channel = 0; channel < numChannels; channel++) {
@@ -50,28 +53,34 @@ const audioBufferToWav = (buffer) => {
     return new Blob([arrayBuffer], { type: 'audio/wav' });
 };
 
-export default function AudioRecorder({ onRecordingComplete }) {
-    const waveformRef = useRef(null);
-    const wavesurferRef = useRef(null);
-    const recordPluginRef = useRef(null);
-    const regionsPluginRef = useRef(null);
-    const activeRegionRef = useRef(null);
-    const currentAudioUrlRef = useRef(null);
+// Define props for our component
+interface AudioRecorderProps {
+    onRecordingComplete: (file: File | null) => void;
+}
+
+export default function AudioRecorder({ onRecordingComplete }: AudioRecorderProps) {
+    const waveformRef = useRef<HTMLDivElement | null>(null);
+    const wavesurferRef = useRef<WaveSurferInstance | null>(null);
+    const recordPluginRef = useRef<RecordPluginInstance | null>(null);
+    const regionsPluginRef = useRef<RegionsPluginInstance | null>(null);
+    const activeRegionRef = useRef<Region | null>(null);
+    const currentAudioUrlRef = useRef<string | null>(null);
 
     const [status, setStatus] = useState('loading'); // loading, idle, recording, paused, finished, trimming
-    const [isPlaybackPlaying, setIsPlaybackPlaying] = useState(false);
-    const [playbackRate, setPlaybackRate] = useState(1);
-    const [recordedBlob, setRecordedBlob] = useState(null);
-    const [finalAudioFile, setFinalAudioFile] = useState(null);
-    const [isWaveSurferReady, setIsWaveSurferReady] = useState(false);
+    const [isPlaybackPlaying, setIsPlaybackPlaying] = useState<boolean>(false);
+    const [playbackRate, setPlaybackRate] = useState<number>(1);
+    const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
+    const [finalAudioFile, setFinalAudioFile] = useState<File | null>(null);
+    const [isWaveSurferReady, setIsWaveSurferReady] = useState<boolean>(false);
 
-    // Load WaveSurfer scripts from CDN
+    // This effect handles the asynchronous loading of the WaveSurfer scripts from a CDN.
     useEffect(() => {
+        // @ts-ignore
         if (window.WaveSurfer && window.WaveSurfer.Record && window.WaveSurfer.Regions) {
             setIsWaveSurferReady(true);
             return;
         }
-        const loadScript = (src) => new Promise((resolve, reject) => {
+        const loadScript = (src: string) => new Promise((resolve, reject) => {
             const script = document.createElement('script');
             script.src = src;
             script.async = true;
@@ -95,22 +104,18 @@ export default function AudioRecorder({ onRecordingComplete }) {
     useEffect(() => {
         if (!isWaveSurferReady || !waveformRef.current) return;
         
+        // @ts-ignore
         const wavesurfer = window.WaveSurfer.create({
-            container: waveformRef.current,
-            waveColor: '#d1d5db',
-            progressColor: '#374151',
-            barWidth: 3, barGap: 2, barRadius: 2,
-            height: 128,
+            container: waveformRef.current, waveColor: '#d1d5db', progressColor: '#374151',
+            barWidth: 3, barGap: 2, barRadius: 2, height: 128,
         });
         wavesurferRef.current = wavesurfer;
+        // @ts-ignore
         const record = wavesurfer.registerPlugin(window.WaveSurfer.Record.create());
         recordPluginRef.current = record;
 
-        record.on('record-start', () => {
-            setStatus('recording');
-            setFinalAudioFile(null);
-        });
-        record.on('record-end', (blob) => {
+        record.on('record-start', () => { setStatus('recording'); setFinalAudioFile(null); });
+        record.on('record-end', (blob: Blob) => {
             const url = URL.createObjectURL(blob);
             if (currentAudioUrlRef.current) URL.revokeObjectURL(currentAudioUrlRef.current);
             currentAudioUrlRef.current = url;
@@ -131,10 +136,9 @@ export default function AudioRecorder({ onRecordingComplete }) {
         };
     }, [isWaveSurferReady]);
 
-    // --- Controls ---
     const handleStartRecording = () => {
         if (recordPluginRef.current) {
-            if (wavesurferRef.current.getDuration() > 0) wavesurferRef.current.empty();
+            if (wavesurferRef.current?.getDuration() > 0) wavesurferRef.current.empty();
             recordPluginRef.current.startRecording();
         }
     };
@@ -151,64 +155,43 @@ export default function AudioRecorder({ onRecordingComplete }) {
             setStatus('recording');
         }
     };
-
     const handleTogglePlayback = () => {
         if (!wavesurferRef.current) return;
-
-        if (wavesurferRef.current.isPlaying()) {
-            wavesurferRef.current.pause();
-            return;
-        }
-
         if (status === 'trimming' && activeRegionRef.current) {
             activeRegionRef.current.play();
         } else {
-            wavesurferRef.current.play();
+            wavesurferRef.current.playPause();
         }
     };
-
-    const handleChangePlaybackRate = (rate) => {
+    const handleChangePlaybackRate = (rate: number) => {
         setPlaybackRate(rate);
         wavesurferRef.current?.setPlaybackRate(rate, true);
     };
-
     const handleEnableTrimming = () => {
+        // @ts-ignore
         if (!window.WaveSurfer.Regions || !wavesurferRef.current) return;
         setStatus('trimming');
         if (regionsPluginRef.current) regionsPluginRef.current.destroy();
         
+        // @ts-ignore
         const regions = wavesurferRef.current.registerPlugin(window.WaveSurfer.Regions.create());
         regionsPluginRef.current = regions;
         
-        // This listener is key: it stops playback when the cursor leaves the region.
-        regions.on('region-out', () => {
-            if (wavesurferRef.current.isPlaying()) {
-                wavesurferRef.current.pause();
-            }
-        });
+        regions.on('region-out', () => { if (wavesurferRef.current.isPlaying()) wavesurferRef.current.pause(); });
         
         activeRegionRef.current = regions.addRegion({
-            start: 0,
-            end: wavesurferRef.current.getDuration(),
-            color: 'rgba(59, 130, 246, 0.2)',
-            drag: true,
-            resize: true,
+            start: 0, end: wavesurferRef.current.getDuration(), color: 'rgba(59, 130, 246, 0.2)',
+            drag: true, resize: true,
         });
     };
-
     const handleTrimAndSave = async () => {
         if (!activeRegionRef.current || !recordedBlob) return;
         const { start, end } = activeRegionRef.current;
         const originalBuffer = wavesurferRef.current.getDecodedData();
         if (!originalBuffer || end - start <= 0) return;
 
-        const OfflineAudioContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
-        const offlineContext = new OfflineAudioContext(
-            originalBuffer.numberOfChannels,
-            (end - start) * originalBuffer.sampleRate,
-            originalBuffer.sampleRate
-        );
-
+        const OfflineAudioContext = window.OfflineAudioContext;
+        const offlineContext = new OfflineAudioContext(originalBuffer.numberOfChannels, (end - start) * originalBuffer.sampleRate, originalBuffer.sampleRate);
         const source = offlineContext.createBufferSource();
         source.buffer = originalBuffer;
         source.connect(offlineContext.destination);
@@ -216,18 +199,14 @@ export default function AudioRecorder({ onRecordingComplete }) {
 
         const newBuffer = await offlineContext.startRendering();
         const newBlob = audioBufferToWav(newBuffer);
-        
         const newUrl = URL.createObjectURL(newBlob);
         if (currentAudioUrlRef.current) URL.revokeObjectURL(currentAudioUrlRef.current);
         currentAudioUrlRef.current = newUrl;
         
-        wavesurferRef.current.once('ready', () => {
-            setRecordedBlob(newBlob);
-            handleCancelTrimming();
-        });
         wavesurferRef.current.load(newUrl);
+        setRecordedBlob(newBlob);
+        handleCancelTrimming();
     };
-
     const handleCancelTrimming = () => {
         if (regionsPluginRef.current) {
             regionsPluginRef.current.destroy();
@@ -236,81 +215,78 @@ export default function AudioRecorder({ onRecordingComplete }) {
         activeRegionRef.current = null;
         setStatus('finished');
     };
-
     const handleConfirm = () => {
         if (!recordedBlob) return;
         const file = new File([recordedBlob], `echo-recording-${Date.now()}.wav`, { type: 'audio/wav' });
         setFinalAudioFile(file);
-        if (onRecordingComplete) onRecordingComplete(file);
+        onRecordingComplete(file);
     };
-
     const handleRestart = () => {
         handleCancelTrimming();
         wavesurferRef.current?.empty();
         setStatus('idle');
         setFinalAudioFile(null);
         setRecordedBlob(null);
-        if (onRecordingComplete) onRecordingComplete(null);
+        onRecordingComplete(null);
     };
 
     return (
-        <div className="p-4 bg-white rounded-xl shadow-lg w-full max-w-2xl mx-auto space-y-4">
+        <div className="p-4 bg-white rounded-xl border border-stone-200 shadow-sm w-full mx-auto space-y-4">
             <div ref={waveformRef} id="waveform" className="w-full h-32 border-2 border-dashed border-stone-300 rounded-lg bg-stone-50 transition-all"></div>
             
-            {status === 'loading' && <p className="text-center text-stone-500">Loading audio editor...</p>}
-            {status === 'error' && <p className="text-center text-red-500">Error loading editor. Please refresh.</p>}
+            {status === 'loading' && <p className="text-center text-stone-500 py-12">Loading Audio Editor...</p>}
+            {status === 'error' && <p className="text-center text-red-500 py-12">Error loading editor. Please refresh.</p>}
 
-            <div className="flex items-center justify-center gap-4 flex-wrap">
+            <div className="flex items-center justify-center gap-4 flex-wrap min-h-[64px]">
                 {status === 'idle' && (
-                    <button onClick={handleStartRecording} className="flex items-center gap-2 p-4 px-6 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors font-semibold shadow-md">
+                    <button type="button" onClick={handleStartRecording} className="flex items-center gap-2 p-4 px-6 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors font-semibold shadow-md">
                         <Mic size={20} /> Start Recording
                     </button>
                 )}
                 {(status === 'recording' || status === 'paused') && (
                     <>
-                        <button onClick={status === 'recording' ? handlePauseRecording : handleResumeRecording} className="flex items-center gap-3 p-4 px-6 rounded-lg bg-stone-700 text-white hover:bg-stone-800 transition-colors font-semibold">
+                        <button type="button" onClick={status === 'recording' ? handlePauseRecording : handleResumeRecording} className="flex items-center gap-3 p-4 px-6 rounded-lg bg-stone-700 text-white hover:bg-stone-800 transition-colors font-semibold">
                             {status === 'recording' ? <Pause size={20} /> : <Play size={20} />} {status === 'recording' ? 'Pause' : 'Resume'}
                         </button>
-                        <button onClick={handleStopRecording} className="flex items-center gap-3 p-4 px-6 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors font-semibold">
+                        <button type="button" onClick={handleStopRecording} className="flex items-center gap-3 p-4 px-6 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors font-semibold">
                             <Square size={20} /> Stop
                         </button>
                     </>
                 )}
                 {status === 'finished' && (
                     <>
-                        <button onClick={handleEnableTrimming} className="flex items-center gap-3 p-4 px-6 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors font-semibold">
-                            <Scissors size={20} /> Trim Clip
+                        <button type="button" onClick={handleEnableTrimming} className="flex items-center gap-3 p-3 px-4 rounded-lg bg-stone-600 text-white hover:bg-stone-700 transition-colors font-medium">
+                            <Scissors size={16} /> Trim
                         </button>
-                        <button onClick={handleConfirm} className="flex items-center gap-3 p-4 px-6 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors font-semibold">
-                            <Check size={20} /> Confirm
+                        <button type="button" onClick={handleRestart} className="flex items-center gap-3 p-3 px-4 rounded-lg bg-stone-200 text-stone-800 hover:bg-stone-300 transition-colors font-medium">
+                            <RotateCcw size={16} /> Re-record
                         </button>
-                        <button onClick={handleRestart} className="flex items-center gap-3 p-4 px-6 rounded-lg bg-stone-200 text-stone-800 hover:bg-stone-300 transition-colors font-semibold">
-                            <RotateCcw size={20} /> Record Again
+                        <button type="button" onClick={handleConfirm} className="flex items-center gap-3 p-4 px-6 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors font-semibold">
+                            <Check size={20} /> Use This Recording
                         </button>
                     </>
                 )}
                 {status === 'trimming' && (
                     <>
-                        <button onClick={handleTrimAndSave} className="flex items-center gap-3 p-4 px-6 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors font-semibold">
-                            <Check size={20} /> Confirm Trim
+                        <button type="button" onClick={handleCancelTrimming} className="flex items-center gap-3 p-3 px-4 rounded-lg bg-stone-200 text-stone-800 hover:bg-stone-300 transition-colors font-medium">
+                           <X size={16} /> Cancel
                         </button>
-                        <button onClick={handleCancelTrimming} className="flex items-center gap-3 p-4 px-6 rounded-lg bg-stone-200 text-stone-800 hover:bg-stone-300 transition-colors font-semibold">
-                           <X size={20} /> Cancel
+                        <button type="button" onClick={handleTrimAndSave} className="flex items-center gap-3 p-4 px-6 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors font-semibold">
+                            <Check size={20} /> Save Trim
                         </button>
                     </>
                 )}
             </div>
 
-            {wavesurferRef.current && wavesurferRef.current.getDuration() > 0 && (
+            {wavesurferRef.current?.getDuration() > 0 && (
                 <div className="flex items-center justify-center gap-6 pt-4 border-t border-stone-200 mt-4">
-                    <button onClick={handleTogglePlayback} className="p-3 bg-stone-800 text-white rounded-full hover:bg-stone-900 transition-colors disabled:opacity-50" disabled={status === 'recording'}>
+                    <button type="button" onClick={handleTogglePlayback} className="p-3 bg-stone-800 text-white rounded-full hover:bg-stone-900 transition-colors disabled:opacity-50" disabled={status === 'recording' || status === 'paused'}>
                         {isPlaybackPlaying ? <Pause size={24} /> : <Play size={24} />}
                     </button>
                     <div className="flex items-center gap-2 text-sm text-stone-600">
-                        <FastForward size={16} />
                         <span>Speed:</span>
-                        {[0.5, 1, 1.5, 2].map(rate => (
-                            <button key={rate} onClick={() => handleChangePlaybackRate(rate)} className={`px-3 py-1 rounded-full text-xs font-semibold ${playbackRate === rate ? 'bg-stone-800 text-white' : 'bg-stone-200 text-stone-700 hover:bg-stone-300'}`}>
+                        {[1, 1.5, 2].map(rate => (
+                            <button type="button" key={rate} onClick={() => handleChangePlaybackRate(rate)} className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${playbackRate === rate ? 'bg-stone-800 text-white' : 'bg-stone-200 text-stone-700 hover:bg-stone-300'}`}>
                                 {rate}x
                             </button>
                         ))}
@@ -318,9 +294,9 @@ export default function AudioRecorder({ onRecordingComplete }) {
                 </div>
             )}
             {finalAudioFile && (
-                <div className="mt-4 p-3 text-center bg-green-50 border border-green-200 text-green-800 rounded-lg flex items-center justify-center gap-3 text-sm">
+                <div className="mt-4 p-3 text-center bg-green-100 border border-green-200 text-green-800 rounded-lg flex items-center justify-center gap-3 text-sm">
                     <Check size={20} />
-                    <span>Ready to submit: <strong>{finalAudioFile.name}</strong></span>
+                    <span>Recording confirmed: <strong>{finalAudioFile.name}</strong></span>
                 </div>
             )}
         </div>

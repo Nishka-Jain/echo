@@ -109,7 +109,7 @@ export default function AboutPage() {
             <AnimatedSection>
               <div className="text-center">
                 <h2 className="font-serif text-3xl lg:text-5xl">Our Guiding Principles</h2>
-                <p className="mt-4 text-lg text-stone-300 max-w-2xl mx-auto">These ideas are the foundation of everything we build.</p>
+                <p className="mt-6 text-lg text-stone-300 max-w-2xl mx-auto">These ideas are the foundation of everything we build.</p>
               </div>
               <div className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-16">
                 <div className="flex gap-6">
@@ -146,71 +146,146 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* === NEW: "Founder's Story" section for a personal touch === */}
         <AnimatedSection>
-          <section className="bg-white py-22 sm:py-28">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="grid md:grid-cols-3 gap-12 items-center">
+          <section className="bg-white py-22 sm:py-28 border-y border-stone-200">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-16">
+                <h2 className="font-serif text-3xl lg:text-4xl text-stone-900">The Reason We Began</h2>
+                <p className="mt-6 text-lg text-stone-600">A word from our founders.</p>
+              </div>
+
+              {/* Container for both founders */}
+              <div className="space-y-20">
+
+                {/* --- Founder 1 --- */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 items-center">
+                  {/* Text on the left */}
+                  <div className="md:col-span-2">
+                    <blockquote className="font-serif text-xl lg:text-2xl text-black leading-relaxed">
+                    "I started Echo for a selfish reason: I was terrified of forgetting the exact sound of my grandmother's laugh. But I soon realized this wasn't just my fear; it's a universal one. We build this platform not just to archive sounds, but to preserve the feeling of connection itself—to create a legacy of love that future generations can actually hear."
+                    </blockquote>
+                    <cite className="mt-6 block font-semibold text-black not-italic">
+                      Nishka Jain,
+                      <span className="ml-2 font-normal text-stone-800">Co-Founder</span>
+                    </cite>
+                  </div>
+                  {/* Photo on the right */}
+                  <div className="md:col-span-1 flex justify-center md:justify-end">
+                    <Image
+                      src="/nishka.png" // Replace with actual photo
+                      alt="Picture of Nishka Jain"
+                      width={220}
+                      height={220}
+                      className="rounded-full object-cover aspect-square object-top"
+                    />
+                  </div>
+                </div>
+
+                <hr className="border-stone-200" />
+
+                {/* --- Founder 2 --- */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 items-center">
+                  {/* Photo on the left (order-last on desktop makes it appear on the right) */}
+                  <div className="md:col-span-1 flex justify-center md:justify-start">
+                    <Image
+                      src="/angela.png" // Replace with actual photo
+                      alt="Picture of Angela Li"
+                      width={220}
+                      height={220}
+                      className="rounded-full object-cover aspect-square object-top"
+                    />
+                  </div>
+                  {/* Text on the right (order-first on desktop makes it appear on the left) */}
+                  <div className="md:col-span-2">
+                    <blockquote className="font-serif text-xl lg:text-2xl text-black leading-relaxed">
+                    "We live in an age of endless information, but we're starving for wisdom. That wisdom isn't in a database; it's in the cadence of our elders' voices, in the stories shared across generations. Echo is our way of building a new kind of library—not of data, but of humanity itself."
+                    </blockquote>
+                    <cite className="mt-6 block font-semibold text-black not-italic">
+                      Angela Li
+                      <span className="ml-2 font-normal text-stone-800">Co-Founder</span>
+                    </cite>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </section>
+        </AnimatedSection>
+
+        <AnimatedSection>
+          <section id="contact" className="bg-white py-22 sm:py-28 border-t border-stone-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-10 lg:px-15">
+              {/* The two-column grid container */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+
                 <div className="md:col-span-1">
-                  {/* Remember to replace this with a real photo in your /public folder */}
-                  <Image 
-                    src="/founder-photo.jpg" 
-                    alt="Portrait of the founder of Echo."
-                    width={500}
-                    height={500}
-                    className="object-cover rounded-full aspect-square shadow-lg mx-auto"
-                  />
+                  <h2 className="font-serif text-3xl lg:text-4xl text-stone-900">
+                    Have a story to share? Let's talk.
+                  </h2>
                 </div>
-                <div className="md:col-span-2">
-                  <blockquote className="text-xl lg:text-2xl font-serif text-stone-800 leading-relaxed">
-                    "I created Echo after realizing my grandfather's incredible stories of immigrating to America existed only in my memory. I wanted to build something that would let anyone capture that magic—that voice—before it's gone forever. Echo is a promise to him, and to everyone with a story to tell."
-                  </blockquote>
-                  <cite className="mt-6 block font-semibold text-stone-900 not-italic">
-                    Nishka Jain
-                    <span className="ml-2 font-normal text-stone-600">Co-Founder of Echo</span>
-                  </cite>
+
+                <div className="md:col-span-2 md:border-l md:border-stone-200 md:pl-16">
+                  <h3 className="text-lg font-semibold text-stone-800">General Inquiries & Partnerships</h3>
+                  <p className="mt-2 text-stone-600">
+                    We’d love to hear from you. Whether you have a question about our mission, an idea for collaboration, or simply want to share your thoughts, please don’t hesitate to reach out.
+                  </p>
+                  <div className="mt-6">
+                    <a 
+                      href="mailto:contact.echoarchive@gmail.com"
+                      className="inline-flex items-center justify-center gap-2 text-lg font-semibold text-amber-700 hover:text-amber-800 transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                      contact.echoarchive@gmail.com
+                    </a>
+                  </div>
                 </div>
+
               </div>
             </div>
           </section>
         </AnimatedSection>
       </main>
 
-      {/* --- FOOTER (Your original footer) --- */}
       <footer className="bg-stone-900 text-stone-300">
-        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                <div className="col-span-2 md:col-span-1">
-                    <Link href="/" className="text-xl font-bold text-white">Echo</Link>
-                    <p className="mt-2 text-stone-400 text-sm">Hold onto the stories that hold us together.</p>
-                </div>
-                <div>
-                    <h4 className="font-semibold text-white tracking-wider uppercase">Navigate</h4>
-                    <ul className="mt-4 space-y-2">
-                        <li><Link href="/about" className="hover:text-amber-400 transition-colors">About</Link></li>
-                        <li><Link href="/submit" className="hover:text-amber-400 transition-colors">Record a Memory</Link></li>
-                        <li><Link href="/explore" className="hover:text-amber-400 transition-colors">Explore</Link></li>
-                    </ul>
-                </div>
-                <div>
-                     <h4 className="font-semibold text-white tracking-wider uppercase">Resources</h4>
-                    <ul className="mt-4 space-y-2">
-                        <li><Link href="/families" className="hover:text-amber-400 transition-colors">For Families</Link></li>
-                        <li><Link href="/educators" className="hover:text-amber-400 transition-colors">For Educators</Link></li>
-                        <li><Link href="/communities" className="hover:text-amber-400 transition-colors">For Communities</Link></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 className="font-semibold text-white tracking-wider uppercase">Contact</h4>
-                    <ul className="mt-4 space-y-2">
-                        <li><Link href="/contact" className="hover:text-amber-400 transition-colors">Contact Us</Link></li>
-                        <li><a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors">Twitter</a></li>
-                    </ul>
-                </div>
+        <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8 text-center">
+
+          {/* Brand Name */}
+          <Link href="/" className="text-2xl font-bold text-white">
+            Echo
+          </Link>
+          
+          {/* Tagline */}
+          <p className="mt-4 text-stone-400 max-w-md mx-auto">
+            Hold onto the stories that hold us together.
+          </p>
+
+          {/* All Links & Socials in a single row */}
+          <div className="mt-8 flex justify-center items-center gap-6 text-sm font-medium text-stone-300">
+            <Link href="/about" className="hover:text-white transition-colors">About</Link>
+            <Link href="/submit" className="hover:text-white transition-colors">Submit</Link>
+            <Link href="/explore" className="hover:text-white transition-colors">Explore</Link>
+            <Link href="/about#contact" className="hover:text-white transition-colors">Contact</Link>
+            
+            {/* A small visual separator */}
+            <div className="h-4 w-px bg-stone-700"></div>
+
+            {/* Social Icons */}
+            <div className="flex items-center gap-5">
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-white transition-colors">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+              </a>
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-white transition-colors">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+              </a>
+              <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-white transition-colors">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="m9.5 9.5 5 5"/><path d="m14.5 9.5-5 5"/></svg>
+              </a>
             </div>
-            <div className="mt-8 border-t border-stone-800 pt-8 text-center text-sm text-stone-500">
-                <p>&copy; {new Date().getFullYear()} Echo. All rights reserved.</p>
-            </div>
+          </div>
+          
+          {/* Copyright */}
+          <p className="mt-10 text-xs text-stone-500">&copy; {new Date().getFullYear()} Echo. All rights reserved.</p>
+
         </div>
       </footer>
     </div>
