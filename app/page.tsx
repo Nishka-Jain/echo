@@ -269,13 +269,12 @@ return (
           <section className="bg-white border-y border-stone-200 py-22 sm:py-28">
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 <h2 className="font-serif text-4xl lg:text-5xl text-stone-900">Become a Part of the Archive Today</h2>
-                <div className="prose prose-xl max-w-none text-stone-600 leading-relaxed mt-8">
-                
+                <div className="prose prose-xl max-w-none text-stone-600 leading-relaxed mt-8">               
                   <p>
                     Whether you're a student, a teacher, a family historian, or simply someone with a story to share, Echo is for you. Join us in building a lasting resource for generations to come.
                   </p>
                 </div>
-                <div className="mt-10">
+                <div className="mt-13">
                   <Link href="/submit" className="px-8 py-4 bg-stone-800 text-white font-semibold rounded-lg hover:bg-stone-900 transition-all shadow-md transform hover:-translate-y-1">
                       Record a Memory
                   </Link>

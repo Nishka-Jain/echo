@@ -155,7 +155,7 @@ export default function SubmitPage() {
                 </div>
             </nav>
 
-            <main className="py-14 sm:py-20">
+            <main className="py-14 sm:py-18">
                 <div className="max-w-4xl mx-auto px-6 sm:px-10 lg:px-10">
                     {isSubmitted ? (
                         <div className="bg-white rounded-xl shadow-md border border-stone-200 text-center p-8 sm:p-16 animate-fade-in">
@@ -174,7 +174,7 @@ export default function SubmitPage() {
                         <>
                             <div className="text-center mb-14">
                                 <h1 className="text-4xl sm:text-5xl font-serif text-stone-900">Record a Memory</h1>
-                                <p className="mt-6 text-lg text-stone-600">Follow our guided process to capture and preserve an important story.</p>
+                                <p className="mt-4 text-lg text-stone-600">Follow our guided process to capture and preserve an important story.</p>
                             </div>
 
                             <div className="mb-12">
