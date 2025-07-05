@@ -4,8 +4,15 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Mic, Upload, CheckCircle, ArrowRight, ArrowLeft, Pencil, Info, ImagePlus, X, Plus, PartyPopper } from 'lucide-react';
 import AudioRecorder from '@/app/components/AudioRecorder';
+import { db, storage } from '@/lib/firebase';
+import { collection, addDoc } from "firebase/firestore"; 
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import Navbar from '@/app/components/Navbar';
+import { useAuth } from '@/app/context/AuthContext';
+import { APIProvider } from '@vis.gl/react-google-maps';
+import LocationSearch from '@/app/components/LocationSearch';
+import type { Place } from '@/app/components/LocationSearch';
 
-// --- Stepper Component ---
 const Stepper = ({ currentStep, steps }: { currentStep: number, steps: string[] }) => (
     <div className="flex w-full items-center justify-center">
         {steps.map((step, index) => (
@@ -36,16 +43,18 @@ export default function SubmitPage() {
     const [audioTab, setAudioTab] = useState('record');
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [customTag, setCustomTag] = useState('');
-    const [location, setLocation] = useState('');
+    const [location, setLocation] = useState<Place | null>(null);
     const [summary, setSummary] = useState('');
     
     const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
     const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const { user } = useAuth();
 
     const steps = ["Who's Speaking", "Record Audio", "Add Details", "Review & Submit"];
     const [availableTags, setAvailableTags] = useState(["Family", "Migration", "Food", "Tradition", "Love", "Loss", "Childhood", "Work"]);
-
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    
     useEffect(() => {
         if (speakerPhoto) {
             const url = URL.createObjectURL(speakerPhoto);
@@ -102,22 +111,68 @@ export default function SubmitPage() {
     const isStepValid = (() => {
         if (currentStep === 1) return speakerName.trim() !== '';
         if (currentStep === 2) return !!audioFile;
-        if (currentStep === 3) return storyTitle.trim() !== '' && location.trim() !== '' && selectedTags.length > 0;
+        if (currentStep === 3) return storyTitle.trim() !== '' && !!location && selectedTags.length > 0;
         return true;
     })();
     
-    const isSubmittable = !!(audioFile && storyTitle && speakerName && location.trim() && selectedTags.length > 0);
+    const isSubmittable = !!(audioFile && storyTitle && speakerName && !!location && selectedTags.length > 0);
 
-    const handleFinalSubmit = () => {
+    const handleFinalSubmit = async () => {
+        
+        if (!isSubmittable || !user) { // Also check if the user exists
+            alert("You must be logged in to submit a story.");
+            return;
+        }
+
         if (!isSubmittable) return;
-        const storyData = { 
-            title: storyTitle, speaker_name: speakerName, speaker_age: speakerAge,
-            speaker_pronouns: speakerPronouns, speaker_photo_url: speakerPhoto?.name,
-            audio_url: audioFile?.name, tags: selectedTags, location, summary, 
-            created_at: new Date().toISOString() 
-        };
-        console.log("Submitting Story Data:", storyData);
-        setIsSubmitted(true);
+        setIsSubmitting(true); // Start loading state
+    
+        try {
+            let audioUrl = "";
+            let photoUrl = "";
+    
+            // 1. Upload Audio File to Firebase Storage
+            if (audioFile) {
+                const audioRef = ref(storage, `stories/audio/${Date.now()}-${audioFile.name}`);
+                const audioSnapshot = await uploadBytes(audioRef, audioFile);
+                audioUrl = await getDownloadURL(audioSnapshot.ref);
+            }
+    
+            // 2. Upload Photo File (if it exists)
+            if (speakerPhoto) {
+                const photoRef = ref(storage, `stories/photos/${Date.now()}-${speakerPhoto.name}`);
+                const photoSnapshot = await uploadBytes(photoRef, speakerPhoto);
+                photoUrl = await getDownloadURL(photoSnapshot.ref);
+            }
+    
+            // 3. Create the story object with the new URLs
+            const storyData = { 
+                title: storyTitle,
+                speaker: speakerName,
+                age: speakerAge,
+                pronouns: speakerPronouns,
+                photoUrl: photoUrl, // URL from Firebase Storage
+                audioUrl: audioUrl, // URL from Firebase Storage
+                tags: selectedTags, 
+                location: location,
+                summary: summary,
+                createdAt: new Date(),
+                authorId: user.uid, 
+                authorName: user.displayName, 
+            };
+    
+            // 4. Save the story metadata to Firestore
+            const docRef = await addDoc(collection(db, "stories"), storyData);
+            console.log("Document written with ID: ", docRef.id);
+    
+            setIsSubmitted(true); // Show success message
+    
+        } catch (error) {
+            console.error("Error submitting story: ", error);
+            alert("There was an error submitting your story. Please try again.");
+        } finally {
+            setIsSubmitting(false); // Stop loading state
+        }
     };
     
     const handleResetForm = () => {
@@ -130,30 +185,14 @@ export default function SubmitPage() {
       setAudioFile(null);
       setSelectedTags([]);
       setCustomTag('');
-      setLocation('');
+      setLocation(null);
       setSummary('');
       setIsSubmitted(false);
     }
 
     return (
         <div className="bg-white min-h-screen font-sans">
-             <nav className="bg-white border-b border-stone-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-20">
-                        <Link href="/" className="flex items-center">
-                            <span className="text-2xl font-bold text-stone-900 tracking-tighter">Echo</span>
-                        </Link>
-                        <div className="hidden md:flex items-center space-x-10">
-                            <Link href="/about" className="text-stone-600 hover:text-stone-900 transition-colors text-base">About</Link>
-                            <Link href="/submit" className="text-stone-800 font-bold transition-colors text-base">Record a Memory</Link>
-                            <Link href="/explore" className="text-stone-600 hover:text-stone-900 transition-colors text-base">Explore</Link>
-                        </div>
-                         <div className="flex items-center">
-                           <Link href="/login" className="text-stone-600 hover:text-stone-900 border border-stone-300 hover:border-stone-500 px-4 py-2 rounded-lg transition-colors shadow-sm">Login</Link>
-                        </div>
-                    </div>
-                </div>
-            </nav>
+            <Navbar />
 
             <main className="py-14 sm:py-18">
                 <div className="max-w-4xl mx-auto px-6 sm:px-10 lg:px-10">
@@ -236,7 +275,12 @@ export default function SubmitPage() {
                                                 <div className="flex flex-wrap gap-2">{availableTags.map(tag => (<button type="button" key={tag} onClick={() => handleTagClick(tag)} className={`px-4 py-2 rounded-full border transition-colors text-sm font-medium ${selectedTags.includes(tag) ? 'bg-stone-800 text-white border-stone-800' : 'bg-white text-stone-700 border-stone-300 hover:bg-stone-100'}`}>{tag}</button>))}</div>
                                                 <div className="flex items-center gap-2 mt-4"><input type="text" value={customTag} onChange={(e) => setCustomTag(e.target.value)} onKeyDown={handleCustomTagKeyDown} placeholder="Add your own tag and press Enter" className="flex-grow p-3 border border-stone-300 rounded-lg" /><button type="button" onClick={handleAddCustomTag} className="p-3 bg-stone-200 text-stone-800 rounded-lg hover:bg-stone-300 transition-colors"><Plus size={20} /></button></div>
                                             </div>
-                                            <div><label htmlFor="location" className="block text-sm font-medium text-stone-700 mb-1">Location <span className="text-red-500">*</span></label><input type="text" id="location" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g., Oaxaca, Mexico" className="w-full p-3 border border-stone-300 rounded-lg" required /></div>
+                                            <div>
+                                            <label htmlFor="location" className="block text-sm font-medium text-stone-700 mb-1">Location <span className="text-red-500">*</span></label>
+                                                <APIProvider apiKey={process.env.NEXT_PUBLIC_Maps_API_KEY!}>
+                                                    <LocationSearch onPlaceSelect={(place) => setLocation(place)} />
+                                                </APIProvider>
+                                            </div>
                                             <div><label htmlFor="summary" className="block text-sm font-medium text-stone-700 mb-1">Describe the story <span className="text-stone-500">(Optional)</span></label><textarea id="summary" value={summary} onChange={(e) => setSummary(e.target.value)} rows={4} className="w-full p-3 border border-stone-300 rounded-lg"></textarea></div>
                                         </div>
                                     )}
@@ -248,7 +292,7 @@ export default function SubmitPage() {
                                          <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Title:</strong> <span className="text-right">{storyTitle || 'Not provided'}</span></div>
                                          <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Speaker:</strong> <span className="text-right">{speakerName || 'Not provided'}</span></div>
                                          <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Tags:</strong> <span className="text-right">{selectedTags.join(', ') || 'None'}</span></div>
-                                         <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Location:</strong> <span className="text-right">{location || 'None'}</span></div>
+                                         <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Location:</strong> <span className="text-right">{location?.name || 'None'}</span></div>
                                          <div className="flex justify-between py-3 border-b border-stone-100 items-start"><strong className="font-medium text-stone-500">Photo:</strong> {photoPreviewUrl ? <img src={photoPreviewUrl} alt="Speaker preview" className="w-16 h-16 rounded-lg object-cover" /> : 'None'}</div>
                                          <div className="py-3"><strong className="font-medium text-stone-500">Summary:</strong> <p className="mt-1 text-stone-600 whitespace-pre-wrap">{summary || 'None'}</p></div>
                                       </div>
@@ -264,8 +308,8 @@ export default function SubmitPage() {
                                             Next <ArrowRight size={20}/>
                                         </button>
                                    ) : (
-                                        <button type="button" onClick={handleFinalSubmit} disabled={!isSubmittable} className="p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-green-600 text-white transition-all font-semibold disabled:bg-stone-300 disabled:cursor-not-allowed hover:bg-green-700">
-                                            Submit Story <CheckCircle size={20}/>
+                                        <button type="button" onClick={handleFinalSubmit} disabled={!isSubmittable || isSubmitting} className="p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-green-600 text-white transition-all font-semibold disabled:bg-stone-300 disabled:cursor-not-allowed hover:bg-green-700">
+                                              {isSubmitting ? 'Submitting...' : 'Submit Story'} <CheckCircle size={20}/>
                                         </button>
                                    )}
                                 </div>

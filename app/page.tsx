@@ -3,11 +3,12 @@
 import React, { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Mic, Heart, ArrowRight, MapIcon, Menu, X } from 'lucide-react'; // Added Menu and X icons
+import { Mic, Heart, ArrowRight, MapIcon, Menu, X } from 'lucide-react'; 
 import AnimatedSection from '@/app/components/AnimatedSection';
 import dynamic from 'next/dynamic';
+import { useAuth } from '@/app/context/AuthContext'; 
+import Navbar from '@/app/components/Navbar';
 
-// Import the component and the UNIFIED `Story` type.
 import StoryCard from './components/StoryCard'; 
 const HomepageMap = dynamic(() => import('./components/HomepageMap'), {
   ssr: false,
@@ -58,7 +59,8 @@ const featuredStories: Story[] = [
 
 export default function HomePage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false); // State for mobile menu
+  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user, isLoading, signInWithGoogle, logout } = useAuth();
 
   // Effect for image carousel
   useEffect(() => {
@@ -100,58 +102,8 @@ return (
 
       {/* Content Layer */}
       <div className="relative z-10 flex h-full flex-col">
-        {/* --- NAVBAR START --- */}
-        <nav className="bg-transparent">
-          <div className="max-w-7xl mx-auto px-6 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-20 border-b border-white/20">
-              <Link href="/" className="text-2xl font-bold tracking-tighter">
-                  Echo
-              </Link>
-              
-              {/* Desktop Navigation */}
-              <div className="hidden md:flex items-center space-x-10">
-                <Link href="/about" className="text-stone-300 hover:text-white transition-colors text-base">About</Link>
-                <Link href="/submit" className="text-stone-300 hover:text-white transition-colors text-base">Record a Memory</Link>
-                <Link href="/explore" className="text-stone-300 hover:text-white transition-colors text-base">Explore</Link>
-              </div>
-
-              {/* Login and Mobile Menu Toggle */}
-              <div className="flex items-center gap-4">
-                 <Link href="/login" className="hidden sm:block text-white hover:bg-white/20 border border-white/50 px-4 py-2 rounded-lg transition-colors shadow-sm">
-                  Login
-                </Link>
-                <div className="md:hidden">
-                  <button 
-                    onClick={() => setMobileMenuOpen(!isMobileMenuOpen)} 
-                    className="inline-flex items-center justify-center p-2 rounded-md text-stone-200 hover:text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-                    aria-controls="mobile-menu" 
-                    aria-expanded={isMobileMenuOpen}
-                  >
-                    <span className="sr-only">Open main menu</span>
-                    {isMobileMenuOpen ? <X className="block h-6 w-6" /> : <Menu className="block h-6 w-6" />}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile menu, show/hide based on menu state. */}
-          {isMobileMenuOpen && (
-            <div className="md:hidden" id="mobile-menu">
-              <div className="px-6 pt-2 pb-4 space-y-1 sm:px-3 bg-stone-900/90 backdrop-blur-sm">
-                <Link href="/about" className="text-stone-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">About</Link>
-                <Link href="/submit" className="text-stone-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Record a Memory</Link>
-                <Link href="/explore" className="text-stone-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Explore</Link>
-                <div className="border-t border-stone-700 pt-4 mt-2 sm:hidden">
-                    <Link href="/login" className="block text-center w-full text-white bg-white/10 hover:bg-white/20 border border-white/50 px-4 py-2 rounded-lg transition-colors shadow-sm">
-                        Login
-                    </Link>
-                </div>
-              </div>
-            </div>
-          )}
-        </nav>
-        {/* --- NAVBAR END --- */}
+        
+        <Navbar variant="transparent" />
 
         <header className="flex flex-grow items-center justify-center text-center">
           <div className="max-w-5xl mx-auto px-6 sm:px-6 lg:px-8">
@@ -174,7 +126,6 @@ return (
       </div>
     </div>
     
-    <AnimatedSection>
       <section id="about" className="py-22 sm:py-28 bg-white">
         <div className="max-w-7xl mx-auto px-10 sm:px-10 lg:px-15">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-16 items-center">
@@ -219,7 +170,6 @@ return (
             </div>
         </div>
       </section>
-    </AnimatedSection>
     
     <AnimatedSection>
       <section id="explore" className="py-24 sm:py-28 bg-white border-t border-stone-200">

@@ -5,29 +5,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { BookHeart, Globe, Leaf, Users } from 'lucide-react';
 import AnimatedSection from '../components/AnimatedSection';
+import Navbar from '@/app/components/Navbar';
 
 export default function AboutPage() {
   return (
     <div className="bg-white text-stone-800 font-sans">
-      
-      {/* --- NAVBAR (This is your existing navbar) --- */}
-      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-stone-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <Link href="/" className="flex items-center">
-                <span className="text-2xl font-bold text-stone-900 tracking-tighter">Echo</span>
-            </Link>
-            <div className="hidden md:flex items-center space-x-10">
-              <Link href="/about" className="text-stone-800 font-bold transition-colors text-base">About</Link>
-              <Link href="/submit" className="text-stone-600 hover:text-stone-900 transition-colors text-base">Record a Memory</Link>
-              <Link href="/explore" className="text-stone-600 hover:text-stone-900 transition-colors text-base">Explore</Link>
-            </div>
-            <div className="flex items-center">
-               <Link href="/login" className="text-stone-600 hover:text-stone-900 border border-stone-300 hover:border-stone-500 px-4 py-2 rounded-lg transition-colors shadow-sm">Login</Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       <main className="overflow-hidden">
         <AnimatedSection>
@@ -165,8 +148,8 @@ export default function AboutPage() {
                     "I started Echo for a selfish reason: I was terrified of forgetting the exact sound of my grandmother's laugh. But I soon realized this wasn't just my fear; it's a universal one. We build this platform not just to archive sounds, but to preserve the feeling of connection itself—to create a legacy of love that future generations can actually hear."
                     </blockquote>
                     <cite className="mt-6 block font-semibold text-black not-italic">
-                      Nishka Jain,
-                      <span className="ml-2 font-normal text-stone-800">Co-Founder</span>
+                      Nishka Jain
+                      <span className="ml-2 font-normal text-stone-800">(Co-Founder)</span>
                     </cite>
                   </div>
                   {/* Photo on the right */}
@@ -202,7 +185,7 @@ export default function AboutPage() {
                     </blockquote>
                     <cite className="mt-6 block font-semibold text-black not-italic">
                       Angela Li
-                      <span className="ml-2 font-normal text-stone-800">Co-Founder</span>
+                      <span className="ml-2 font-normal text-stone-800">(Co-Founder)</span>
                     </cite>
                   </div>
                 </div>

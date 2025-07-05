@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@types/leaflet": "^1.9.19",
+    "@vis.gl/react-google-maps": "^1.5.3",
+    "firebase": "^11.10.0",
     "framer-motion": "^12.19.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.514.0",

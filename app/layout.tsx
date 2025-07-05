@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Playfair_Display, Lato } from "next/font/google";
 import './globals.css';
 import 'leaflet/dist/leaflet.css'; 
+import { AuthProvider } from './context/AuthContext';
 
 // Configure the Lato font for body text
 const lato = Lato({ 
@@ -38,8 +39,10 @@ export default function RootLayout({
           crossOrigin=""
         />
       </head>
-      <body className={`${lato.variable} ${playfairDisplay.variable} font-sans`}>
-        {children}
+      <body>
+        <AuthProvider> 
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

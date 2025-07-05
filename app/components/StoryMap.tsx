@@ -4,12 +4,12 @@ import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { Icon } from 'leaflet';
 import Link from 'next/link';
+import type { Story } from '@/lib/types';
 
-
-// Create a custom icon for the map markers
 const customIcon = new Icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
-    iconSize: [38, 38], // size of the icon
+  iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+  iconSize:   [28, 28], // ✨ Smaller size (width, height)
+  iconAnchor: [14, 28], // ✨ Anchors the icon's bottom-center tip
 });
 
 interface StoryMapProps {
