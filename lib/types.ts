@@ -1,3 +1,5 @@
+import type { User } from 'firebase/auth';
+
 export type Story = {
   id: string;
   photoUrl?: string; 
@@ -14,4 +16,8 @@ export type Story = {
     lat: number;
     lng: number;
   };
+};
+
+export type UserProfile = User & {
+  photoPosition?: string;
 };

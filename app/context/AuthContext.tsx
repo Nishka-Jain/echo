@@ -1,43 +1,61 @@
 "use client";
 
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { getAuth, onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
-import { app } from '@/lib/firebase'; 
+import { getAuth, onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut, updateProfile } from 'firebase/auth';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { app, db } from '@/lib/firebase';
+import type { UserProfile } from '@/lib/types';
+import AuthModal from '@/app/components/AuthModal';
 
-// Get the Auth instance
 const auth = getAuth(app);
+const storage = getStorage(app);
 
-// Define the shape of your context data
 interface AuthContextType {
-  user: User | null;
+  user: UserProfile | null;
   isLoading: boolean;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
+  openAuthModal: () => void;
+  updateUserProfilePhoto: (photoFile: File, position: string) => Promise<void>;
 }
 
-// Create the context with a default value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Create the AuthProvider component
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   useEffect(() => {
-    // Listen for changes in authentication state
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const userDocRef = doc(db, "users", firebaseUser.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        const customData = userDocSnap.exists() ? userDocSnap.data() : {};
+        setUser({ ...firebaseUser, ...customData }); 
+      } else {
+        setUser(null);
+      }
       setIsLoading(false);
     });
-
-    // Cleanup subscription on unmount
     return () => unsubscribe();
   }, []);
+
+  const openAuthModal = () => setIsAuthModalOpen(true);
+  const closeAuthModal = () => setIsAuthModalOpen(false);
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      const userDocRef = doc(db, "users", result.user.uid);
+      await setDoc(userDocRef, { 
+          displayName: result.user.displayName,
+          email: result.user.email,
+          photoURL: result.user.photoURL,
+      }, { merge: true });
+      closeAuthModal();
     } catch (error) {
       console.error("Error signing in with Google", error);
     }
@@ -50,15 +68,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error("Error signing out", error);
     }
   };
+  
+  const updateUserProfilePhoto = async (photoFile: File, position: string) => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) throw new Error("No user is signed in.");
+
+    const filePath = `profile-photos/${currentUser.uid}/${photoFile.name}`;
+    const storageRef = ref(storage, filePath);
+    await uploadBytes(storageRef, photoFile);
+    const downloadURL = await getDownloadURL(storageRef);
+
+    await updateProfile(currentUser, { photoURL: downloadURL });
+    
+    const userDocRef = doc(db, "users", currentUser.uid);
+    await setDoc(userDocRef, { 
+        photoURL: downloadURL,
+        photoPosition: position
+    }, { merge: true });
+
+    setUser(prevUserProfile => {
+        if (!prevUserProfile) return null;
+        return {
+            ...prevUserProfile,
+            photoURL: downloadURL,
+            photoPosition: position
+        };
+    });
+  };
+
+  const value = { user, isLoading, signInWithGoogle, logout, openAuthModal, updateUserProfilePhoto };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, signInWithGoogle, logout }}>
+    <AuthContext.Provider value={value}>
       {children}
+      {isAuthModalOpen && <AuthModal onClose={closeAuthModal} />}
     </AuthContext.Provider>
   );
 };
 
-// Create a custom hook to use the auth context easily
+// ✨ FIX: Make sure the 'export' keyword is here
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

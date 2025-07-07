@@ -20,7 +20,7 @@ async function getStory(id: string): Promise<Story | null> {
               age: data.age,
               pronouns: data.pronouns,
               excerpt: data.summary || 'No summary available.',
-              imageUrl: data.photoUrl || '/default-image.png',
+              photoUrl: data.photoUrl || '/default-image.png',
               audioUrl: data.audioUrl,
               tags: data.tags || [],
               location: data.location,

@@ -1,0 +1,64 @@
+import { db } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import StoryEditForm from './StoryEditForm'; // Import our new client component
+import type { Story } from '@/lib/types';
+import Link from 'next/link';
+
+// This is a helper function to fetch a single story
+async function getStory(id: string): Promise<Story | null> {
+    try {
+        const docRef = doc(db, "stories", id);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            // ✨ FIX: We explicitly build the object and convert the timestamp
+            const storyData: Story = {
+              id: docSnap.id,
+              title: data.title,
+              speaker: data.speaker,
+              age: data.age,
+              pronouns: data.pronouns,
+              excerpt: data.summary,
+              photoUrl: data.photoUrl,
+              audioUrl: data.audioUrl,
+              tags: data.tags,
+              location: data.location,
+              // Convert the Firestore Timestamp to a simple, serializable ISO string
+              createdAt: data.createdAt?.toDate().toISOString(),
+            };
+            return storyData;
+        } else {
+            console.log("No such document!");
+            return null;
+        }
+    } catch (error) {
+        console.error("Error fetching story:", error);
+        return null;
+    }
+}
+
+// This is our main Page component. It's now an async server component.
+export default async function EditStoryPage({ params }: { params: { id: string } }) {
+    const story = await getStory(params.id);
+
+    if (!story) {
+        return (
+            <div className="text-center py-48">
+                <h1 className="text-2xl font-serif">Story Not Found</h1>
+                <Link href="/explore" className="text-amber-700 font-semibold mt-6 inline-block">← Back to Explore</Link>
+            </div>
+        );
+    }
+    
+    // The server component renders the client component and passes the "plain" data as a prop
+    return (
+        <div className="bg-stone-100 min-h-screen font-sans">
+             <main className="py-16 sm:py-24">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                   <StoryEditForm initialStory={story} />
+                </div>
+            </main>
+        </div>
+    );
+}
