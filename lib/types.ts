@@ -16,6 +16,10 @@ export type Story = {
     lat: number;
     lng: number;
   };
+  dateType?: 'period' | 'year';
+  startYear?: number | null;
+  endYear?: number | null;
+  specificYear?: number | null;
 };
 
 export type UserProfile = User & {

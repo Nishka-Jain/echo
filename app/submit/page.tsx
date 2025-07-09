@@ -50,6 +50,12 @@ export default function SubmitPage() {
     const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const { user } = useAuth();
+    
+    const [dateType, setDateType] = useState<'period' | 'year'>('period');
+    const [startYear, setStartYear] = useState('');
+    const [endYear, setEndYear] = useState('');
+    const [specificYear, setSpecificYear] = useState('');
+
 
     const steps = ["Who's Speaking", "Record Audio", "Add Details", "Review & Submit"];
     const [availableTags, setAvailableTags] = useState(["Family", "Migration", "Food", "Tradition", "Love", "Loss", "Childhood", "Work"]);
@@ -159,6 +165,10 @@ export default function SubmitPage() {
                 createdAt: new Date(),
                 authorId: user.uid, 
                 authorName: user.displayName, 
+                dateType: dateType,
+                startYear: dateType === 'period' ? Number(startYear) : null,
+                endYear: dateType === 'period' ? Number(endYear) : null,
+                specificYear: dateType === 'year' ? Number(specificYear) : null,
             };
     
             // 4. Save the story metadata to Firestore
@@ -194,7 +204,7 @@ export default function SubmitPage() {
         <div className="bg-white min-h-screen font-sans">
             <Navbar />
 
-            <main className="py-14 sm:py-12">
+            <main className="py-14 sm:py-16">
                 <div className="max-w-4xl mx-auto px-6 sm:px-10 lg:px-10">
                     {isSubmitted ? (
                         <div className="bg-white rounded-xl shadow-md border border-stone-200 text-center p-8 sm:p-16 animate-fade-in">
@@ -280,6 +290,40 @@ export default function SubmitPage() {
                                                 <APIProvider apiKey={process.env.NEXT_PUBLIC_Maps_API_KEY!}>
                                                     <LocationSearch onPlaceSelect={(place) => setLocation(place)} />
                                                 </APIProvider>
+                                            </div>
+                                            <div className="space-y-4 rounded-lg border border-stone-200 p-4">
+                                                <h4 className="font-medium text-stone-700">When did this story take place? <span className="text-red-500">*</span></h4>
+                                                
+                                                {/* The toggle buttons */}
+                                                <div className="flex items-center gap-2 rounded-lg bg-stone-100 p-1">
+                                                    <button type="button" onClick={() => setDateType('period')} className={`w-full py-2 text-sm font-semibold rounded-md transition-colors ${dateType === 'period' ? 'bg-white shadow-sm text-stone-800' : 'text-stone-500 hover:bg-stone-200'}`}>
+                                                        A Time Period
+                                                    </button>
+                                                    <button type="button" onClick={() => setDateType('year')} className={`w-full py-2 text-sm font-semibold rounded-md transition-colors ${dateType === 'year' ? 'bg-white shadow-sm text-stone-800' : 'text-stone-500 hover:bg-stone-200'}`}>
+                                                        A Specific Year
+                                                    </button>
+                                                </div>
+
+                                                {/* Conditional Inputs */}
+                                                {dateType === 'period' && (
+                                                    <div className="grid grid-cols-2 gap-4 animate-fade-in">
+                                                        <div>
+                                                            <label htmlFor="startYear" className="text-sm text-stone-600">Start Year</label>
+                                                            <input id="startYear" type="number" placeholder="e.g., 1960" value={startYear} onChange={e => setStartYear(e.target.value)} className="w-full mt-1 p-3 border border-stone-300 rounded-lg" />
+                                                        </div>
+                                                        <div>
+                                                            <label htmlFor="endYear" className="text-sm text-stone-600">End Year</label>
+                                                            <input id="endYear" type="number" placeholder="e.g., 1969" value={endYear} onChange={e => setEndYear(e.target.value)} className="w-full mt-1 p-3 border border-stone-300 rounded-lg" />
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                
+                                                {dateType === 'year' && (
+                                                    <div className="animate-fade-in">
+                                                        <label htmlFor="specificYear" className="text-sm text-stone-600">Year</label>
+                                                        <input id="specificYear" type="number" placeholder="e.g., 1995" value={specificYear} onChange={e => setSpecificYear(e.target.value)} className="w-full mt-1 p-3 border border-stone-300 rounded-lg" />
+                                                    </div>
+                                                )}
                                             </div>
                                             <div><label htmlFor="summary" className="block text-sm font-medium text-stone-700 mb-1">Describe the story <span className="text-stone-500">(Optional)</span></label><textarea id="summary" value={summary} onChange={(e) => setSummary(e.target.value)} rows={4} className="w-full p-3 border border-stone-300 rounded-lg"></textarea></div>
                                         </div>

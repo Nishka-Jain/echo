@@ -4,7 +4,6 @@ import StoryEditForm from './StoryEditForm'; // Import our new client component
 import type { Story } from '@/lib/types';
 import Link from 'next/link';
 
-// This is a helper function to fetch a single story
 async function getStory(id: string): Promise<Story | null> {
     try {
         const docRef = doc(db, "stories", id);
@@ -12,7 +11,6 @@ async function getStory(id: string): Promise<Story | null> {
 
         if (docSnap.exists()) {
             const data = docSnap.data();
-            // ✨ FIX: We explicitly build the object and convert the timestamp
             const storyData: Story = {
               id: docSnap.id,
               title: data.title,
@@ -24,8 +22,11 @@ async function getStory(id: string): Promise<Story | null> {
               audioUrl: data.audioUrl,
               tags: data.tags,
               location: data.location,
-              // Convert the Firestore Timestamp to a simple, serializable ISO string
               createdAt: data.createdAt?.toDate().toISOString(),
+              dateType: data.dateType,
+              startYear: data.startYear,
+              endYear: data.endYear,
+              specificYear: data.specificYear,
             };
             return storyData;
         } else {

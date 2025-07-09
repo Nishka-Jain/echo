@@ -21,7 +21,7 @@ export default function Navbar({ variant = 'solid' }: NavbarProps) {
   const isTransparent = variant === 'transparent';
 
   // Style definitions
-  const navClasses = isTransparent ? "border-white/20" : "bg-white/90 backdrop-blur-md border-stone-200";
+  const navClasses = isTransparent ? "border-white/20" : "bg-white/90 backdrop-blur-md";
   const linkColor = isTransparent ? "text-stone-300 hover:text-white" : "text-stone-600 hover:text-stone-900";
   const activeLinkColor = isTransparent ? "text-white font-bold" : "text-stone-800 font-bold";
   const brandColor = isTransparent ? "text-white" : "text-stone-900";
@@ -47,7 +47,7 @@ export default function Navbar({ variant = 'solid' }: NavbarProps) {
   return (
     <nav className={`sticky top-0 z-50 transition-colors duration-300 ${navClasses}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className={`grid grid-cols-3 items-center h-20 border-b ${isTransparent ? 'border-white/20' : 'border-transparent'}`}>
+        <div className={`grid grid-cols-3 items-center h-20 border-b ${isTransparent ? 'border-white/20' : 'border-stone-300'}`}>
           
           <div className="justify-self-start">
             <Link href="/" className="flex items-center">

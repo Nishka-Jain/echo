@@ -46,6 +46,10 @@ export default function ExplorePage() {
                         photoUrl: data.photoUrl,
                         tags: data.tags || [],
                         location: data.location,
+                        dateType: data.dateType,
+                        startYear: data.startYear,
+                        endYear: data.endYear,
+                        specificYear: data.specificYear,
                     } as Story;
                 });
                 setAllStories(storiesData);
@@ -71,7 +75,7 @@ export default function ExplorePage() {
         <div className="bg-white min-h-screen text-stone-800 font-sans">
             <Navbar />
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 <header className="text-center mb-12">
                     <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-900">Explore Stories</h1>
                     <p className="mt-4 max-w-2xl mx-auto text-lg text-stone-600">Discover a living archive of voices, memories, and wisdom from around the world.</p>

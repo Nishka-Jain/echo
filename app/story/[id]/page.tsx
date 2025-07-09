@@ -4,7 +4,7 @@ import StoryClientPage from './StoryClientPage';
 import type { Story } from '@/lib/types';
 import Link from 'next/link';
 
-// This is a helper function to fetch a single story
+// This helper function now correctly fetches ALL story data, including the new date fields
 async function getStory(id: string): Promise<Story | null> {
     try {
         const docRef = doc(db, "stories", id);
@@ -12,24 +12,26 @@ async function getStory(id: string): Promise<Story | null> {
 
         if (docSnap.exists()) {
             const data = docSnap.data();
-            // ✨ FIX: We now explicitly build the object and convert the timestamp
             const storyData: Story = {
               id: docSnap.id,
-              title: data.title || 'Untitled Story',
-              speaker: data.speaker || 'Unknown Speaker',
+              title: data.title,
+              speaker: data.speaker, // Make sure this matches your DB field name
               age: data.age,
               pronouns: data.pronouns,
-              excerpt: data.summary || 'No summary available.',
-              photoUrl: data.photoUrl || '/default-image.png',
+              excerpt: data.summary,
+              photoUrl: data.photoUrl,
               audioUrl: data.audioUrl,
-              tags: data.tags || [],
+              tags: data.tags,
               location: data.location,
-              // Convert the Firestore Timestamp to a simple, serializable ISO string
+              // ✨ FIX: Adding the new date fields to the object
+              dateType: data.dateType,
+              startYear: data.startYear,
+              endYear: data.endYear,
+              specificYear: data.specificYear,
               createdAt: data.createdAt?.toDate().toISOString(),
             };
             return storyData;
         } else {
-            console.log("No such document!");
             return null;
         }
     } catch (error) {
@@ -40,12 +42,8 @@ async function getStory(id: string): Promise<Story | null> {
 
 
 export default async function StoryPage({ params }: { params: { id: string } }) {
-    // We fetch the data here, on the server.
     const story = await getStory(params.id);
-
-    // ✨ FIX: Check for the 'null' case before rendering the client page.
     if (!story) {
-        // You can style this page however you like.
         return (
             <div className="flex items-center justify-center min-h-screen text-center px-4">
                 <div>
@@ -59,7 +57,5 @@ export default async function StoryPage({ params }: { params: { id: string } }) 
         );
     }
 
-    // If we get past the check above, TypeScript knows 'story' cannot be null.
-    // We can now safely pass it to our client component.
     return <StoryClientPage story={story} />;
 }
