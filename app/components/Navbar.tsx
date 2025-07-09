@@ -51,7 +51,7 @@ export default function Navbar({ variant = 'solid' }: NavbarProps) {
           
           <div className="justify-self-start">
             <Link href="/" className="flex items-center">
-              <span className={`text-2xl font-bold tracking-tighter ${brandColor}`}>{isTransparent ? 'Echo' : '🎤 Echo'}</span>
+              <span className={`text-2xl font-bold tracking-tighter ${brandColor}`}>{isTransparent ? 'Echo' : 'Echo'}</span>
             </Link>
           </div>
           

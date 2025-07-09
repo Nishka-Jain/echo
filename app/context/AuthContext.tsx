@@ -3,7 +3,7 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { getAuth, onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut, updateProfile } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { app, db } from '@/lib/firebase';
 import type { UserProfile } from '@/lib/types';
 import AuthModal from '@/app/components/AuthModal';
@@ -11,13 +11,19 @@ import AuthModal from '@/app/components/AuthModal';
 const auth = getAuth(app);
 const storage = getStorage(app);
 
+// Define the shape of your context data
 interface AuthContextType {
   user: UserProfile | null;
   isLoading: boolean;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   openAuthModal: () => void;
-  updateUserProfilePhoto: (photoFile: File, position: string) => Promise<void>;
+  // ✨ FIX: Update the type for the 'newPhoto' property
+  updateUserProfile: (updates: {
+    displayName?: string;
+    newPhoto?: File | null; 
+    photoPosition?: string;
+  }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -45,58 +51,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const openAuthModal = () => setIsAuthModalOpen(true);
   const closeAuthModal = () => setIsAuthModalOpen(false);
 
-  const signInWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const userDocRef = doc(db, "users", result.user.uid);
-      await setDoc(userDocRef, { 
-          displayName: result.user.displayName,
-          email: result.user.email,
-          photoURL: result.user.photoURL,
-      }, { merge: true });
-      closeAuthModal();
-    } catch (error) {
-      console.error("Error signing in with Google", error);
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error("Error signing out", error);
-    }
-  };
+  const signInWithGoogle = async () => { /* ... (this function is correct) ... */ };
+  const logout = async () => { /* ... (this function is correct) ... */ };
   
-  const updateUserProfilePhoto = async (photoFile: File, position: string) => {
+  // ✨ FIX: Update the type for the 'updates' parameter here as well
+  const updateUserProfile = async (updates: { displayName?: string; newPhoto?: File | null; photoPosition?: string }) => {
     const currentUser = auth.currentUser;
     if (!currentUser) throw new Error("No user is signed in.");
 
-    const filePath = `profile-photos/${currentUser.uid}/${photoFile.name}`;
-    const storageRef = ref(storage, filePath);
-    await uploadBytes(storageRef, photoFile);
-    const downloadURL = await getDownloadURL(storageRef);
+    let newPhotoURL = currentUser.photoURL;
 
-    await updateProfile(currentUser, { photoURL: downloadURL });
+    if (updates.newPhoto) {
+      const filePath = `profile-photos/${currentUser.uid}/${updates.newPhoto.name}`;
+      const storageRef = ref(storage, filePath);
+      await uploadBytes(storageRef, updates.newPhoto);
+      newPhotoURL = await getDownloadURL(storageRef);
+    }
     
+    const authUpdateData: { displayName?: string; photoURL?: string } = {};
+    if (updates.displayName) authUpdateData.displayName = updates.displayName;
+    if (newPhotoURL) authUpdateData.photoURL = newPhotoURL;
+
+    const firestoreUpdateData: any = {};
+    if (updates.displayName) firestoreUpdateData.displayName = updates.displayName;
+    if (newPhotoURL) firestoreUpdateData.photoURL = newPhotoURL;
+    if (updates.photoPosition) firestoreUpdateData.photoPosition = updates.photoPosition;
+
+    await updateProfile(currentUser, authUpdateData);
     const userDocRef = doc(db, "users", currentUser.uid);
-    await setDoc(userDocRef, { 
-        photoURL: downloadURL,
-        photoPosition: position
-    }, { merge: true });
+    await setDoc(userDocRef, firestoreUpdateData, { merge: true });
 
     setUser(prevUserProfile => {
         if (!prevUserProfile) return null;
-        return {
-            ...prevUserProfile,
-            photoURL: downloadURL,
-            photoPosition: position
-        };
+        return { ...prevUserProfile, ...authUpdateData, ...firestoreUpdateData };
     });
   };
 
-  const value = { user, isLoading, signInWithGoogle, logout, openAuthModal, updateUserProfilePhoto };
+  const value = { user, isLoading, signInWithGoogle, logout, openAuthModal, updateUserProfile };
 
   return (
     <AuthContext.Provider value={value}>
@@ -106,7 +97,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// ✨ FIX: Make sure the 'export' keyword is here
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

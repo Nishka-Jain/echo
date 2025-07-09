@@ -194,7 +194,7 @@ export default function SubmitPage() {
         <div className="bg-white min-h-screen font-sans">
             <Navbar />
 
-            <main className="py-14 sm:py-18">
+            <main className="py-14 sm:py-12">
                 <div className="max-w-4xl mx-auto px-6 sm:px-10 lg:px-10">
                     {isSubmitted ? (
                         <div className="bg-white rounded-xl shadow-md border border-stone-200 text-center p-8 sm:p-16 animate-fade-in">
