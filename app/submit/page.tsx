@@ -61,6 +61,10 @@ export default function SubmitPage() {
     const [availableTags, setAvailableTags] = useState(["Family", "Migration", "Food", "Tradition", "Love", "Loss", "Childhood", "Work"]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     
+    // --- New State for Transcription ---
+    const [transcription, setTranscription] = useState('');
+    const [transcriptionStatus, setTranscriptionStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle');
+
     useEffect(() => {
         if (speakerPhoto) {
             const url = URL.createObjectURL(speakerPhoto);
@@ -111,7 +115,38 @@ export default function SubmitPage() {
         }
     };
 
-    const handleNext = () => currentStep < steps.length && setCurrentStep(currentStep + 1);
+    // --- NEW Transcription Handler ---
+    const handleGenerateTranscription = async () => {
+        if (!audioFile || transcriptionStatus === 'generating' || transcriptionStatus === 'success') {
+            return; // Don't re-transcribe if already done or in progress
+        }
+        setTranscriptionStatus('generating');
+        setTranscription('');
+        try {
+            const formData = new FormData();
+            formData.append('audio', audioFile);
+            const response = await fetch('/api/transcribe', { method: 'POST', body: formData });
+            if (!response.ok) throw new Error('Transcription API call failed');
+            const result = await response.json();
+            setTranscription(result.transcription);
+            setTranscriptionStatus('success');
+        } catch (error) {
+            console.error("Error generating transcription:", error);
+            setTranscriptionStatus('error');
+        }
+    };
+
+    //const handleNext = () => currentStep < steps.length && setCurrentStep(currentStep + 1);
+    const handleNext = () => {
+        // When moving to the final step, trigger transcription
+        if (currentStep === 3) {
+            handleGenerateTranscription();
+        }
+        if (currentStep < steps.length) {
+            setCurrentStep(currentStep + 1);
+        }
+    };
+    
     const handleBack = () => currentStep > 1 && setCurrentStep(currentStep - 1);
 
     const isStepValid = (() => {
@@ -162,6 +197,7 @@ export default function SubmitPage() {
                 tags: selectedTags, 
                 location: location,
                 summary: summary,
+                transcription: transcription,
                 createdAt: new Date(),
                 authorId: user.uid, 
                 authorName: user.displayName, 
@@ -330,17 +366,30 @@ export default function SubmitPage() {
                                     )}
                                     {/* Step 4: Review */}
                                     {currentStep === 4 && (
-                                      <div className="space-y-4 text-stone-700 animate-fade-in">
-                                        {audioPreviewUrl && (<div className="bg-stone-50 rounded-lg p-4"><p className="text-sm font-medium text-stone-600 mb-2">Listen to your recording:</p><audio src={audioPreviewUrl} controls className="w-full" /></div>)}
-                                        <h4 className="text-lg font-semibold text-stone-800 border-b border-stone-200 pb-2 pt-4">Review your story details:</h4>
-                                         <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Title:</strong> <span className="text-right">{storyTitle || 'Not provided'}</span></div>
-                                         <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Speaker:</strong> <span className="text-right">{speakerName || 'Not provided'}</span></div>
-                                         <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Tags:</strong> <span className="text-right">{selectedTags.join(', ') || 'None'}</span></div>
-                                         <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Location:</strong> <span className="text-right">{location?.name || 'None'}</span></div>
-                                         <div className="flex justify-between py-3 border-b border-stone-100 items-start"><strong className="font-medium text-stone-500">Photo:</strong> {photoPreviewUrl ? <img src={photoPreviewUrl} alt="Speaker preview" className="w-16 h-16 rounded-lg object-cover" /> : 'None'}</div>
-                                         <div className="py-3"><strong className="font-medium text-stone-500">Summary:</strong> <p className="mt-1 text-stone-600 whitespace-pre-wrap">{summary || 'None'}</p></div>
-                                      </div>
-                                    )}
+                                          <div className="space-y-4 text-stone-700 animate-fade-in">
+                                              {audioPreviewUrl && (<div className="bg-stone-50 rounded-lg p-4"><p className="text-sm font-medium text-stone-600 mb-2">Listen to your recording:</p><audio src={audioPreviewUrl} controls className="w-full" /></div>)}
+                                              <h4 className="text-lg font-semibold text-stone-800 border-b border-stone-200 pb-2 pt-4">Review your story details:</h4>
+                                              <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Title:</strong> <span className="text-right">{storyTitle || 'Not provided'}</span></div>
+                                              <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Speaker:</strong> <span className="text-right">{speakerName || 'Not provided'}</span></div>
+                                              
+                                              {/* --- New Transcription Section --- */}
+                                              <div className="py-3">
+                                                  <strong className="font-medium text-stone-500">Transcription</strong>
+                                                  {transcriptionStatus === 'generating' && (
+                                                      <div className="mt-2 p-4 bg-stone-50 rounded-lg flex items-center gap-3 text-stone-600">
+                                                          <Loader2 size={20} className="animate-spin" />
+                                                          <p>Generating transcription... this may take a moment.</p>
+                                                      </div>
+                                                  )}
+                                                  {transcriptionStatus === 'success' && (
+                                                      <p className="mt-1 text-stone-600 whitespace-pre-wrap p-4 bg-stone-50 rounded-lg">{transcription || 'Transcription complete.'}</p>
+                                                  )}
+                                                  {transcriptionStatus === 'error' && (
+                                                      <p className="mt-1 text-red-600 p-4 bg-red-50 rounded-lg">Could not generate transcription. You can still submit the story.</p>
+                                                  )}
+                                              </div>
+                                          </div>
+                                      )}
                                 </form>
                                 {/* --- Navigation Buttons --- */}
                                 <div className="pt-8 border-t border-stone-200 mt-8 flex justify-between items-center">
