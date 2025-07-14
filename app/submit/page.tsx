@@ -429,7 +429,7 @@ export default function SubmitPage() {
                                             {/* --- Transcription & Translation Section --- */}
                                             <div className="py-3 space-y-4">
                                                 <div>
-                                                    <strong className="font-medium text-stone-500">Transcription (English)</strong>
+                                                    <strong className="font-medium text-stone-500">Transcription</strong>
                                                     {transcriptionStatus === 'generating' && (<div className="mt-2 p-4 bg-stone-50 rounded-lg flex items-center gap-3 text-stone-600"><Loader2 size={20} className="animate-spin" /><p>Generating transcription...</p></div>)}
                                                     {transcriptionStatus === 'success' && (<p className="mt-1 text-stone-600 whitespace-pre-wrap p-4 bg-stone-50 rounded-lg">{transcription}</p>)}
                                                     {transcriptionStatus === 'error' && (<p className="mt-1 text-red-600 p-4 bg-red-50 rounded-lg">Could not generate transcription.</p>)}

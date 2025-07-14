@@ -18,9 +18,15 @@ export async function POST(req: NextRequest) {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     // Create a clear, direct prompt for translation
-    const prompt = `Translate the following text into ${targetLanguage}. Provide only the translated text, without any additional comments, formatting, or conversational text.
+const prompt = `TASK: Translate the entire text block below into a single, cohesive ${targetLanguage} translation.
 
-Text to translate:
+RULES:
+- The source text may contain multiple languages.
+- Your entire output must be ONLY in ${targetLanguage}.
+- Do not leave any part of the original text untranslated, even if it's already in English or another language.
+- Do not add any extra words, introductory phrases, or explanations.
+
+SOURCE TEXT:
 "${text}"`;
 
     // Send the request to the Gemini API
