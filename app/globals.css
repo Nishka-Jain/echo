@@ -18,3 +18,11 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+input,
+textarea {
+  color: theme('colors.stone.900');
+}
+input::placeholder,
+textarea::placeholder {
+  color: theme('colors.stone.400');
+}
