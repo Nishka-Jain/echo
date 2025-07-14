@@ -27,6 +27,7 @@ async function getStory(id: string): Promise<Story | null> {
               endYear: data.endYear,
               specificYear: data.specificYear,
               createdAt: data.createdAt?.toDate().toISOString(),
+              transcription: data.transcription, // Add this line
             };
             return storyData;
         } else {
