@@ -6,7 +6,6 @@ import Image from 'next/image';
 import type { Story } from '@/lib/types';
 import { MapPin, Tag, UserCircle, Calendar } from 'lucide-react';
 
-// This helper function intelligently formats the event date for display
 const formatStoryDate = (story: Story): string | null => {
     if (story.dateType === 'year' && story.specificYear) {
         return story.specificYear.toString();
@@ -58,11 +57,9 @@ export default function StoryClientPage({ story }: { story: Story | null }) {
 
             <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
                 <article>
-                    {/* ✨ The header section has been updated */}
                     <header className="mb-12 border-b border-stone-200 pb-8">
                         <h1 className="text-4xl md:text-6xl font-serif text-stone-900 tracking-tight">{story.title}</h1>
                         
-                        {/* Speaker info is now directly under the title */}
                         <div className="mt-6 flex items-center gap-2 text-lg text-stone-600">
                             <UserCircle size={20} />
                             <span>
@@ -72,7 +69,6 @@ export default function StoryClientPage({ story }: { story: Story | null }) {
                             </span>
                         </div>
                         
-                        {/* NEW: Date information block */}
                         <div className="mt-6 text-sm text-stone-600 space-y-1">
                             {storyOccurrenceDate && (
                                 <p><span className="font-semibold text-stone-800">Occurred:</span> {storyOccurrenceDate}</p>

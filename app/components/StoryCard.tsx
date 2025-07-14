@@ -6,7 +6,6 @@ import Image from 'next/image';
 import type { Story } from '@/lib/types';
 import { Calendar } from 'lucide-react';
 
-// A small helper function to format the date display
 const formatStoryDate = (story: Story) => {
     if (story.dateType === 'year' && story.specificYear) {
         return story.specificYear.toString();
@@ -34,7 +33,6 @@ const StoryCard = ({ id, photoUrl, title, speaker, tags, excerpt, ...story }: St
                 <p className="text-sm font-semibold text-amber-700">{speaker}</p>
                 <h3 className="text-2xl font-serif text-stone-900 mt-1">{title}</h3>
                 
-                {/* ✨ NEW: Display the formatted date if it exists */}
                 {displayDate && (
                     <div className="flex items-center gap-2 text-sm text-stone-500 mt-2">
                         <Calendar size={14} />

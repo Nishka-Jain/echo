@@ -8,8 +8,8 @@ import type { Story } from '@/lib/types';
 
 const customIcon = new Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
-  iconSize:   [28, 28], // ✨ Smaller size (width, height)
-  iconAnchor: [14, 28], // ✨ Anchors the icon's bottom-center tip
+  iconSize:   [28, 28], 
+  iconAnchor: [14, 28], 
 });
 
 interface StoryMapProps {
@@ -17,12 +17,11 @@ interface StoryMapProps {
 }
 
 const StoryMap = ({ stories }: StoryMapProps) => {
-  // Filter stories to only include those with location data
   const storiesWithLocation = stories.filter(story => story.location);
 
   return (
     <MapContainer 
-      center={[20, 0]} // Start with a view of the whole world
+      center={[20, 0]} 
       zoom={2} 
       scrollWheelZoom={true} 
       className="h-[600px] w-full rounded-xl border border-stone-300"

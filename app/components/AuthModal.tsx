@@ -53,7 +53,6 @@ export default function AuthModal({ onClose }: AuthModalProps) {
         setError('This email is already registered. Please log in.');
       }
       else {
-        // A generic fallback for other errors
         setError('An unexpected error occurred. Please try again.');
       }
     } finally {

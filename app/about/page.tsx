@@ -26,7 +26,6 @@ export default function AboutPage() {
             </header>
         </AnimatedSection>
         
-        {/* === NEW: "The Problem" section with creative image collage === */}
         <AnimatedSection>
             <section className="pt-12 pb-24 sm:pt-20 sm:pb-28">
               <div className="max-w-7xl mx-auto px-8 sm:px-10 lg:px-12">
@@ -38,12 +37,10 @@ export default function AboutPage() {
                         <Image src="/bwfishing.jpg" alt="Description" layout="fill" className="object-cover" />
                       </div>
 
-                    {/* Image 2: Spans 2 rows */}
                       <div className="col-span-1 row-span-2 relative rounded-lg overflow-hidden">
                         <Image src="/bwtunnel.jpg" alt="Description" layout="fill" className="object-cover" />
                       </div>
 
-                    {/* Image 3: Standard 1x1 */}
                       <div className="col-span-1 row-span-1 relative rounded-lg overflow-hidden">
                         <Image src="/bwkid.jpg" alt="Description" layout="fill" className="object-cover" />
                       </div>
@@ -52,7 +49,6 @@ export default function AboutPage() {
                         <Image src="/drag.jpg" alt="Description" layout="fill" className="object-cover" />
                       </div>
                     
-                    {/* Image 4: Spans 2 columns, 2 rows */}
                       <div className="col-span-2 row-span-2 relative rounded-lg overflow-hidden">
                         <Image src="/bwboat.jpg" alt="Description" layout="fill" className="object-cover" />
                       </div>
@@ -137,12 +133,9 @@ export default function AboutPage() {
                 <p className="mt-6 text-lg text-stone-600">A word from our founders.</p>
               </div>
 
-              {/* Container for both founders */}
               <div className="space-y-20">
 
-                {/* --- Founder 1 --- */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 items-center">
-                  {/* Text on the left */}
                   <div className="md:col-span-2">
                     <blockquote className="font-serif text-xl lg:text-2xl text-black leading-relaxed">
                     "I started Echo for a selfish reason: I was terrified of forgetting the exact sound of my grandmother's laugh. But I soon realized this wasn't just my fear; it's a universal one. We build this platform not just to archive sounds, but to preserve the feeling of connection itself—to create a legacy of love that future generations can actually hear."
@@ -152,10 +145,9 @@ export default function AboutPage() {
                       <span className="ml-2 font-normal text-stone-800">(Co-Founder)</span>
                     </cite>
                   </div>
-                  {/* Photo on the right */}
                   <div className="md:col-span-1 flex justify-center md:justify-end">
                     <Image
-                      src="/nishka.png" // Replace with actual photo
+                      src="/nishka.png" 
                       alt="Picture of Nishka Jain"
                       width={220}
                       height={220}
@@ -166,19 +158,17 @@ export default function AboutPage() {
 
                 <hr className="border-stone-200" />
 
-                {/* --- Founder 2 --- */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 items-center">
-                  {/* Photo on the left (order-last on desktop makes it appear on the right) */}
                   <div className="md:col-span-1 flex justify-center md:justify-start">
                     <Image
-                      src="/angela.png" // Replace with actual photo
+                      src="/angela.png" 
                       alt="Picture of Angela Li"
                       width={220}
                       height={220}
                       className="rounded-full object-cover aspect-square object-top"
                     />
                   </div>
-                  {/* Text on the right (order-first on desktop makes it appear on the left) */}
+                  
                   <div className="md:col-span-2">
                     <blockquote className="font-serif text-xl lg:text-2xl text-black leading-relaxed">
                     "We live in an age of endless information, but we're starving for wisdom. That wisdom isn't in a database; it's in the cadence of our elders' voices, in the stories shared across generations. Echo is our way of building a new kind of library—not of data, but of humanity itself."
@@ -198,7 +188,6 @@ export default function AboutPage() {
         <AnimatedSection>
           <section id="contact" className="bg-white py-22 sm:py-28 border-t border-stone-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-10 lg:px-15">
-              {/* The two-column grid container */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
 
                 <div className="md:col-span-1">
@@ -232,27 +221,23 @@ export default function AboutPage() {
       <footer className="bg-stone-900 text-stone-300">
         <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8 text-center">
 
-          {/* Brand Name */}
           <Link href="/" className="text-2xl font-bold text-white">
             Echo
           </Link>
           
-          {/* Tagline */}
           <p className="mt-4 text-stone-400 max-w-md mx-auto">
             Hold onto the stories that hold us together.
           </p>
 
-          {/* All Links & Socials in a single row */}
+
           <div className="mt-8 flex justify-center items-center gap-6 text-sm font-medium text-stone-300">
             <Link href="/about" className="hover:text-white transition-colors">About</Link>
             <Link href="/submit" className="hover:text-white transition-colors">Submit</Link>
             <Link href="/explore" className="hover:text-white transition-colors">Explore</Link>
             <Link href="/about#contact" className="hover:text-white transition-colors">Contact</Link>
             
-            {/* A small visual separator */}
             <div className="h-4 w-px bg-stone-700"></div>
 
-            {/* Social Icons */}
             <div className="flex items-center gap-5">
               <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-white transition-colors">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
@@ -265,8 +250,7 @@ export default function AboutPage() {
               </a>
             </div>
           </div>
-          
-          {/* Copyright */}
+
           <p className="mt-10 text-xs text-stone-500">&copy; {new Date().getFullYear()} Echo. All rights reserved.</p>
 
         </div>

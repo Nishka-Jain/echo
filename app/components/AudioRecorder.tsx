@@ -3,16 +3,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Mic, Square, Pause, Play, Check, RotateCcw, Scissors, X } from 'lucide-react';
 
-// Define types for better code quality. These are placeholders for the actual WaveSurfer types.
-// If you install @types/wavesurfer.js, you could get more specific types.
 type WaveSurferInstance = any;
 type RecordPluginInstance = any;
 type RegionsPluginInstance = any;
 type Region = any;
 
-// Helper function to convert an AudioBuffer to a WAV Blob
 const audioBufferToWav = (buffer: AudioBuffer): Blob => {
-    // ... (The low-level audio conversion logic remains unchanged)
     const numChannels = buffer.numberOfChannels;
     const sampleRate = buffer.sampleRate;
     const format = 1; // PCM
@@ -53,7 +49,6 @@ const audioBufferToWav = (buffer: AudioBuffer): Blob => {
     return new Blob([arrayBuffer], { type: 'audio/wav' });
 };
 
-// Define props for our component
 interface AudioRecorderProps {
     onRecordingComplete: (file: File | null) => void;
 }
@@ -66,14 +61,13 @@ export default function AudioRecorder({ onRecordingComplete }: AudioRecorderProp
     const activeRegionRef = useRef<Region | null>(null);
     const currentAudioUrlRef = useRef<string | null>(null);
 
-    const [status, setStatus] = useState('loading'); // loading, idle, recording, paused, finished, trimming
+    const [status, setStatus] = useState('loading'); 
     const [isPlaybackPlaying, setIsPlaybackPlaying] = useState<boolean>(false);
     const [playbackRate, setPlaybackRate] = useState<number>(1);
     const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
     const [finalAudioFile, setFinalAudioFile] = useState<File | null>(null);
     const [isWaveSurferReady, setIsWaveSurferReady] = useState<boolean>(false);
 
-    // This effect handles the asynchronous loading of the WaveSurfer scripts from a CDN.
     useEffect(() => {
         // @ts-ignore
         if (window.WaveSurfer && window.WaveSurfer.Record && window.WaveSurfer.Regions) {
@@ -100,7 +94,6 @@ export default function AudioRecorder({ onRecordingComplete }: AudioRecorderProp
             });
     }, []);
 
-    // Setup WaveSurfer instance once the library is ready
     useEffect(() => {
         if (!isWaveSurferReady || !waveformRef.current) return;
         
