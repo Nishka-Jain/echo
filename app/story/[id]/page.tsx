@@ -4,7 +4,6 @@ import StoryClientPage from './StoryClientPage';
 import type { Story } from '@/lib/types';
 import Link from 'next/link';
 
-// This helper function now correctly fetches ALL story data, including the new date fields
 async function getStory(id: string): Promise<Story | null> {
     try {
         const docRef = doc(db, "stories", id);
@@ -15,7 +14,7 @@ async function getStory(id: string): Promise<Story | null> {
             const storyData: Story = {
               id: docSnap.id,
               title: data.title,
-              speaker: data.speaker, // Make sure this matches your DB field name
+              speaker: data.speaker, 
               age: data.age,
               pronouns: data.pronouns,
               excerpt: data.summary,
@@ -23,7 +22,6 @@ async function getStory(id: string): Promise<Story | null> {
               audioUrl: data.audioUrl,
               tags: data.tags,
               location: data.location,
-              // ✨ FIX: Adding the new date fields to the object
               dateType: data.dateType,
               startYear: data.startYear,
               endYear: data.endYear,

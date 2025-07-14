@@ -1,6 +1,6 @@
 import { db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import StoryEditForm from './StoryEditForm'; // Import our new client component
+import StoryEditForm from './StoryEditForm'; 
 import type { Story } from '@/lib/types';
 import Link from 'next/link';
 
@@ -39,7 +39,6 @@ async function getStory(id: string): Promise<Story | null> {
     }
 }
 
-// This is our main Page component. It's now an async server component.
 export default async function EditStoryPage({ params }: { params: { id: string } }) {
     const story = await getStory(params.id);
 
@@ -52,7 +51,6 @@ export default async function EditStoryPage({ params }: { params: { id: string }
         );
     }
     
-    // The server component renders the client component and passes the "plain" data as a prop
     return (
         <div className="bg-stone-100 min-h-screen font-sans">
              <main className="py-16 sm:py-24">

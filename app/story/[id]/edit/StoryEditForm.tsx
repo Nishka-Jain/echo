@@ -8,29 +8,24 @@ import Link from 'next/link';
 import { Pencil } from 'lucide-react';
 import type { Story } from '@/lib/types';
 
-// The component now receives the story data as a prop
 export default function StoryEditForm({ initialStory }: { initialStory: Story }) {
     const router = useRouter();
 
-    // The state is now initialized with the data passed in via props
     const [storyTitle, setStoryTitle] = useState(initialStory.title || '');
     const [speakerName, setSpeakerName] = useState(initialStory.speaker || '');
     const [summary, setSummary] = useState(initialStory.excerpt || '');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // We no longer need the useEffect to fetch data in this component!
-
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsSubmitting(true);
         
-        // Use the story's ID from the initial prop data
         const storyRef = doc(db, "stories", initialStory.id);
 
         try {
             await updateDoc(storyRef, {
                 title: storyTitle,
-                speaker: speakerName, // Ensure field name matches your database
+                speaker: speakerName, 
                 summary: summary
             });
             alert("Story updated successfully!");

@@ -6,21 +6,17 @@ import Link from 'next/link';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 
-// App-specific hooks and components
 import { useAuth } from '@/app/context/AuthContext';
 import Navbar from '@/app/components/Navbar';
 import StoryCard from '@/app/components/StoryCard';
 import type { Story } from '@/lib/types';
 
-// Firebase imports
 import { db, storage } from '@/lib/firebase';
 import { collection, query, where, getDocs, orderBy, doc, deleteDoc } from 'firebase/firestore';
 import { ref, deleteObject } from "firebase/storage";
 
-// Icon imports
 import { Camera, X, Check, ArrowUp, ArrowDown, Dot, AlertTriangle, Edit, Save } from 'lucide-react';
 
-// --- Local Components ---
 const DeleteConfirmationModal = ({ story, onConfirm, onCancel, isDeleting }: { story: Story; onConfirm: () => void; onCancel: () => void; isDeleting: boolean; }) => (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 animate-fade-in">
         <div className="bg-white rounded-xl shadow-2xl p-8 m-4 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
@@ -48,7 +44,6 @@ const DeleteConfirmationModal = ({ story, onConfirm, onCancel, isDeleting }: { s
 );
 
 export default function ProfilePage() {
-    // ✨ FIX: Destructure the new 'updateUserProfile' function from our context
     const { user, isLoading, updateUserProfile } = useAuth();
     const router = useRouter();
     
@@ -116,7 +111,6 @@ export default function ProfilePage() {
         }
     };
 
-    // ✨ FIX: This function now calls the single, correct update function from the context
     const handleProfileUpdate = async () => {
         if (!user) return;
         setIsUpdating(true);
@@ -124,7 +118,6 @@ export default function ProfilePage() {
         
         try {
             await updateUserProfile({
-                // Only include the displayName if it has actually changed
                 displayName: newName.trim() !== user.displayName ? newName.trim() : undefined,
                 newPhoto: newPhoto,
                 photoPosition: objectPosition

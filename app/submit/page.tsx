@@ -228,8 +228,8 @@ export default function SubmitPage() {
                 speaker: speakerName,
                 age: speakerAge,
                 pronouns: speakerPronouns,
-                photoUrl: photoUrl, // URL from Firebase Storage
-                audioUrl: audioUrl, // URL from Firebase Storage
+                photoUrl: photoUrl, 
+                audioUrl: audioUrl,
                 tags: selectedTags, 
                 location: location,
                 summary: summary,
@@ -242,8 +242,7 @@ export default function SubmitPage() {
                 endYear: dateType === 'period' ? Number(endYear) : null,
                 specificYear: dateType === 'year' ? Number(specificYear) : null,
             };
-    
-            // 4. Save the story metadata to Firestore
+
             const docRef = await addDoc(collection(db, "stories"), storyData);
             console.log("Document written with ID: ", docRef.id);
     

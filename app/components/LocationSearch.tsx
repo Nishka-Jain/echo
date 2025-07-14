@@ -4,7 +4,6 @@ import React from 'react';
 import { useMapsLibrary } from '@vis.gl/react-google-maps';
 import { useEffect, useRef, useState } from 'react';
 
-// Define the type for the data we want to get back
 export interface Place {
   name: string;
   lat: number;

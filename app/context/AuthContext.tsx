@@ -11,14 +11,12 @@ import AuthModal from '@/app/components/AuthModal';
 const auth = getAuth(app);
 const storage = getStorage(app);
 
-// Define the shape of your context data
 interface AuthContextType {
   user: UserProfile | null;
   isLoading: boolean;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   openAuthModal: () => void;
-  // ✨ FIX: Update the type for the 'newPhoto' property
   updateUserProfile: (updates: {
     displayName?: string;
     newPhoto?: File | null; 
@@ -51,8 +49,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const openAuthModal = () => setIsAuthModalOpen(true);
   const closeAuthModal = () => setIsAuthModalOpen(false);
 
-  const signInWithGoogle = async () => { /* ... (this function is correct) ... */ };
-  const logout = async () => { /* ... (this function is correct) ... */ };
+    const signInWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      // When a user signs in with Google, create a document for them in our 'users' collection
+      const userDocRef = doc(db, "users", result.user.uid);
+      await setDoc(userDocRef, { 
+          displayName: result.user.displayName,
+          email: result.user.email,
+          photoURL: result.user.photoURL,
+          photoPosition: 'object-center', // Set a default position
+      }, { merge: true }); // 'merge: true' prevents overwriting existing fields
+      closeAuthModal();
+    } catch (error) {
+      console.error("Error signing in with Google", error);
+    }
+  };
+  const logout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Error signing out", error);
+    }
+  };
+  
   
   // ✨ FIX: Update the type for the 'updates' parameter here as well
   const updateUserProfile = async (updates: { displayName?: string; newPhoto?: File | null; photoPosition?: string }) => {

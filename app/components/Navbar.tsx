@@ -12,7 +12,6 @@ interface NavbarProps {
 }
 
 export default function Navbar({ variant = 'solid' }: NavbarProps) {
-  // ✨ FIX: Get the 'openAuthModal' function from our context hook
   const { user, isLoading, openAuthModal, logout } = useAuth();
   const pathname = usePathname();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -20,7 +19,6 @@ export default function Navbar({ variant = 'solid' }: NavbarProps) {
 
   const isTransparent = variant === 'transparent';
 
-  // Style definitions
   const navClasses = isTransparent ? "border-white/20" : "bg-white/90 backdrop-blur-md";
   const linkColor = isTransparent ? "text-stone-300 hover:text-white" : "text-stone-600 hover:text-stone-900";
   const activeLinkColor = isTransparent ? "text-white font-bold" : "text-stone-800 font-bold";
@@ -88,7 +86,6 @@ export default function Navbar({ variant = 'solid' }: NavbarProps) {
                       )}
                     </div>
                   ) : (
-                    // ✨ FIX: This button now correctly opens the modal
                     <button onClick={openAuthModal} className={`text-sm font-semibold px-4 py-2 rounded-lg border transition-colors shadow-sm ${loginButtonClasses}`}>
                       Login / Sign Up
                     </button>

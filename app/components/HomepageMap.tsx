@@ -4,6 +4,7 @@ import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { Icon } from 'leaflet';
 import Link from 'next/link';
+import type { Story } from '@/lib/types';
 
 // Create a custom icon for the map markers
 const customIcon = new Icon({
