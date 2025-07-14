@@ -1,6 +1,7 @@
 import type { User } from 'firebase/auth';
 
 export type Story = {
+  transcription: string;
   id: string;
   photoUrl?: string; 
   title: string;

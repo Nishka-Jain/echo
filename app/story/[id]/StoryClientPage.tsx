@@ -1,10 +1,10 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Story } from '@/lib/types';
-import { MapPin, Tag, UserCircle, Calendar } from 'lucide-react';
+import { MapPin, Tag, UserCircle, Calendar, Languages, Loader2 } from 'lucide-react';
 
 // This helper function intelligently formats the event date for display
 const formatStoryDate = (story: Story): string | null => {
@@ -24,6 +24,31 @@ const formatStoryDate = (story: Story): string | null => {
 };
 
 export default function StoryClientPage({ story }: { story: Story | null }) {
+    const [translatedText, setTranslatedText] = useState('');
+    const [translationStatus, setTranslationStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle');
+    const [targetLanguage, setTargetLanguage] = useState('Spanish');
+    const handleTranslate = async () => {
+    if (!story?.transcription || story.transcription === 'No transcription available.') {
+        alert("There is no transcription available to translate.");
+        return;
+    }
+    setTranslationStatus('generating');
+    setTranslatedText('');
+    try {
+        const response = await fetch('/api/translate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: story.transcription, targetLanguage }),
+        });
+        if (!response.ok) throw new Error('Translation API call failed');
+        const result = await response.json();
+        setTranslatedText(result.translatedText);
+        setTranslationStatus('success');
+    } catch (error) {
+        console.error("Error translating text:", error);
+        setTranslationStatus('error');
+    }
+};
     if (!story) {
         return (
             <div className="flex items-center justify-center min-h-screen text-center px-4">
@@ -118,6 +143,55 @@ export default function StoryClientPage({ story }: { story: Story | null }) {
                             </div>
                         </div>
                     )}
+                    {/* --- NEW Transcription & Translation Section --- */}
+<div className="mt-12 border-t border-stone-200 pt-8">
+    <div className="space-y-6">
+        {/* Display the Transcription from Firestore */}
+        <div>
+            <h2 className="text-2xl font-serif font-semibold text-stone-800 mb-4">Transcription</h2>
+            <div className="prose prose-stone max-w-none bg-stone-50 p-6 rounded-lg whitespace-pre-wrap">
+                <p>{story.transcription || 'No transcription was provided for this story.'}</p>
+            </div>
+        </div>
+
+        {/* Display Translation UI only if a transcription exists */}
+        {story.transcription && story.transcription !== 'No transcription available.' && (
+            <div className="pt-6 border-t border-stone-200 space-y-4">
+                <h3 className="text-xl font-serif font-semibold text-stone-800">Translate Transcription</h3>
+                <div className="flex items-center gap-4">
+                    <select 
+                        value={targetLanguage} 
+                        onChange={(e) => setTargetLanguage(e.target.value)} 
+                        className="w-full p-3 border border-stone-300 rounded-lg bg-white"
+                    >
+                        <option>English</option>
+                        <option>Spanish</option>
+                        <option>French</option>
+                        <option>German</option>
+                        <option>Mandarin Chinese</option>
+                        <option>Japanese</option>
+                        <option>Korean</option>
+                        <option>Russian</option>
+                        <option>Arabic</option>
+                        <option>Hindi</option>
+                    </select>
+                    <button
+                        type="button"
+                        onClick={handleTranslate}
+                        disabled={translationStatus === 'generating'}
+                        className="p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-blue-600 text-white transition-all font-semibold disabled:bg-blue-300 hover:bg-blue-700"
+                    >
+                        {translationStatus === 'generating' ? <Loader2 size={20} className="animate-spin" /> : <Languages size={20} />}
+                        Translate
+                    </button>
+                </div>
+                {translationStatus === 'generating' && (<div className="mt-2 p-4 bg-stone-50 rounded-lg flex items-center gap-3 text-stone-600"><Loader2 size={20} className="animate-spin" /><p>Translating...</p></div>)}
+                {translationStatus === 'success' && (<div className="prose prose-stone max-w-none bg-stone-50 p-6 rounded-lg whitespace-pre-wrap"><p>{translatedText}</p></div>)}
+                {translationStatus === 'error' && (<p className="mt-2 text-red-600 p-4 bg-red-50 rounded-lg">Could not translate text.</p>)}
+            </div>
+        )}
+    </div>
+</div>
                 </article>
             </main>
         </div>
