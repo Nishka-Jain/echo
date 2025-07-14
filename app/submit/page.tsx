@@ -56,7 +56,7 @@ export default function SubmitPage() {
     const [specificYear, setSpecificYear] = useState('');
 
 
-    const steps = ["Who's Speaking", "Record Audio", "Add Details", "Review & Submit"];
+    const steps = ["Who's Speaking", "Record Audio", "Review Transcription", "Add Details", "Review & Submit"];
     const [availableTags, setAvailableTags] = useState(["Family", "Migration", "Food", "Tradition", "Love", "Loss", "Childhood", "Work"]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
@@ -169,22 +169,87 @@ export default function SubmitPage() {
     };
 
     const handleNext = () => {
-        if (currentStep === 3) {
+        if (currentStep === 2) {
             handleGenerateTranscription();
         }
         if (currentStep < steps.length) {
             setCurrentStep(currentStep + 1);
         }
     };
-    
+    {/* --- NEW Step 3: Transcribe & Edit --- */}
+{currentStep === 3 && (
+    <div className="space-y-6 text-stone-700 animate-fade-in">
+        {/* Transcription Section */}
+        <div>
+            <label htmlFor="transcription" className="block text-lg font-semibold text-stone-800 mb-2">
+                Edit Transcription
+            </label>
+            <p className="text-sm text-stone-500 mb-4">
+                The AI-generated transcription is below. Please review and edit it for accuracy before proceeding.
+            </p>
+
+            {transcriptionStatus === 'generating' && (
+                <div className="w-full h-48 p-4 bg-stone-50 rounded-lg flex items-center justify-center gap-3 text-stone-600">
+                    <Loader2 size={20} className="animate-spin" />
+                    <p>Generating transcription... this may take a moment.</p>
+                </div>
+            )}
+
+            {(transcriptionStatus === 'success' || transcriptionStatus === 'error') && (
+                <textarea
+                    id="transcription"
+                    value={transcription}
+                    onChange={(e) => setTranscription(e.target.value)}
+                    rows={10}
+                    className="w-full p-4 border border-stone-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-stone-500 whitespace-pre-wrap"
+                    placeholder={transcriptionStatus === 'error' ? 'Could not generate transcription. You can type it manually here.' : 'Edit your transcription...'}
+                />
+            )}
+        </div>
+
+        {/* Translation Section */}
+        {transcriptionStatus === 'success' && (
+            <div className="pt-6 border-t border-stone-200 space-y-4">
+                <h3 className="text-xl font-serif font-semibold text-stone-800">Translate Transcription (Optional)</h3>
+                <div className="flex items-center gap-4">
+                    <select 
+                        value={targetLanguage} 
+                        onChange={(e) => setTargetLanguage(e.target.value)} 
+                        className="w-full p-3 border border-stone-300 rounded-lg bg-white"
+                    >
+                        <option>English</option>
+                        <option>Spanish</option>
+                        <option>French</option>
+                        <option>German</option>
+                        <option>Mandarin Chinese</option>
+                        {/* Add more languages as needed */}
+                    </select>
+                    <button 
+                        type="button" 
+                        onClick={handleTranslate} 
+                        disabled={translationStatus === 'generating'} 
+                        className="p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-blue-600 text-white transition-all font-semibold disabled:bg-blue-300 hover:bg-blue-700"
+                    >
+                        {translationStatus === 'generating' ? <Loader2 size={20} className="animate-spin" /> : <Languages size={20} />}
+                        Translate
+                    </button>
+                </div>
+                {translationStatus === 'generating' && (<div className="mt-2 p-4 bg-stone-50 rounded-lg flex items-center gap-3 text-stone-600"><Loader2 size={20} className="animate-spin" /><p>Translating...</p></div>)}
+                {translationStatus === 'success' && (<p className="mt-1 text-stone-600 whitespace-pre-wrap p-4 bg-stone-50 rounded-lg">{translatedText}</p>)}
+                {translationStatus === 'error' && (<p className="mt-2 text-red-600 p-4 bg-red-50 rounded-lg">Could not translate text.</p>)}
+            </div>
+        )}
+    </div>
+)}
     const handleBack = () => currentStep > 1 && setCurrentStep(currentStep - 1);
 
     const isStepValid = (() => {
-        if (currentStep === 1) return speakerName.trim() !== '';
-        if (currentStep === 2) return !!audioFile;
-        if (currentStep === 3) return storyTitle.trim() !== '' && !!location && selectedTags.length > 0;
-        return true;
-    })();
+    if (currentStep === 1) return speakerName.trim() !== '';
+    if (currentStep === 2) return !!audioFile;
+    if (currentStep === 3) return transcriptionStatus === 'success' || transcriptionStatus === 'error'; // Allow user to proceed even if transcription fails
+    if (currentStep === 4) return storyTitle.trim() !== '' && !!location && selectedTags.length > 0;
+    return true;
+})();
     
     const isSubmittable = !!(audioFile && storyTitle && speakerName && !!location && selectedTags.length > 0);
 
@@ -350,8 +415,108 @@ export default function SubmitPage() {
                                          {audioFile && (<div className="mt-6 p-3 bg-green-50 border border-green-200 text-green-800 rounded-lg flex items-center gap-3 text-sm"><CheckCircle size={20} /><span>File ready: <strong>{audioFile.name}</strong></span></div>)}
                                       </div>
                                     )}
-                                    {/* Step 3: Add Details */}
+                                    {/* --- NEW Step 3: Review Transcription --- */}
                                     {currentStep === 3 && (
+                                        <div className="space-y-6 text-stone-700 animate-fade-in">
+                                            {/* Transcription Section */}
+                                            <div>
+                                                <label htmlFor="transcription" className="block text-lg font-semibold text-stone-800 mb-2">
+                                                    Review & Edit Transcription
+                                                </label>
+                                                <p className="text-sm text-stone-500 mb-4">
+                                                    The AI-generated transcription is below. Please review and edit it for accuracy before proceeding.
+                                                </p>
+
+                                                {transcriptionStatus === 'generating' && (
+                                                    <div className="w-full h-48 p-4 bg-stone-50 rounded-lg flex items-center justify-center gap-3 text-stone-600">
+                                                        <Loader2 size={20} className="animate-spin" />
+                                                        <p>Generating transcription... this may take a moment.</p>
+                                                    </div>
+                                                )}
+
+                                                {(transcriptionStatus === 'success' || transcriptionStatus === 'error') && (
+                                                    <textarea
+                                                        id="transcription"
+                                                        value={transcription}
+                                                        onChange={(e) => setTranscription(e.target.value)}
+                                                        rows={10}
+                                                        className="w-full p-4 border border-stone-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-stone-500 whitespace-pre-wrap"
+                                                        placeholder={transcriptionStatus === 'error' ? 'Could not generate transcription. You can type it manually here.' : 'Edit your transcription...'}
+                                                    />
+                                                )}
+                                            </div>
+
+                                            {/* Translation Section */}
+                                            {transcriptionStatus === 'success' && (
+                                                <div className="pt-6 border-t border-stone-200 space-y-4">
+                                                    <h3 className="text-xl font-serif font-semibold text-stone-800">Translate Transcription (Optional)</h3>
+                                                    <div className="flex items-center gap-4">
+                                                        <select 
+                                                            value={targetLanguage} 
+                                                            onChange={(e) => setTargetLanguage(e.target.value)} 
+                                                            className="w-full p-3 border border-stone-300 rounded-lg bg-white"
+                                                        >
+                                                            <option>Arabic</option>
+                                                            <option>Bengali</option>
+                                                            <option>Cantonese</option>
+                                                            <option>Czech</option>
+                                                            <option>Danish</option>
+                                                            <option>Dutch</option>
+                                                            <option>English</option>
+                                                            <option>Filipino</option>
+                                                            <option>Finnish</option>
+                                                            <option>French</option>
+                                                            <option>German</option>
+                                                            <option>Greek</option>
+                                                            <option>Gujarati</option>
+                                                            <option>Hebrew</option>
+                                                            <option>Hindi</option>
+                                                            <option>Hungarian</option>
+                                                            <option>Indonesian</option>
+                                                            <option>Italian</option>
+                                                            <option>Japanese</option>
+                                                            <option>Kannada</option>
+                                                            <option>Korean</option>
+                                                            <option>Malay</option>
+                                                            <option>Mandarin Chinese</option>
+                                                            <option>Marathi</option>
+                                                            <option>Norwegian</option>
+                                                            <option>Persian (Farsi)</option>
+                                                            <option>Polish</option>
+                                                            <option>Portuguese</option>
+                                                            <option>Punjabi</option>
+                                                            <option>Romanian</option>
+                                                            <option>Russian</option>
+                                                            <option>Spanish</option>
+                                                            <option>Swahili</option>
+                                                            <option>Swedish</option>
+                                                            <option>Tamil</option>
+                                                            <option>Telugu</option>
+                                                            <option>Thai</option>
+                                                            <option>Turkish</option>
+                                                            <option>Ukrainian</option>
+                                                            <option>Urdu</option>
+                                                            <option>Vietnamese</option>
+                                                        </select>
+                                                        <button 
+                                                            type="button" 
+                                                            onClick={handleTranslate} 
+                                                            disabled={translationStatus === 'generating'} 
+                                                            className="p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-blue-600 text-white transition-all font-semibold disabled:bg-blue-300 hover:bg-blue-700"
+                                                        >
+                                                            {translationStatus === 'generating' ? <Loader2 size={20} className="animate-spin" /> : <Languages size={20} />}
+                                                            Translate
+                                                        </button>
+                                                    </div>
+                                                    {translationStatus === 'generating' && (<div className="mt-2 p-4 bg-stone-50 rounded-lg flex items-center justify-center gap-3 text-stone-600"><Loader2 size={20} className="animate-spin" /><p>Translating...</p></div>)}
+                                                    {translationStatus === 'success' && (<p className="mt-1 text-stone-600 whitespace-pre-wrap p-4 bg-stone-50 rounded-lg">{translatedText}</p>)}
+                                                    {translationStatus === 'error' && (<p className="mt-2 text-red-600 p-4 bg-red-50 rounded-lg">Could not translate text.</p>)}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                    {/* Step 4: Add Details */}
+                                    {currentStep === 4 && (
                                         <div className="space-y-6 animate-fade-in">
                                             <div><label htmlFor="storyTitle" className="block text-sm font-medium text-stone-700 mb-1">Story Title <span className="text-red-500">*</span></label><input type="text" id="storyTitle" value={storyTitle} onChange={(e) => setStoryTitle(e.target.value)} className="w-full p-3 border border-stone-300 rounded-lg" required /></div>
                                             <div>
@@ -402,8 +567,8 @@ export default function SubmitPage() {
                                             <div><label htmlFor="summary" className="block text-sm font-medium text-stone-700 mb-1">Describe the story <span className="text-stone-500">(Optional)</span></label><textarea id="summary" value={summary} onChange={(e) => setSummary(e.target.value)} rows={4} className="w-full p-3 border border-stone-300 rounded-lg"></textarea></div>
                                         </div>
                                     )}
-                                    {/* Step 4: Review */}
-                                    {currentStep === 4 && (
+                                    {/* Step 5: Review */}
+                                    {currentStep === 5 && (
                                         <div className="space-y-4 text-stone-700 animate-fade-in">
                                             {audioPreviewUrl && (
                                                 <div className="bg-stone-50 rounded-lg p-4">
@@ -418,73 +583,12 @@ export default function SubmitPage() {
                                             <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Location:</strong> <span className="text-right">{location?.name || 'None'}</span></div>
                                             <div className="flex justify-between py-3 border-b border-stone-100 items-start"><strong className="font-medium text-stone-500">Photo:</strong> {photoPreviewUrl ? <img src={photoPreviewUrl} alt="Speaker preview" className="w-16 h-16 rounded-lg object-cover" /> : 'None'}</div>
                                             <div className="py-3"><strong className="font-medium text-stone-500">Summary:</strong> <p className="mt-1 text-stone-600 whitespace-pre-wrap">{summary || 'None'}</p></div>
-                                            
-                                            {/* --- Transcription & Translation Section --- */}
-                                            <div className="py-3 space-y-4">
-                                                <div>
-                                                    <strong className="font-medium text-stone-500">Transcription</strong>
-                                                    {transcriptionStatus === 'generating' && (<div className="mt-2 p-4 bg-stone-50 rounded-lg flex items-center gap-3 text-stone-600"><Loader2 size={20} className="animate-spin" /><p>Generating transcription...</p></div>)}
-                                                    {transcriptionStatus === 'success' && (<p className="mt-1 text-stone-600 whitespace-pre-wrap p-4 bg-stone-50 rounded-lg">{transcription}</p>)}
-                                                    {transcriptionStatus === 'error' && (<p className="mt-1 text-red-600 p-4 bg-red-50 rounded-lg">Could not generate transcription.</p>)}
-                                                </div>
-
-                                                {transcriptionStatus === 'success' && (
-                                                    <div className="pt-4 border-t border-stone-200 space-y-3">
-                                                        <strong className="font-medium text-stone-500">Translate Transcription</strong>
-                                                        <div className="flex items-center gap-4">
-                                                            <select value={targetLanguage} onChange={(e) => setTargetLanguage(e.target.value)} className="p-3 border border-stone-300 rounded-lg bg-white">
-                                                                        <option>Arabic</option>
-                                                                        <option>Bengali</option>
-                                                                        <option>Cantonese</option>
-                                                                        <option>Czech</option>
-                                                                        <option>Danish</option>
-                                                                        <option>Dutch</option>
-                                                                        <option>English</option>
-                                                                        <option>Filipino</option>
-                                                                        <option>Finnish</option>
-                                                                        <option>French</option>
-                                                                        <option>German</option>
-                                                                        <option>Greek</option>
-                                                                        <option>Gujarati</option>
-                                                                        <option>Hebrew</option>
-                                                                        <option>Hindi</option>
-                                                                        <option>Hungarian</option>
-                                                                        <option>Indonesian</option>
-                                                                        <option>Italian</option>
-                                                                        <option>Japanese</option>
-                                                                        <option>Kannada</option>
-                                                                        <option>Korean</option>
-                                                                        <option>Malay</option>
-                                                                        <option>Mandarin Chinese</option>
-                                                                        <option>Marathi</option>
-                                                                        <option>Norwegian</option>
-                                                                        <option>Persian (Farsi)</option>
-                                                                        <option>Polish</option>
-                                                                        <option>Portuguese</option>
-                                                                        <option>Punjabi</option>
-                                                                        <option>Romanian</option>
-                                                                        <option>Russian</option>
-                                                                        <option>Spanish</option>
-                                                                        <option>Swahili</option>
-                                                                        <option>Swedish</option>
-                                                                        <option>Tamil</option>
-                                                                        <option>Telugu</option>
-                                                                        <option>Thai</option>
-                                                                        <option>Turkish</option>
-                                                                        <option>Ukrainian</option>
-                                                                        <option>Urdu</option>
-                                                                        <option>Vietnamese</option>
-                                                            </select>
-                                                            <button type="button" onClick={handleTranslate} disabled={translationStatus === 'generating'} className="p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-blue-600 text-white transition-all font-semibold disabled:bg-blue-300 hover:bg-blue-700">
-                                                                {translationStatus === 'generating' ? <Loader2 size={20} className="animate-spin" /> : <Languages size={20} />}
-                                                                Translate
-                                                            </button>
-                                                        </div>
-                                                        {translationStatus === 'generating' && (<div className="mt-2 p-4 bg-stone-50 rounded-lg flex items-center gap-3 text-stone-600"><Loader2 size={20} className="animate-spin" /><p>Translating...</p></div>)}
-                                                        {translationStatus === 'success' && (<p className="mt-1 text-stone-600 whitespace-pre-wrap p-4 bg-stone-50 rounded-lg">{translatedText}</p>)}
-                                                        {translationStatus === 'error' && (<p className="mt-1 text-red-600 p-4 bg-red-50 rounded-lg">Could not translate text.</p>)}
-                                                    </div>
-                                                )}
+                                            {/* --- Final Transcription Display --- */}
+                                            <div className="py-3">
+                                                <strong className="font-medium text-stone-500">Final Transcription:</strong>
+                                                <p className="mt-1 text-stone-600 whitespace-pre-wrap p-4 bg-stone-50 rounded-lg">
+                                                    {transcription || 'No transcription was provided.'}
+                                                </p>
                                             </div>
                                         </div>
                                     )}
