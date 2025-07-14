@@ -31,7 +31,6 @@ const Stepper = ({ currentStep, steps }: { currentStep: number, steps: string[] 
     </div>
 );
 
-// --- Main Page Component ---
 export default function SubmitPage() {
     const [currentStep, setCurrentStep] = useState(1);
     const [storyTitle, setStoryTitle] = useState('');
@@ -62,11 +61,9 @@ export default function SubmitPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
 
-    // --- New State for Transcription ---
     const [transcription, setTranscription] = useState('');
     const [transcriptionStatus, setTranscriptionStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle');
 
-    // --- NEW Translation State ---
     const [translatedText, setTranslatedText] = useState('');
     const [translationStatus, setTranslationStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle');
     const [targetLanguage, setTargetLanguage] = useState('English'); 
@@ -148,7 +145,6 @@ export default function SubmitPage() {
         }
     };
 
-    // --- NEW Translation Handler ---
     const handleTranslate = async () => {
         if (!transcription || transcriptionStatus !== 'success') {
             alert("Please wait for the original transcription to finish first.");
@@ -172,9 +168,7 @@ export default function SubmitPage() {
         }
     };
 
-    //const handleNext = () => currentStep < steps.length && setCurrentStep(currentStep + 1);
     const handleNext = () => {
-        // When moving to the final step, trigger transcription
         if (currentStep === 3) {
             handleGenerateTranscription();
         }
@@ -321,7 +315,7 @@ export default function SubmitPage() {
                                     {currentStep === 1 && (
                                         <div className="space-y-6 animate-fade-in">
                                             <div>
-                                                <label htmlFor="speakerName" className="block text-sm font-medium text-stone-700 mb-1">Speaker Name <span className="text-red-500">*</span></label>
+                                                <label htmlFor="speakerName" className="block text-sm font-medium text-stone-900 mb-1">Speaker Name <span className="text-red-500">*</span></label>
                                                 <input type="text" id="speakerName" value={speakerName} onChange={(e) => setSpeakerName(e.target.value)} className="w-full p-3 border border-stone-300 rounded-lg" required />
                                             </div>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
