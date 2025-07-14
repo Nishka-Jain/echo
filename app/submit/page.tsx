@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Mic, Upload, CheckCircle, ArrowRight, ArrowLeft, Pencil, Info, ImagePlus, X, Plus, PartyPopper } from 'lucide-react';
+import { Mic, Upload, CheckCircle, ArrowRight, ArrowLeft, Pencil, Info, ImagePlus, X, Plus, PartyPopper, Loader2, Languages } from 'lucide-react';
 import AudioRecorder from '@/app/components/AudioRecorder';
 import { db, storage } from '@/lib/firebase';
 import { collection, addDoc } from "firebase/firestore"; 
@@ -60,7 +60,21 @@ export default function SubmitPage() {
     const steps = ["Who's Speaking", "Record Audio", "Add Details", "Review & Submit"];
     const [availableTags, setAvailableTags] = useState(["Family", "Migration", "Food", "Tradition", "Love", "Loss", "Childhood", "Work"]);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    
+    const [isMounted, setIsMounted] = useState(false);
+
+    // --- New State for Transcription ---
+    const [transcription, setTranscription] = useState('');
+    const [transcriptionStatus, setTranscriptionStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle');
+
+    // --- NEW Translation State ---
+    const [translatedText, setTranslatedText] = useState('');
+    const [translationStatus, setTranslationStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle');
+    const [targetLanguage, setTargetLanguage] = useState('English'); 
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
     useEffect(() => {
         if (speakerPhoto) {
             const url = URL.createObjectURL(speakerPhoto);
@@ -71,6 +85,8 @@ export default function SubmitPage() {
     }, [speakerPhoto]);
 
     useEffect(() => {
+        setTranscription('');
+        setTranscriptionStatus('idle');
         if (audioFile) {
             const url = URL.createObjectURL(audioFile);
             setAudioPreviewUrl(url);
@@ -111,7 +127,62 @@ export default function SubmitPage() {
         }
     };
 
-    const handleNext = () => currentStep < steps.length && setCurrentStep(currentStep + 1);
+    // --- NEW Transcription Handler ---
+    const handleGenerateTranscription = async () => {
+        if (!audioFile || transcriptionStatus === 'generating' || transcriptionStatus === 'success') {
+            return; // Don't re-transcribe if already done or in progress
+        }
+        setTranscriptionStatus('generating');
+        setTranscription('');
+        try {
+            const formData = new FormData();
+            formData.append('audio', audioFile);
+            const response = await fetch('/api/transcribe', { method: 'POST', body: formData });
+            if (!response.ok) throw new Error('Transcription API call failed');
+            const result = await response.json();
+            setTranscription(result.transcription);
+            setTranscriptionStatus('success');
+        } catch (error) {
+            console.error("Error generating transcription:", error);
+            setTranscriptionStatus('error');
+        }
+    };
+
+    // --- NEW Translation Handler ---
+    const handleTranslate = async () => {
+        if (!transcription || transcriptionStatus !== 'success') {
+            alert("Please wait for the original transcription to finish first.");
+            return;
+        }
+        setTranslationStatus('generating');
+        setTranslatedText('');
+        try {
+            const response = await fetch('/api/translate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: transcription, targetLanguage }),
+            });
+            if (!response.ok) throw new Error('Translation API call failed');
+            const result = await response.json();
+            setTranslatedText(result.translatedText);
+            setTranslationStatus('success');
+        } catch (error) {
+            console.error("Error translating text:", error);
+            setTranslationStatus('error');
+        }
+    };
+
+    //const handleNext = () => currentStep < steps.length && setCurrentStep(currentStep + 1);
+    const handleNext = () => {
+        // When moving to the final step, trigger transcription
+        if (currentStep === 3) {
+            handleGenerateTranscription();
+        }
+        if (currentStep < steps.length) {
+            setCurrentStep(currentStep + 1);
+        }
+    };
+    
     const handleBack = () => currentStep > 1 && setCurrentStep(currentStep - 1);
 
     const isStepValid = (() => {
@@ -162,6 +233,7 @@ export default function SubmitPage() {
                 tags: selectedTags, 
                 location: location,
                 summary: summary,
+                transcription: transcription,
                 createdAt: new Date(),
                 authorId: user.uid, 
                 authorName: user.displayName, 
@@ -184,7 +256,7 @@ export default function SubmitPage() {
         }
     };
     
-    const handleResetForm = () => {
+   const handleResetForm = () => {
       setCurrentStep(1);
       setStoryTitle('');
       setSpeakerName('');
@@ -196,9 +268,18 @@ export default function SubmitPage() {
       setCustomTag('');
       setLocation(null);
       setSummary('');
+      // The useEffect handles resetting these when audioFile changes, but it's here bc it's good practice
+      setTranscription('');
+      setTranscriptionStatus('idle');
+
+      setTranslatedText('');
+      setTranslationStatus('idle');
+
       setIsSubmitted(false);
     }
-
+    if (!isMounted) {
+        return null;
+    }
     return (
         <div className="bg-white min-h-screen font-sans">
             <Navbar />
@@ -329,16 +410,56 @@ export default function SubmitPage() {
                                     )}
                                     {/* Step 4: Review */}
                                     {currentStep === 4 && (
-                                      <div className="space-y-4 text-stone-700 animate-fade-in">
-                                        {audioPreviewUrl && (<div className="bg-stone-50 rounded-lg p-4"><p className="text-sm font-medium text-stone-600 mb-2">Listen to your recording:</p><audio src={audioPreviewUrl} controls className="w-full" /></div>)}
-                                        <h4 className="text-lg font-semibold text-stone-800 border-b border-stone-200 pb-2 pt-4">Review your story details:</h4>
-                                         <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Title:</strong> <span className="text-right">{storyTitle || 'Not provided'}</span></div>
-                                         <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Speaker:</strong> <span className="text-right">{speakerName || 'Not provided'}</span></div>
-                                         <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Tags:</strong> <span className="text-right">{selectedTags.join(', ') || 'None'}</span></div>
-                                         <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Location:</strong> <span className="text-right">{location?.name || 'None'}</span></div>
-                                         <div className="flex justify-between py-3 border-b border-stone-100 items-start"><strong className="font-medium text-stone-500">Photo:</strong> {photoPreviewUrl ? <img src={photoPreviewUrl} alt="Speaker preview" className="w-16 h-16 rounded-lg object-cover" /> : 'None'}</div>
-                                         <div className="py-3"><strong className="font-medium text-stone-500">Summary:</strong> <p className="mt-1 text-stone-600 whitespace-pre-wrap">{summary || 'None'}</p></div>
-                                      </div>
+                                        <div className="space-y-4 text-stone-700 animate-fade-in">
+                                            {audioPreviewUrl && (
+                                                <div className="bg-stone-50 rounded-lg p-4">
+                                                    <p className="text-sm font-medium text-stone-600 mb-2">Listen to your recording:</p>
+                                                    <audio src={audioPreviewUrl} controls className="w-full" />
+                                                </div>
+                                            )}
+                                            <h4 className="text-lg font-semibold text-stone-800 border-b border-stone-200 pb-2 pt-4">Review your story details:</h4>
+                                            <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Title:</strong> <span className="text-right">{storyTitle || 'Not provided'}</span></div>
+                                            <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Speaker:</strong> <span className="text-right">{speakerName || 'Not provided'}</span></div>
+                                            <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Tags:</strong> <span className="text-right">{selectedTags.join(', ') || 'None'}</span></div>
+                                            <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Location:</strong> <span className="text-right">{location?.name || 'None'}</span></div>
+                                            <div className="flex justify-between py-3 border-b border-stone-100 items-start"><strong className="font-medium text-stone-500">Photo:</strong> {photoPreviewUrl ? <img src={photoPreviewUrl} alt="Speaker preview" className="w-16 h-16 rounded-lg object-cover" /> : 'None'}</div>
+                                            <div className="py-3"><strong className="font-medium text-stone-500">Summary:</strong> <p className="mt-1 text-stone-600 whitespace-pre-wrap">{summary || 'None'}</p></div>
+                                            
+                                            {/* --- Transcription & Translation Section --- */}
+                                            <div className="py-3 space-y-4">
+                                                <div>
+                                                    <strong className="font-medium text-stone-500">Transcription</strong>
+                                                    {transcriptionStatus === 'generating' && (<div className="mt-2 p-4 bg-stone-50 rounded-lg flex items-center gap-3 text-stone-600"><Loader2 size={20} className="animate-spin" /><p>Generating transcription...</p></div>)}
+                                                    {transcriptionStatus === 'success' && (<p className="mt-1 text-stone-600 whitespace-pre-wrap p-4 bg-stone-50 rounded-lg">{transcription}</p>)}
+                                                    {transcriptionStatus === 'error' && (<p className="mt-1 text-red-600 p-4 bg-red-50 rounded-lg">Could not generate transcription.</p>)}
+                                                </div>
+
+                                                {transcriptionStatus === 'success' && (
+                                                    <div className="pt-4 border-t border-stone-200 space-y-3">
+                                                        <strong className="font-medium text-stone-500">Translate Transcription</strong>
+                                                        <div className="flex items-center gap-4">
+                                                            <select value={targetLanguage} onChange={(e) => setTargetLanguage(e.target.value)} className="p-3 border border-stone-300 rounded-lg bg-white">
+                                                                <option>Spanish</option>
+                                                                <option>French</option>
+                                                                <option>German</option>
+                                                                <option>Mandarin Chinese</option>
+                                                                <option>Japanese</option>
+                                                                <option>Korean</option>
+                                                                <option>Russian</option>
+                                                                <option>Arabic</option>
+                                                            </select>
+                                                            <button type="button" onClick={handleTranslate} disabled={translationStatus === 'generating'} className="p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-blue-600 text-white transition-all font-semibold disabled:bg-blue-300 hover:bg-blue-700">
+                                                                {translationStatus === 'generating' ? <Loader2 size={20} className="animate-spin" /> : <Languages size={20} />}
+                                                                Translate
+                                                            </button>
+                                                        </div>
+                                                        {translationStatus === 'generating' && (<div className="mt-2 p-4 bg-stone-50 rounded-lg flex items-center gap-3 text-stone-600"><Loader2 size={20} className="animate-spin" /><p>Translating...</p></div>)}
+                                                        {translationStatus === 'success' && (<p className="mt-1 text-stone-600 whitespace-pre-wrap p-4 bg-stone-50 rounded-lg">{translatedText}</p>)}
+                                                        {translationStatus === 'error' && (<p className="mt-1 text-red-600 p-4 bg-red-50 rounded-lg">Could not translate text.</p>)}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
                                     )}
                                 </form>
                                 {/* --- Navigation Buttons --- */}
