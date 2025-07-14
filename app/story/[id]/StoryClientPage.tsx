@@ -160,16 +160,47 @@ export default function StoryClientPage({ story }: { story: Story | null }) {
                         onChange={(e) => setTargetLanguage(e.target.value)} 
                         className="w-full p-3 border border-stone-300 rounded-lg bg-white"
                     >
-                        <option>English</option>
-                        <option>Spanish</option>
-                        <option>French</option>
-                        <option>German</option>
-                        <option>Mandarin Chinese</option>
-                        <option>Japanese</option>
-                        <option>Korean</option>
-                        <option>Russian</option>
-                        <option>Arabic</option>
-                        <option>Hindi</option>
+                                <option>Arabic</option>
+                                <option>Bengali</option>
+                                <option>Cantonese</option>
+                                <option>Czech</option>
+                                <option>Danish</option>
+                                <option>Dutch</option>
+                                <option>English</option>
+                                <option>Filipino</option>
+                                <option>Finnish</option>
+                                <option>French</option>
+                                <option>German</option>
+                                <option>Greek</option>
+                                <option>Gujarati</option>
+                                <option>Hebrew</option>
+                                <option>Hindi</option>
+                                <option>Hungarian</option>
+                                <option>Indonesian</option>
+                                <option>Italian</option>
+                                <option>Japanese</option>
+                                <option>Kannada</option>
+                                <option>Korean</option>
+                                <option>Malay</option>
+                                <option>Mandarin Chinese</option>
+                                <option>Marathi</option>
+                                <option>Norwegian</option>
+                                <option>Persian (Farsi)</option>
+                                <option>Polish</option>
+                                <option>Portuguese</option>
+                                <option>Punjabi</option>
+                                <option>Romanian</option>
+                                <option>Russian</option>
+                                <option>Spanish</option>
+                                <option>Swahili</option>
+                                <option>Swedish</option>
+                                <option>Tamil</option>
+                                <option>Telugu</option>
+                                <option>Thai</option>
+                                <option>Turkish</option>
+                                <option>Ukrainian</option>
+                                <option>Urdu</option>
+                                <option>Vietnamese</option>
                     </select>
                     <button
                         type="button"

@@ -439,14 +439,47 @@ export default function SubmitPage() {
                                                         <strong className="font-medium text-stone-500">Translate Transcription</strong>
                                                         <div className="flex items-center gap-4">
                                                             <select value={targetLanguage} onChange={(e) => setTargetLanguage(e.target.value)} className="p-3 border border-stone-300 rounded-lg bg-white">
-                                                                <option>Spanish</option>
-                                                                <option>French</option>
-                                                                <option>German</option>
-                                                                <option>Mandarin Chinese</option>
-                                                                <option>Japanese</option>
-                                                                <option>Korean</option>
-                                                                <option>Russian</option>
-                                                                <option>Arabic</option>
+                                                                        <option>Arabic</option>
+                                                                        <option>Bengali</option>
+                                                                        <option>Cantonese</option>
+                                                                        <option>Czech</option>
+                                                                        <option>Danish</option>
+                                                                        <option>Dutch</option>
+                                                                        <option>English</option>
+                                                                        <option>Filipino</option>
+                                                                        <option>Finnish</option>
+                                                                        <option>French</option>
+                                                                        <option>German</option>
+                                                                        <option>Greek</option>
+                                                                        <option>Gujarati</option>
+                                                                        <option>Hebrew</option>
+                                                                        <option>Hindi</option>
+                                                                        <option>Hungarian</option>
+                                                                        <option>Indonesian</option>
+                                                                        <option>Italian</option>
+                                                                        <option>Japanese</option>
+                                                                        <option>Kannada</option>
+                                                                        <option>Korean</option>
+                                                                        <option>Malay</option>
+                                                                        <option>Mandarin Chinese</option>
+                                                                        <option>Marathi</option>
+                                                                        <option>Norwegian</option>
+                                                                        <option>Persian (Farsi)</option>
+                                                                        <option>Polish</option>
+                                                                        <option>Portuguese</option>
+                                                                        <option>Punjabi</option>
+                                                                        <option>Romanian</option>
+                                                                        <option>Russian</option>
+                                                                        <option>Spanish</option>
+                                                                        <option>Swahili</option>
+                                                                        <option>Swedish</option>
+                                                                        <option>Tamil</option>
+                                                                        <option>Telugu</option>
+                                                                        <option>Thai</option>
+                                                                        <option>Turkish</option>
+                                                                        <option>Ukrainian</option>
+                                                                        <option>Urdu</option>
+                                                                        <option>Vietnamese</option>
                                                             </select>
                                                             <button type="button" onClick={handleTranslate} disabled={translationStatus === 'generating'} className="p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-blue-600 text-white transition-all font-semibold disabled:bg-blue-300 hover:bg-blue-700">
                                                                 {translationStatus === 'generating' ? <Loader2 size={20} className="animate-spin" /> : <Languages size={20} />}
