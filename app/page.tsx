@@ -9,6 +9,10 @@ import dynamic from 'next/dynamic';
 import { useAuth } from '@/app/context/AuthContext'; 
 import Navbar from '@/app/components/Navbar';
 
+import { db } from '@/lib/firebase';
+import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import type { Story } from '@/lib/types';
+
 import StoryCard from './components/StoryCard'; 
 const HomepageMap = dynamic(() => import('./components/HomepageMap'), {
   ssr: false,
@@ -24,43 +28,25 @@ const missionImages = [
     { src: "/food.jpg", alt: 'Close-up on hands preparing food, symbolizing tradition and family recipes.' },
 ];
 
-const featuredStories: Story[] = [
-  {
-    id: 'story-1',
-    title: 'Growing up on the Farm',
-    speaker: 'John M.',
-    excerpt: "I remember the smell of hay in the summer and the sound of the rooster at dawn. We didn't have much, but we had each other, and that was everything...",
-    imageUrl: 'https://images.unsplash.com/photo-1422493757035-1e5e03968f95?q=80&w=2070&auto=format&fit=crop',
-    location: { name: 'Rural Iowa', lat: 41.8781, lng: -93.0977 },
-    era: '1952',
-    tags: ['Childhood', 'Farm Life', 'Family']
-  },
-  {
-    id: 'story-2',
-    title: 'A New Beginning',
-    speaker: 'Maria G.',
-    excerpt: "Leaving everything behind was the hardest thing I've ever done. But when I saw the skyline of the city, I knew I had made the right choice for my children.",
-    imageUrl: 'https://images.unsplash.com/photo-1528543606781-2f6e6857f318?q=80&w=1965&auto=format&fit=crop',
-    location: { name: 'New York City', lat: 40.7128, lng: -74.0060 },
-    era: '1985',
-    tags: ['Migration', 'Hope']
-  },
-  {
-    id: 'story-3',
-    title: "My Grandmother's Recipes",
-    speaker: 'Sofia R.',
-    excerpt: "Every Sunday, the whole family would gather. The secret to her cooking, she'd say, wasn't an ingredient. It was love. Just pure, simple love.",
-    imageUrl: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?q=80&w=1974&auto=format&fit=crop',
-    location: { name: 'Naples, Italy', lat: 40.8518, lng: 14.2681 },
-    era: 'Family',
-    tags: ['Tradition', 'Food', 'Family']
-  }
-];
+const SkeletonCard = () => (
+  <div className="bg-white rounded-xl border border-stone-200 p-6 animate-pulse">
+    <div className="h-48 bg-stone-200 rounded-md"></div>
+    <div className="mt-6 space-y-3">
+      <div className="h-4 bg-stone-200 rounded w-3/4"></div>
+      <div className="h-8 bg-stone-200 rounded w-1/2"></div>
+      <div className="h-4 bg-stone-200 rounded"></div>
+      <div className="h-4 bg-stone-200 rounded w-5/6"></div>
+    </div>
+  </div>
+);
 
 export default function HomePage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user, isLoading, signInWithGoogle, logout } = useAuth();
+  const { user, signInWithGoogle, logout } = useAuth();
+
+  const [featuredStories, setFeaturedStories] = useState<Story[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Effect for image carousel
   useEffect(() => {
@@ -82,6 +68,33 @@ export default function HomePage() {
     };
   }, [isMobileMenuOpen]);
 
+  useEffect(() => {
+    const getFeaturedStories = async () => {
+      try {
+        const storiesCollection = collection(db, "stories");
+        // Create a query for the 3 most recent stories
+        const q = query(
+            storiesCollection, 
+            orderBy("createdAt", "desc"),
+            limit(3) 
+        );
+        const querySnapshot = await getDocs(q);
+        
+        const stories = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        })) as Story[];
+        
+        setFeaturedStories(stories);
+      } catch (error) {
+        console.error("Error fetching featured stories:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getFeaturedStories();
+  }, []); // Empty array ensures this runs only once
 
 return (
   <div className="bg-white text-stone-800 font-sans">
@@ -179,9 +192,17 @@ return (
                 <p className="mt-4 text-lg text-stone-600 max-w-2xl mx-auto">An ever-growing collection of authentic first-person narratives.</p>
             </div>
             <div className="mt-20 grid gap-9 md:grid-cols-2 lg:grid-cols-3">
-              {featuredStories.map((story) => (
-                <StoryCard key={story.id} {...story} />
-              ))}
+              {isLoading ? (
+                <>
+                  <SkeletonCard />
+                  <SkeletonCard />
+                  <SkeletonCard />
+                </>
+              ) : (
+                featuredStories.map((story) => (
+                  <StoryCard key={story.id} {...story} />
+                ))
+              )}
             </div>
              <div className="text-center mt-20">
                  <Link href="/explore" className="text-lg font-semibold text-stone-800 hover:text-amber-700 transition-colors group inline-flex items-center">
