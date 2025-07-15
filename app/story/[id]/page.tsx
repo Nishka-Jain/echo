@@ -4,6 +4,7 @@ import StoryClientPage from './StoryClientPage';
 import type { Story } from '@/lib/types';
 import Link from 'next/link';
 
+// This helper function fetches all data for a single story
 async function getStory(id: string): Promise<Story | null> {
     try {
         const docRef = doc(db, "stories", id);
@@ -14,7 +15,7 @@ async function getStory(id: string): Promise<Story | null> {
             const storyData: Story = {
               id: docSnap.id,
               title: data.title,
-              speaker: data.speaker, 
+              speaker: data.speaker, // Ensures we are looking for the 'speaker' field
               age: data.age,
               pronouns: data.pronouns,
               excerpt: data.summary,
@@ -22,12 +23,13 @@ async function getStory(id: string): Promise<Story | null> {
               audioUrl: data.audioUrl,
               tags: data.tags,
               location: data.location,
+              transcription: data.transcription,
               dateType: data.dateType,
               startYear: data.startYear,
               endYear: data.endYear,
               specificYear: data.specificYear,
               createdAt: data.createdAt?.toDate().toISOString(),
-              transcription: data.transcription, // Add this line
+              authorId: data.authorId
             };
             return storyData;
         } else {
@@ -39,22 +41,18 @@ async function getStory(id: string): Promise<Story | null> {
     }
 }
 
-
+// This Server Component fetches the data and passes it to the client component
 export default async function StoryPage({ params }: { params: { id: string } }) {
     const story = await getStory(params.id);
+
     if (!story) {
         return (
-            <div className="flex items-center justify-center min-h-screen text-center px-4">
-                <div>
-                    <h1 className="text-4xl font-serif text-stone-800">Story Not Found</h1>
-                    <p className="mt-4 text-lg text-stone-600">Sorry, we couldn't find the story you were looking for.</p>
-                    <Link href="/explore" className="mt-6 inline-block text-lg font-semibold text-amber-700 hover:text-amber-800">
-                        ← Back to Explore
-                    </Link>
-                </div>
+            <div className="text-center py-48">
+                <h1 className="text-2xl font-serif">Story Not Found</h1>
+                <Link href="/explore" className="text-amber-700 font-semibold mt-6 inline-block">← Back to Explore</Link>
             </div>
         );
     }
-
+    
     return <StoryClientPage story={story} />;
 }

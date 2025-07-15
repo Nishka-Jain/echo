@@ -19,6 +19,13 @@ const StoryMap = dynamic(() => import('@/app/components/StoryMap'), {
 });
 
 const popularTags = ['Family', 'Tradition', 'Migration', 'Childhood', 'Community', 'Work', 'Hope', 'New York'];
+const storyLanguages = [
+    "English", "Spanish", "French", "German", "Mandarin Chinese", "Cantonese", "Japanese", "Korean", 
+    "Italian", "Portuguese", "Russian", "Arabic", "Hindi", "Bengali", "Punjabi", "Marathi",
+    "Telugu", "Tamil", "Gujarati", "Kannada", "Urdu", "Persian (Farsi)", "Turkish", "Vietnamese", 
+    "Thai", "Malay", "Indonesian", "Filipino", "Dutch", "Swedish", "Norwegian", "Danish", 
+    "Finnish", "Greek", "Hebrew", "Polish", "Ukrainian", "Czech", "Hungarian", "Romanian", "Swahili"
+].sort();
 
 export default function ExplorePage() {
     const [allStories, setAllStories] = useState<Story[]>([]);
@@ -26,6 +33,9 @@ export default function ExplorePage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTag, setActiveTag] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState('grid');
+
+    const [selectedLanguage, setSelectedLanguage] = useState(''); // Empty string for "All"
+
 
     useEffect(() => {
         const fetchStories = async () => {
@@ -39,7 +49,7 @@ export default function ExplorePage() {
                     return {
                         id: doc.id,
                         title: data.title || 'Untitled Story',
-                        speaker: data.speaker || 'Unknown Speaker',
+                        speaker: data.speaker|| 'Unknown Speaker',
                         age: data.age,
                         pronouns: data.pronouns,
                         excerpt: data.summary || 'No summary available.',
@@ -50,6 +60,10 @@ export default function ExplorePage() {
                         startYear: data.startYear,
                         endYear: data.endYear,
                         specificYear: data.specificYear,
+                        transcription: data.transcription,
+                        createdAt: data.createdAt?.toDate().toISOString(),
+                        language: data.language,
+                        authorId: data.authorId
                     } as Story;
                 });
                 setAllStories(storiesData);
@@ -61,15 +75,21 @@ export default function ExplorePage() {
         };
         fetchStories();
     }, []);
-
     const filteredStories = useMemo(() => {
         return allStories.filter(story => {
             const searchLower = searchTerm.toLowerCase();
-            const matchesSearch = (story.title?.toLowerCase().includes(searchLower) || story.speaker?.toLowerCase().includes(searchLower));
+            const matchesSearch = searchTerm.trim() === '' ? true : (
+                story.title?.toLowerCase().includes(searchLower) ||
+                story.speaker?.toLowerCase().includes(searchLower) ||
+                story.transcription?.toLowerCase().includes(searchLower) ||
+                story.tags?.some(tag => tag.toLowerCase().includes(searchLower))
+            );
             const matchesTag = activeTag ? story.tags?.includes(activeTag) : true;
-            return matchesSearch && matchesTag;
+            const matchesLanguage = selectedLanguage ? story.language === selectedLanguage : true;
+
+            return matchesSearch && matchesTag && matchesLanguage;
         });
-    }, [searchTerm, activeTag, allStories]);
+    }, [searchTerm, activeTag, selectedLanguage, allStories]); // Add selectedLanguage here
 
     return (
         <div className="bg-white min-h-screen text-stone-800 font-sans">
@@ -93,16 +113,32 @@ export default function ExplorePage() {
                 </header>
                 
                 <div className="bg-white p-4 mb-8 rounded-xl w-full max-w-6xl mx-auto border border-stone-200 shadow-sm">
-                    <div className="relative w-full">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-stone-400" />
-                        <input
-                            type="text"
-                            placeholder="Search by title, speaker, or tag..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 bg-white border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                        />
-                    </div>
+                    <div className="flex flex-col md:flex-row gap-4 items-center">
+                            <div className="relative w-full md:flex-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-stone-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Search by title, speaker, tag, or content..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-3 bg-white border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                                />
+                            </div>
+
+                            <div className="w-full md:w-auto md:max-w-xs">
+                                <select
+                                    value={selectedLanguage}
+                                    onChange={(e) => setSelectedLanguage(e.target.value)}
+                                    className="w-full px-3 pr-10 py-3 bg-white border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none text-stone-900 appearance-none bg-no-repeat bg-[url('data:image/svg+xml,%3csvg%20xmlns%3d%22http%3a//www.w3.org/2000/svg%22%20width%3d%2224%22%20height%3d%2224%22%20viewBox%3d%220%200%2024%2024%22%20fill%3d%22none%22%20stroke%3d%22%236b7280%22%20stroke-width%3d%222%22%20stroke-linecap%3d%22round%22%20stroke-linejoin%3d%22round%22%3e%3cpolyline%20points%3d%226%209%2012%2015%2018%209%22%3e%3c/polyline%3e%3c/svg%3e')] bg-[right_0.75rem_center]"
+                                >
+                                    <option value="">All Languages</option>
+                                    {storyLanguages.sort().map(lang => (
+                                        <option key={lang} value={lang}>{lang}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
                     <div className="mt-4 flex items-center gap-2 pb-1 overflow-x-auto">
                         <button 
                             onClick={() => setActiveTag(null)}

@@ -1,7 +1,7 @@
 import type { User } from 'firebase/auth';
 
 export type Story = {
-  transcription: string;
+  transcription?: string;
   id: string;
   photoUrl?: string; 
   title: string;
@@ -11,6 +11,7 @@ export type Story = {
   audioUrl?: string;
   excerpt: string;
   tags: string[];
+  authorId?: string;
   createdAt?: string;
   location?: {
     name: string;
@@ -21,6 +22,7 @@ export type Story = {
   startYear?: number | null;
   endYear?: number | null;
   specificYear?: number | null;
+  language?: string;
 };
 
 export type UserProfile = User & {

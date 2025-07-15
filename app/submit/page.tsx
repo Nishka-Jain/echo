@@ -67,6 +67,16 @@ export default function SubmitPage() {
     const [translatedText, setTranslatedText] = useState('');
     const [translationStatus, setTranslationStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle');
     const [targetLanguage, setTargetLanguage] = useState('English'); 
+    const commonLanguages = [
+        "English", "Spanish", "French", "German", "Mandarin Chinese", "Cantonese", "Japanese", "Korean", 
+        "Italian", "Portuguese", "Russian", "Arabic", "Hindi", "Bengali", "Punjabi", "Marathi",
+        "Telugu", "Tamil", "Gujarati", "Kannada", "Urdu", "Persian (Farsi)", "Turkish", "Vietnamese", 
+        "Thai", "Malay", "Indonesian", "Filipino", "Dutch", "Swedish", "Norwegian", "Danish", 
+        "Finnish", "Greek", "Hebrew", "Polish", "Ukrainian", "Czech", "Hungarian", "Romanian", "Swahili"
+    ].sort(); // Sort them alphabetically
+
+    const [language, setLanguage] = useState('');
+    const [otherLanguage, setOtherLanguage] = useState('');
 
     useEffect(() => {
         setIsMounted(true);
@@ -244,14 +254,17 @@ export default function SubmitPage() {
     const handleBack = () => currentStep > 1 && setCurrentStep(currentStep - 1);
 
     const isStepValid = (() => {
-    if (currentStep === 1) return speakerName.trim() !== '';
-    if (currentStep === 2) return !!audioFile;
-    if (currentStep === 3) return transcriptionStatus === 'success' || transcriptionStatus === 'error'; // Allow user to proceed even if transcription fails
-    if (currentStep === 4) return storyTitle.trim() !== '' && !!location && selectedTags.length > 0;
-    return true;
-})();
+        if (currentStep === 1) return speakerName.trim() !== '';
+        if (currentStep === 2) return !!audioFile;
+        if (currentStep === 3) return transcriptionStatus === 'success' || transcriptionStatus === 'error';
+        if (currentStep === 4) {
+            const isDateProvided = (dateType === 'period' && startYear.trim() !== '') || (dateType === 'year' && specificYear.trim() !== '');
+            return storyTitle.trim() !== '' && !!location && selectedTags.length > 0 && !!language && isDateProvided;
+        }
+        return true;
+    })();
     
-    const isSubmittable = !!(audioFile && storyTitle && speakerName && !!location && selectedTags.length > 0);
+    const isSubmittable = !!(audioFile && storyTitle && speakerName && !!location && selectedTags.length > 0 && !!language);
 
     const handleFinalSubmit = async () => {
         
@@ -280,16 +293,19 @@ export default function SubmitPage() {
                 const photoSnapshot = await uploadBytes(photoRef, speakerPhoto);
                 photoUrl = await getDownloadURL(photoSnapshot.ref);
             }
-    
+
+            const finalLanguage = language === 'Other' ? otherLanguage.trim() : language;
+
             // 3. Create the story object with the new URLs
             const storyData = { 
                 title: storyTitle,
-                speaker: speakerName,
                 age: speakerAge,
                 pronouns: speakerPronouns,
+                speaker: speakerName,
                 photoUrl: photoUrl, 
                 audioUrl: audioUrl,
                 tags: selectedTags, 
+                language: finalLanguage,
                 location: location,
                 summary: summary,
                 transcription: transcription,
@@ -530,6 +546,36 @@ export default function SubmitPage() {
                                                     <LocationSearch onPlaceSelect={(place) => setLocation(place)} />
                                                 </APIProvider>
                                             </div>
+                                            <div>
+                                                <label htmlFor="language" className="block text-sm font-medium text-stone-700 mb-1">
+                                                    Language of Story <span className="text-red-500">*</span>
+                                                </label>
+                                                <select
+                                                    id="language"
+                                                    value={language}
+                                                    onChange={(e) => setLanguage(e.target.value)}
+                                                    className={`w-full p-3 border border-stone-300 rounded-lg bg-white ${!language ? 'text-stone-500' : 'text-stone-900'}`}
+                                                    required
+                                                >
+                                                    <option value="" disabled>-- Select a language --</option>
+                                                    {commonLanguages.map(lang => (
+                                                        <option key={lang} value={lang}>{lang}</option>
+                                                    ))}
+                                                    <option value="Other">Other...</option>
+                                                </select>
+
+                                                {language === 'Other' && (
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Please specify the language"
+                                                        value={otherLanguage}
+                                                        onChange={(e) => setOtherLanguage(e.target.value)}
+                                                        className="w-full p-3 mt-2 border border-stone-300 rounded-lg animate-fade-in text-stone-900"
+                                                        required
+                                                    />
+                                                )}
+                                            </div>
+                                            
                                             <div className="space-y-4 rounded-lg border border-stone-200 p-4">
                                                 <h4 className="font-medium text-stone-700">When did this story take place? <span className="text-red-500">*</span></h4>
                                                 
