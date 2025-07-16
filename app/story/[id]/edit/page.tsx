@@ -3,7 +3,10 @@ import { doc, getDoc } from 'firebase/firestore';
 import StoryEditForm from './StoryEditForm'; 
 import type { Story } from '@/lib/types';
 import Link from 'next/link';
-
+// Define a type for the page props
+type PageProps = {
+  params: { id: string };
+};
 async function getStory(id: string): Promise<Story | null> {
     try {
         const docRef = doc(db, "stories", id);
@@ -38,7 +41,8 @@ async function getStory(id: string): Promise<Story | null> {
         return null;
     }
 }
-export default async function StoryPage({ params: { id } }: { params: { id: string } }) {
+export default async function StoryPage({ params }: PageProps) {
+    const { id } = params; // Destructure id from params
     const story = await getStory(id);
 
     if (!story) {
