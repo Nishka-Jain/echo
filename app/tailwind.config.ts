@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import typography from '@tailwindcss/typography';
 
 const config: Config = {
   content: [
@@ -9,14 +10,13 @@ const config: Config = {
   theme: {
     extend: {
         fontFamily: {
-          sans: ['var(--font-manrope)', 'sans-serif'], // Sets Manrope as the default body font
-          serif: ['Lora', 'serif'],      // Sets Lora as the default headline font
+          sans: ['var(--font-lato)', 'sans-serif'],
+          serif: ['var(--font-playfair-display)', 'serif'],
         },
     },
   },
-  // Add the plugins section with the new plugin
   plugins: [
-    require('@tailwindcss/typography'),
+    typography,
   ],
 };
 export default config;
