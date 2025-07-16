@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Your existing images configuration
   images: {
     remotePatterns: [
       {
@@ -22,10 +21,8 @@ const nextConfig = {
         pathname: '**',
       },
     ],
-    
   },
   
-  // ✨ ADD THIS FUNCTION to set the correct security headers
   async headers() {
     return [
       {
@@ -39,9 +36,11 @@ const nextConfig = {
       },
     ];
   },
+
+  // This tells Next.js to ignore ESLint errors during the production build.
   eslint: {
     ignoreDuringBuilds: true,
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;
