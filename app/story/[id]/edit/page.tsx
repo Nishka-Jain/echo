@@ -4,11 +4,6 @@ import StoryEditForm from './StoryEditForm';
 import type { Story } from '@/lib/types';
 import Link from 'next/link';
 
-// Define a type for the page props
-type PageProps = {
-  params: { id: string };
-};
-
 // This helper function fetches the story data from Firestore
 async function getStory(id: string): Promise<Story | null> {
     try {
@@ -46,8 +41,9 @@ async function getStory(id: string): Promise<Story | null> {
     }
 }
 
-// FIX: The function signature now correctly uses the PageProps type.
-export default async function StoryEditPage({ params }: PageProps) {
+// FIX: The custom 'PageProps' type has been removed. The type for props
+// is now defined directly and explicitly in the function signature.
+export default async function StoryEditPage({ params }: { params: { id: string } }) {
     const { id } = params; // Destructure id from params
     const story = await getStory(id);
 
