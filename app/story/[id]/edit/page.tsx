@@ -41,28 +41,28 @@ async function getStory(id: string): Promise<Story | null> {
     }
 }
 
-// FIX: The custom 'PageProps' type has been removed. The type for props
-// is now defined directly and explicitly in the function signature.
-export default async function StoryEditPage({ params }: { params: { id: string } }) {
-    const { id } = params; // Destructure id from params
+type tParams = Promise<{ id: string }>;
+export default async function StoryEditPage(props: { params: tParams}) {
+    const { id } = await props.params;
     const story = await getStory(id);
 
+  
     if (!story) {
-        return (
-            <div className="text-center py-48">
-                <h1 className="text-2xl font-serif">Story Not Found</h1>
-                <Link href="/explore" className="text-amber-700 font-semibold mt-6 inline-block">← Back to Explore</Link>
-            </div>
-        );
-    }
-    
-    return (
-        <div className="bg-stone-100 min-h-screen font-sans">
-             <main className="py-16 sm:py-24">
-                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <StoryEditForm initialStory={story} />
-                 </div>
-             </main>
+      return (
+        <div className="text-center py-48">
+          <h1 className="text-2xl font-serif">Story Not Found</h1>
+          <Link href="/explore" className="text-amber-700 font-semibold mt-6 inline-block">← Back to Explore</Link>
         </div>
+      );
+    }
+  
+    return (
+      <div className="bg-stone-100 min-h-screen font-sans">
+        <main className="py-16 sm:py-24">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <StoryEditForm initialStory={story} />
+          </div>
+        </main>
+      </div>
     );
-}
+  }
