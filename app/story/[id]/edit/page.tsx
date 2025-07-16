@@ -43,13 +43,7 @@ async function getStory(id: string): Promise<Story | null> {
 
 // FIX: The custom 'PageProps' type has been removed. The type for props
 // is now defined directly and explicitly in the function signature.
-interface PageProps {
-    params: {
-        id: string;
-    };
-}
-
-export default async function StoryEditPage({ params }: PageProps) {
+export default async function StoryEditPage({ params }: { params: { id: string } }) {
     const { id } = params; // Destructure id from params
     const story = await getStory(id);
 
