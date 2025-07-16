@@ -3,10 +3,13 @@ import { doc, getDoc } from 'firebase/firestore';
 import StoryEditForm from './StoryEditForm'; 
 import type { Story } from '@/lib/types';
 import Link from 'next/link';
+
 // Define a type for the page props
 type PageProps = {
   params: { id: string };
 };
+
+// This helper function fetches the story data from Firestore
 async function getStory(id: string): Promise<Story | null> {
     try {
         const docRef = doc(db, "stories", id);
@@ -31,6 +34,7 @@ async function getStory(id: string): Promise<Story | null> {
               endYear: data.endYear,
               specificYear: data.specificYear,
               authorId: data.authorId,
+              transcription: data.transcription,
             };
             return storyData;
         } else {
@@ -41,7 +45,9 @@ async function getStory(id: string): Promise<Story | null> {
         return null;
     }
 }
-export default async function StoryPage({ params }: PageProps) {
+
+// FIX: The function signature now correctly uses the PageProps type.
+export default async function StoryEditPage({ params }: PageProps) {
     const { id } = params; // Destructure id from params
     const story = await getStory(id);
 
@@ -57,10 +63,10 @@ export default async function StoryPage({ params }: PageProps) {
     return (
         <div className="bg-stone-100 min-h-screen font-sans">
              <main className="py-16 sm:py-24">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                   <StoryEditForm initialStory={story} />
-                </div>
-            </main>
+                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <StoryEditForm initialStory={story} />
+                 </div>
+             </main>
         </div>
     );
 }
