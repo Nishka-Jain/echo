@@ -89,7 +89,7 @@ export default function ExplorePage() {
 
             return matchesSearch && matchesTag && matchesLanguage;
         });
-    }, [searchTerm, activeTag, selectedLanguage, allStories]); // Add selectedLanguage here
+    }, [searchTerm, activeTag, selectedLanguage, allStories]); 
 
     return (
         <div className="bg-white min-h-screen text-stone-800 font-sans">
@@ -138,7 +138,6 @@ export default function ExplorePage() {
                                 </select>
                             </div>
                         </div>
-
                     <div className="mt-4 flex items-center gap-2 pb-1 overflow-x-auto">
                         <button 
                             onClick={() => setActiveTag(null)}
