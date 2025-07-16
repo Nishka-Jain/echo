@@ -7,7 +7,7 @@ type WaveSurferInstance = any;
 type RecordPluginInstance = any;
 type RegionsPluginInstance = any;
 type Region = any;
-
+// This function converts an AudioBuffer to a WAV Blob
 const audioBufferToWav = (buffer: AudioBuffer): Blob => {
     const numChannels = buffer.numberOfChannels;
     const sampleRate = buffer.sampleRate;
