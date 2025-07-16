@@ -1,17 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Mic, Upload, CheckCircle, ArrowRight, ArrowLeft, Pencil, Info, ImagePlus, X, Plus, PartyPopper, Loader2, Languages } from 'lucide-react';
+import { Mic, Upload, CheckCircle, ArrowRight, ArrowLeft, Pencil, Info, ImagePlus, X, Plus, PartyPopper, Loader2, Languages, Camera, UploadCloud, UserCircle} from 'lucide-react';
 import AudioRecorder from '@/app/components/AudioRecorder';
 import { db, storage } from '@/lib/firebase';
 import { collection, addDoc } from "firebase/firestore"; 
+import Image from 'next/image';
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import Navbar from '@/app/components/Navbar';
 import { useAuth } from '@/app/context/AuthContext';
 import { APIProvider } from '@vis.gl/react-google-maps';
 import LocationSearch from '@/app/components/LocationSearch';
 import type { Place } from '@/app/components/LocationSearch';
+import toast from 'react-hot-toast';
 
 const Stepper = ({ currentStep, steps }: { currentStep: number, steps: string[] }) => (
     <div className="flex w-full items-center justify-center">
@@ -55,6 +57,10 @@ export default function SubmitPage() {
     const [endYear, setEndYear] = useState('');
     const [specificYear, setSpecificYear] = useState('');
 
+    const [stream, setStream] = useState<MediaStream | null>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [newPhoto, setNewPhoto] = useState<File | null>(null);
 
     const steps = ["Who's Speaking", "Record Audio", "Review Transcription", "Add Details", "Review & Submit"];
     const [availableTags, setAvailableTags] = useState(["Family", "Migration", "Food", "Tradition", "Love", "Loss", "Childhood", "Work"]);
@@ -81,6 +87,18 @@ export default function SubmitPage() {
     useEffect(() => {
         setIsMounted(true);
     }, []);
+
+    useEffect(() => {
+        if (stream && videoRef.current) {
+            videoRef.current.srcObject = stream;
+        }
+        // Cleanup function to stop the camera
+        return () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        };
+    }, [stream]);
 
     useEffect(() => {
         if (speakerPhoto) {
@@ -132,6 +150,48 @@ export default function SubmitPage() {
             e.preventDefault();
             handleAddCustomTag();
         }
+    };
+    
+    const stopCameraStream = () => {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            setStream(null);
+        }
+    };
+    
+    const startCamera = async () => {
+        stopCameraStream();
+        setSpeakerPhoto(null);
+        setPhotoPreviewUrl(null);
+        try {
+            const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            setStream(mediaStream);
+        } catch (err) {
+            console.error("Error accessing camera:", err);
+            toast.error("Could not access camera. Please check permissions.");
+        }
+    };
+
+    const takePicture = () => {
+        if (!videoRef.current || !canvasRef.current) return;
+        const canvas = canvasRef.current;
+        const video = videoRef.current;
+        
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        const context = canvas.getContext('2d');
+        context?.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob((blob) => {
+            if (blob) {
+                const newFile = new File([blob], "speaker-photo.jpg", { type: "image/jpeg" });
+                setSpeakerPhoto(newFile);
+                setPhotoPreviewUrl(URL.createObjectURL(newFile));
+            }
+        }, 'image/jpeg');
+
+        stopCameraStream();
     };
 
     // --- NEW Transcription Handler ---
@@ -403,18 +463,48 @@ export default function SubmitPage() {
                                                 <div><label htmlFor="speakerPronouns" className="block text-sm font-medium text-stone-700 mb-1">Pronouns <span className="text-stone-500">(Optional)</span></label><input type="text" id="speakerPronouns" placeholder="e.g., she/her" value={speakerPronouns} onChange={(e) => setSpeakerPronouns(e.target.value)} className="w-full p-3 border border-stone-300 rounded-lg" /></div>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-stone-700 mb-2">Photo of Speaker <span className="text-stone-500">(Optional)</span></label>
-                                                {!photoPreviewUrl ? (
-                                                    <label htmlFor="photo-upload" className="relative block w-full border-2 border-stone-300 border-dashed rounded-lg p-12 text-center hover:border-stone-400 cursor-pointer">
-                                                        <ImagePlus className="mx-auto h-12 w-12 text-stone-400" /><span className="mt-2 block text-sm font-medium text-stone-600">Upload a photo</span>
-                                                        <input id="photo-upload" type="file" className="sr-only" accept="image/*" onChange={handlePhotoChange} />
-                                                    </label>
-                                                ) : (
-                                                    <div className="relative w-32 h-32">
-                                                        <img src={photoPreviewUrl} alt="Speaker preview" className="w-32 h-32 rounded-lg object-cover" />
-                                                        <button type="button" onClick={() => setSpeakerPhoto(null)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600"><X size={16} /></button>
+                                                <label className="block text-sm font-medium text-stone-700">Photo of Speaker <span className="text-stone-500">(Optional)</span></label>
+                                                <div className="mt-2 p-6 rounded-lg border border-stone-200 bg-stone-50 text-center">
+                                                    
+                                                    {/* Image Preview / Camera Feed */}
+                                                    <div className="w-65 h-65 mx-auto bg-stone-200 rounded-lg flex items-center justify-center relative overflow-hidden shadow-inner">
+                                                        {photoPreviewUrl && !stream && (
+                                                            <Image src={photoPreviewUrl} alt="Speaker preview" fill className="object-cover" />
+                                                        )}
+                                                        {stream && (
+                                                            <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
+                                                        )}
+                                                        {!photoPreviewUrl && !stream && (
+                                                            <UserCircle className="h-16 w-16 text-stone-400" />
+                                                        )}
+                                                        <canvas ref={canvasRef} className="hidden" />
                                                     </div>
-                                                )}
+                                                    
+                                                    {/* Action Buttons */}
+                                                    <div className="mt-4">
+                                                        {stream ? (
+                                                          <div className="flex items-center justify-center gap-2">
+                                                            <button type="button" onClick={takePicture} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700"><Camera size={16}/> Snap Photo</button>
+                                                            <button type="button" onClick={stopCameraStream} className="p-2 text-stone-500 hover:text-stone-800"><X size={20}/></button>
+                                                          </div>
+                                                        ) : newPhoto ? (
+                                                            <div className="flex items-center justify-center gap-2">
+                                                                <p className="text-sm text-stone-600">Photo selected.</p>
+                                                                <button type="button" onClick={() => { setSpeakerPhoto(null); setPhotoPreviewUrl(null); }} className="font-semibold text-xs text-red-500 hover:underline">Remove</button>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex items-center justify-center gap-2">
+                                                                <input id="photo-upload" type="file" className="sr-only" accept="image/*" onChange={handlePhotoChange} />
+                                                                <label htmlFor="photo-upload" className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-stone-600 bg-white border border-stone-300 rounded-lg hover:bg-stone-100 cursor-pointer">
+                                                                    <UploadCloud size={14}/> Upload File
+                                                                </label>
+                                                                <button type="button" onClick={startCamera} className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-stone-600 bg-white border border-stone-300 rounded-lg hover:bg-stone-100">
+                                                                    <Camera size={14}/> Use Camera
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     )}
