@@ -4,7 +4,6 @@ import StoryClientPage from './StoryClientPage';
 import type { Story } from '@/lib/types';
 import Link from 'next/link';
 
-// This helper function now correctly fetches ALL story data
 async function getStory(id: string): Promise<Story | null> {
     try {
         const docRef = doc(db, "stories", id);
@@ -42,7 +41,7 @@ async function getStory(id: string): Promise<Story | null> {
 }
 
 // FIX: The type for props is now defined directly in the function signature
-// and the 'id' is destructured immediately. This is the definitive fix.
+// and the 'id' is destructured immediately.
 export default async function StoryPage({ params: { id } }: { params: { id: string } }) {
     const story = await getStory(id);
 
