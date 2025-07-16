@@ -242,7 +242,7 @@ export default function AudioRecorder({ onRecordingComplete }: AudioRecorderProp
                             {status === 'recording' ? <Pause size={20} /> : <Play size={20} />} {status === 'recording' ? 'Pause' : 'Resume'}
                         </button>
                         <button type="button" onClick={handleStopRecording} className="flex items-center gap-3 p-4 px-6 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors font-semibold">
-                            <Square size={20} /> Stop
+                            <Square size={20} /> End
                         </button>
                     </>
                 )}

@@ -38,9 +38,8 @@ async function getStory(id: string): Promise<Story | null> {
         return null;
     }
 }
-
-export default async function EditStoryPage({ params }: { params: { id: string } }) {
-    const story = await getStory(params.id);
+export default async function StoryPage({ params: { id } }: { params: { id: string } }) {
+    const story = await getStory(id);
 
     if (!story) {
         return (

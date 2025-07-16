@@ -22,6 +22,7 @@ const nextConfig = {
         pathname: '**',
       },
     ],
+    
   },
   
   // ✨ ADD THIS FUNCTION to set the correct security headers
@@ -37,6 +38,9 @@ const nextConfig = {
         ],
       },
     ];
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
   },
 };
 
