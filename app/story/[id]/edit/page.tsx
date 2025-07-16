@@ -27,10 +27,10 @@ async function getStory(id: string): Promise<Story | null> {
               startYear: data.startYear,
               endYear: data.endYear,
               specificYear: data.specificYear,
+              authorId: data.authorId,
             };
             return storyData;
         } else {
-            console.log("No such document!");
             return null;
         }
     } catch (error) {

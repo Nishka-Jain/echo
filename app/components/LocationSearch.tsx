@@ -1,8 +1,7 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useMapsLibrary } from '@vis.gl/react-google-maps';
-import { useEffect, useRef, useState } from 'react';
 
 export interface Place {
   name: string;
@@ -10,14 +9,24 @@ export interface Place {
   lng: number;
 }
 
+// ✨ FIX: Added 'initialValue' to the props
 interface LocationSearchProps {
   onPlaceSelect: (place: Place | null) => void;
+  initialValue?: string;
 }
 
-export default function LocationSearch({ onPlaceSelect }: LocationSearchProps) {
+export default function LocationSearch({ onPlaceSelect, initialValue = '' }: LocationSearchProps) {
   const [placeAutocomplete, setPlaceAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const places = useMapsLibrary('places');
+
+  // ✨ FIX: Use useEffect to set the initial value of the input field
+  useEffect(() => {
+    if (inputRef.current) {
+        inputRef.current.value = initialValue;
+    }
+  }, [initialValue]);
+
 
   useEffect(() => {
     if (!places || !inputRef.current) return;
@@ -50,7 +59,7 @@ export default function LocationSearch({ onPlaceSelect }: LocationSearchProps) {
     <input
       ref={inputRef}
       placeholder="e.g., Oaxaca, Mexico"
-      className="w-full p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-stone-500"
+      className="w-full p-3 border border-stone-300 rounded-lg text-stone-900"
     />
   );
 }

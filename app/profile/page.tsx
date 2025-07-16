@@ -6,42 +6,19 @@ import Link from 'next/link';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 
+// App-specific hooks and components
 import { useAuth } from '@/app/context/AuthContext';
 import Navbar from '@/app/components/Navbar';
 import StoryCard from '@/app/components/StoryCard';
 import type { Story } from '@/lib/types';
 
+// Firebase imports
 import { db, storage } from '@/lib/firebase';
 import { collection, query, where, getDocs, orderBy, doc, deleteDoc } from 'firebase/firestore';
 import { ref, deleteObject } from "firebase/storage";
 
-import { Camera, X, Check, ArrowUp, ArrowDown, Dot, AlertTriangle, Edit, Save } from 'lucide-react';
-
-const DeleteConfirmationModal = ({ story, onConfirm, onCancel, isDeleting }: { story: Story; onConfirm: () => void; onCancel: () => void; isDeleting: boolean; }) => (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 animate-fade-in">
-        <div className="bg-white rounded-xl shadow-2xl p-8 m-4 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
-            <div className="text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                    <AlertTriangle className="h-6 w-6 text-red-600" />
-                </div>
-                <h3 className="mt-4 text-2xl font-serif text-stone-900">Delete Story</h3>
-                <div className="mt-2 text-stone-600">
-                    <p>Are you sure you want to permanently delete this story?</p>
-                    <p className="font-semibold mt-1">"{story.title}"</p>
-                    <p className="mt-4 text-sm text-stone-500">This action cannot be undone.</p>
-                </div>
-            </div>
-            <div className="mt-8 grid grid-cols-2 gap-4">
-                <button onClick={onCancel} disabled={isDeleting} className="px-4 py-2 rounded-lg border border-stone-300 font-semibold hover:bg-stone-100 transition-colors">
-                    Cancel
-                </button>
-                <button onClick={onConfirm} disabled={isDeleting} className="px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 disabled:bg-red-300 transition-colors">
-                    {isDeleting ? 'Deleting...' : 'Delete'}
-                </button>
-            </div>
-        </div>
-    </div>
-);
+// Icon imports
+import { Camera, X, Check, ArrowUp, ArrowDown, Dot, AlertTriangle, Edit, Save, UploadCloud } from 'lucide-react';
 
 export default function ProfilePage() {
     const { user, isLoading, updateUserProfile } = useAuth();
@@ -52,6 +29,7 @@ export default function ProfilePage() {
     const [storyToDelete, setStoryToDelete] = useState<Story | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
+    // State for managing edit mode
     const [isEditing, setIsEditing] = useState(false);
     const [newName, setNewName] = useState('');
     const [newPhoto, setNewPhoto] = useState<File | null>(null);
@@ -59,7 +37,15 @@ export default function ProfilePage() {
     const [isUpdating, setIsUpdating] = useState(false);
     const [objectPosition, setObjectPosition] = useState('object-center');
     const fileInputRef = useRef<HTMLInputElement>(null);
+    
+    // State and refs for camera functionality
+    const [isChangingPhoto, setIsChangingPhoto] = useState(false); // ✨ NEW state to manage photo options
+    const [photoSource, setPhotoSource] = useState<'upload' | 'camera'>('upload');
+    const [stream, setStream] = useState<MediaStream | null>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
 
+    // Set initial editing state when user data loads
     useEffect(() => {
         if (user) {
             setNewName(user.displayName || '');
@@ -67,21 +53,32 @@ export default function ProfilePage() {
         }
     }, [user]);
 
+    // Effect to redirect if user is not logged in
     useEffect(() => {
         if (!isLoading && !user) {
             router.push('/');
         }
     }, [user, isLoading, router]);
 
+    // Effect to fetch user's stories
     useEffect(() => {
         if (user) {
             const fetchMyStories = async () => {
                 setIsFetching(true);
                 try {
                     const storiesCollection = collection(db, "stories");
-                    const q = query(storiesCollection, where("authorId", "==", user.uid), orderBy("createdAt", "desc"));
+                    const q = query(
+                        storiesCollection, 
+                        where("authorId", "==", user.uid),
+                        orderBy("createdAt", "desc")
+                    );
                     const querySnapshot = await getDocs(q);
-                    const storiesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Story[];
+                    
+                    const storiesData = querySnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    })) as Story[];
+
                     setMyStories(storiesData);
                 } catch (error) {
                     console.error("Error fetching user stories:", error);
@@ -93,11 +90,67 @@ export default function ProfilePage() {
         }
     }, [user]);
 
+// ✨ NEW: This useEffect hook now manages the video stream
+useEffect(() => {
+    if (stream && videoRef.current) {
+        // When the stream state is ready, attach it to the video element
+        videoRef.current.srcObject = stream;
+    }
+    // Cleanup function to stop the camera when the component unmounts or stream is cleared
+    return () => {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+    };
+}, [stream]);
+
+// ✨ NEW: Simplified function just sets the stream state to null
+const stopCameraStream = () => {
+    setStream(null);
+};
+
+// ✨ NEW: Simplified function just gets permission and sets the stream
+const startCamera = async () => {
+    setNewPhoto(null);
+    setPhotoPreviewUrl(null);
+    setPhotoSource('camera');
+    try {
+        const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        setStream(mediaStream);
+    } catch (err) {
+        console.error("Error accessing camera:", err);
+        toast.error("Could not access camera. Please check permissions.");
+        setPhotoSource('upload');
+    }
+};
+
+const takePicture = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const context = canvas.getContext('2d');
+    context?.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob((blob) => {
+        if (blob) {
+            const newFile = new File([blob], "profile-photo.jpg", { type: "image/jpeg" });
+            setNewPhoto(newFile);
+            setPhotoPreviewUrl(URL.createObjectURL(newFile));
+            setIsChangingPhoto(false);
+        }
+    }, 'image/jpeg');
+    stopCameraStream(); 
+};
+
     const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        stopCameraStream();
+        setPhotoSource('upload');
         const file = e.target.files?.[0];
         if (file) {
             setNewPhoto(file);
             setPhotoPreviewUrl(URL.createObjectURL(file));
+            setIsChangingPhoto(false);
         }
     };
     
@@ -105,6 +158,8 @@ export default function ProfilePage() {
         setIsEditing(false);
         setNewPhoto(null);
         setPhotoPreviewUrl(null);
+        setIsChangingPhoto(false);
+        stopCameraStream();
         if(user) {
             setNewName(user.displayName || '');
             setObjectPosition(user.photoPosition || 'object-center');
@@ -115,19 +170,16 @@ export default function ProfilePage() {
         if (!user) return;
         setIsUpdating(true);
         const toastId = toast.loading("Saving profile...");
-        
         try {
             await updateUserProfile({
                 displayName: newName.trim() !== user.displayName ? newName.trim() : undefined,
                 newPhoto: newPhoto,
                 photoPosition: objectPosition
             });
-
             toast.success("Profile updated successfully!", { id: toastId });
             setIsEditing(false);
             setNewPhoto(null);
             setPhotoPreviewUrl(null);
-
         } catch (error) {
             console.error("Error updating profile:", error);
             toast.error("Failed to update profile.", { id: toastId });
@@ -136,30 +188,6 @@ export default function ProfilePage() {
         }
     };
 
-    const handleDelete = async () => {
-        if (!storyToDelete) return;
-        setIsDeleting(true);
-        const toastId = toast.loading("Deleting story...");
-        try {
-            if (storyToDelete.photoUrl) {
-                const photoRef = ref(storage, storyToDelete.photoUrl);
-                await deleteObject(photoRef);
-            }
-            if (storyToDelete.audioUrl) {
-                const audioRef = ref(storage, storyToDelete.audioUrl);
-                await deleteObject(audioRef);
-            }
-            await deleteDoc(doc(db, "stories", storyToDelete.id));
-            toast.success("Story deleted successfully!", { id: toastId });
-            setMyStories(currentStories => currentStories.filter(story => story.id !== storyToDelete.id));
-        } catch (error) {
-            console.error("Error deleting story:", error);
-            toast.error("Failed to delete story.", { id: toastId });
-        } finally {
-            setIsDeleting(false);
-            setStoryToDelete(null);
-        }
-    };
 
     if (isLoading || !user) {
         return <div className="flex h-screen items-center justify-center">Loading Profile...</div>;
@@ -167,28 +195,53 @@ export default function ProfilePage() {
 
     return (
         <>
-            <div className="bg-white min-h-screen">
+            <div className="bg-stone-50 min-h-screen">
                 <Navbar />
                 <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                    <header className=" relative mb-12 p-8 bg-white rounded-xl border border-stone-200">
+                    <header className="relative mb-12 p-8 bg-white rounded-xl border border-stone-200">
                         {isEditing ? (
                             <div className="animate-fade-in">
                                 <div className="flex flex-col sm:flex-row items-center gap-8">
-                                    <div className="relative group">
-                                        <Image src={photoPreviewUrl || user.photoURL || '/default-image.png'} alt="Profile photo preview" width={128} height={128} className={`rounded-full object-cover aspect-square border-4 border-white shadow-md ${objectPosition}`} />
-                                        <input type="file" ref={fileInputRef} onChange={handlePhotoSelect} className="hidden" accept="image/*" />
-                                        <button onClick={() => fileInputRef.current?.click()} className="absolute bottom-1 right-1 bg-white p-2 rounded-full shadow-md hover:bg-stone-100"><Camera size={20} className="text-stone-600"/></button>
+                                    <div className="w-32 h-32 relative group flex-shrink-0 bg-stone-100 rounded-full">
+                                        {(photoPreviewUrl || user.photoURL) && !stream && (
+                                            <Image src={photoPreviewUrl || user.photoURL || '/default-image.png'} alt="Profile photo preview" width={128} height={128} className={`rounded-full object-cover aspect-square ${objectPosition}`} />
+                                        )}
+                                        {stream && (<video ref={videoRef} autoPlay muted className="w-full h-full rounded-full object-cover" />)}
+                                        <canvas ref={canvasRef} className="hidden" />
                                     </div>
                                     <div className="flex-grow w-full">
                                         <label htmlFor="displayName" className="block text-sm font-medium text-stone-700">Display Name</label>
-                                        <input id="displayName" type="text" value={newName} onChange={(e) => setNewName(e.target.value)} className="w-full p-2 text-3xl font-serif border-b-2 border-stone-200 focus:border-amber-500 focus:outline-none" />
-                                        {newPhoto && (
-                                            <div className="mt-4 flex items-center gap-1 p-1 bg-stone-100 rounded-lg max-w-min">
-                                                <button onClick={() => setObjectPosition('object-top')} title="Align Top" className={`p-1 rounded-md ${objectPosition === 'object-top' ? 'bg-stone-800 text-white' : 'hover:bg-stone-200'}`}><ArrowUp size={16}/></button>
-                                                <button onClick={() => setObjectPosition('object-center')} title="Align Center" className={`p-1 rounded-md ${objectPosition === 'object-center' ? 'bg-stone-800 text-white' : 'hover:bg-stone-200'}`}><Dot size={16}/></button>
-                                                <button onClick={() => setObjectPosition('object-bottom')} title="Align Bottom" className={`p-1 rounded-md ${objectPosition === 'object-bottom' ? 'bg-stone-800 text-white' : 'hover:bg-stone-200'}`}><ArrowDown size={16}/></button>
-                                            </div>
-                                        )}
+                                        <input id="displayName" type="text" value={newName} onChange={(e) => setNewName(e.target.value)} className="w-full p-2 text-3xl font-serif border-b-2 border-stone-200 focus:border-amber-500 focus:outline-none bg-transparent" />
+                                        <div className="mt-4">
+                                            {!isChangingPhoto && !newPhoto && (
+                                                <button onClick={() => setIsChangingPhoto(true)} className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-stone-600 bg-stone-100 rounded-lg hover:bg-stone-200">
+                                                    <Camera size={14}/> Change Photo
+                                                </button>
+                                            )}
+
+                                            {isChangingPhoto && (
+                                                <div className="flex items-center gap-2 animate-fade-in">
+                                                    <input type="file" ref={fileInputRef} onChange={handlePhotoSelect} className="hidden" accept="image/*" />
+                                                    <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-stone-600 bg-stone-100 rounded-lg hover:bg-stone-200"><UploadCloud size={14}/> Upload File</button>
+                                                    <button onClick={startCamera} className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-stone-600 bg-stone-100 rounded-lg hover:bg-stone-200"><Camera size={14}/> Use Camera</button>
+                                                    <button onClick={() => setIsChangingPhoto(false)} className="p-1.5 text-stone-500 hover:text-stone-800"><X size={16}/></button>
+                                                </div>
+                                            )}
+
+                                            {stream && (
+                                                <div className="mt-2 animate-fade-in">
+                                                    <button onClick={takePicture} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700"><Camera size={16}/> Snap Photo</button>
+                                                </div>
+                                            )}
+
+                                            {newPhoto && !stream && (
+                                                <div className="flex items-center gap-1 p-1 bg-stone-100 rounded-lg max-w-min animate-fade-in">
+                                                    <button onClick={() => setObjectPosition('object-top')} title="Align Top" className={`p-1 rounded-md ${objectPosition === 'object-top' ? 'bg-stone-800 text-white' : 'hover:bg-stone-200'}`}><ArrowUp size={16}/></button>
+                                                    <button onClick={() => setObjectPosition('object-center')} title="Align Center" className={`p-1 rounded-md ${objectPosition === 'object-center' ? 'bg-stone-800 text-white' : 'hover:bg-stone-200'}`}><Dot size={16}/></button>
+                                                    <button onClick={() => setObjectPosition('object-bottom')} title="Align Bottom" className={`p-1 rounded-md ${objectPosition === 'object-bottom' ? 'bg-stone-800 text-white' : 'hover:bg-stone-200'}`}><ArrowDown size={16}/></button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="mt-6 flex justify-end gap-4">
@@ -199,16 +252,18 @@ export default function ProfilePage() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex flex-col sm:flex-row items-center gap-8">
-                                <Image src={user.photoURL || '/default-image.png'} alt={user.displayName || 'User'} width={128} height={128} className={`rounded-full object-cover aspect-square border-4 border-white shadow-md ${user.photoPosition || 'object-center'}`} />
-                                <div className="text-center sm:text-left flex-grow">
-                                    <h1 className="text-4xl font-serif text-stone-900">{user.displayName}</h1>
-                                    <p className="mt-1 text-lg text-stone-500">{user.email}</p>
-                                </div>
+                            <>
                                 <button onClick={() => setIsEditing(true)} className="absolute top-6 right-6 flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-stone-600 bg-stone-100 rounded-lg hover:bg-stone-200 transition-colors">
-                                    <Edit size={16} /> Edit Profile
+                                    <Edit size={14} /> Edit Profile
                                 </button>
-                            </div>
+                                <div className="flex flex-col sm:flex-row items-center gap-8">
+                                    <Image src={user.photoURL || '/default-image.png'} alt={user.displayName || 'User'} width={128} height={128} className={`rounded-full object-cover aspect-square border-4 border-white shadow-md ${user.photoPosition || 'object-center'}`} />
+                                    <div className="text-center sm:text-left flex-grow">
+                                        <h1 className="text-4xl font-serif text-stone-900">{user.displayName}</h1>
+                                        <p className="mt-1 text-lg text-stone-500">{user.email}</p>
+                                    </div>
+                                </div>
+                            </>
                         )}
                     </header>
 
@@ -219,17 +274,7 @@ export default function ProfilePage() {
                         ) : myStories.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {myStories.map(story => (
-                                    <div key={story.id} className="flex flex-col gap-2">
-                                        <StoryCard {...story} />
-                                        <div className="flex justify-end gap-2">
-                                            <Link href={`/story/${story.id}/edit`} className="text-sm font-semibold text-stone-500 hover:text-stone-800 transition-colors px-3 py-1 rounded-md bg-stone-100 hover:bg-stone-200">
-                                                Edit
-                                            </Link>
-                                            <button onClick={() => setStoryToDelete(story)} className="text-sm font-semibold text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 transition-colors px-3 py-1 rounded-md">
-                                                Delete
-                                            </button>
-                                        </div>
-                                    </div>
+                                    <StoryCard key={story.id} {...story} />
                                 ))}
                             </div>
                         ) : (
@@ -242,14 +287,6 @@ export default function ProfilePage() {
                 </main>
             </div>
             
-            {storyToDelete && (
-                <DeleteConfirmationModal
-                    story={storyToDelete}
-                    onCancel={() => setStoryToDelete(null)}
-                    onConfirm={handleDelete}
-                    isDeleting={isDeleting}
-                />
-            )}
         </>
     );
 }
