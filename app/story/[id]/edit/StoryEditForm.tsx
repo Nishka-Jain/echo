@@ -92,7 +92,7 @@ export default function StoryEditForm({ initialStory }: { initialStory: Story })
             // Prepare the data object for Firestore
             const storyUpdateData = {
                 title: storyTitle,
-                speaker_name: speakerName, // Ensure this matches what you use elsewhere
+                speaker: speakerName, // Ensure this matches what you use elsewhere
                 age: speakerAge,
                 pronouns: speakerPronouns,
                 summary: summary,
