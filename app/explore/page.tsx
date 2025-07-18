@@ -112,7 +112,7 @@ export default function ExplorePage() {
         <div className="bg-white min-h-screen text-stone-800 font-sans">
             <Navbar />
 
-            <main className="max-w-7xl mx-auto px-8 sm:px-8 lg:px-10 py-16">
+            <main className="max-w-7xl mx-auto px-10 sm:px-12 lg:px-12 py-16">
                 <header className="text-center mb-12">
                     <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-900">Explore Stories</h1>
                     <p className="mt-4 max-w-2xl mx-auto text-lg text-stone-600">Discover a living archive of voices, memories, and wisdom from around the world.</p>

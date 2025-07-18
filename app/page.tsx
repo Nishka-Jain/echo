@@ -15,14 +15,6 @@ import type { Story } from '@/lib/types';
 
 import StoryCard from './components/StoryCard'; 
 
-const HomepageMap = dynamic(
-  () => import('@/app/components/HomepageMap'), // Path to your map component
-  { 
-    ssr: false, // This is the crucial part
-    loading: () => <div className="w-full h-96 bg-stone-200 animate-pulse" /> // Optional: show a loading skeleton
-  }
-);
-
 const InstagramIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>;
 const FacebookIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>;
 const XIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="m9.5 9.5 5 5"/><path d="m14.5 9.5-5 5"/></svg>;
@@ -206,7 +198,7 @@ return (
     
     <AnimatedSection>
       <section id="explore" className="py-24 sm:py-28 bg-white border-t border-stone-200">
-        <div className="max-w-7xl mx-auto px-15 sm:px-15 lg:px-20">
+        <div className="max-w-7xl mx-auto px-10 sm:px-15 lg:px-20">
             <div className="text-center">
                 <h2 className="text-4xl font-serif tracking-tight text-stone-900 sm:text-5xl">Explore the Web of Voices</h2>
                 <p className="mt-4 text-lg text-stone-600 max-w-2xl mx-auto">An ever-growing collection of authentic first-person narratives.</p>
@@ -237,9 +229,17 @@ return (
         <section className="py-22 sm:py-28 bg-white border-t border-stone-200" >
           <div className="max-w-7xl mx-auto px-10 sm:px-10 lg:px-15">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-              <div className="relative aspect-video rounded-xl shadow-lg border border-stone-200 overflow-hidden">
-                <HomepageMap stories={featuredStories} />
-              </div>
+              <Link href="/explore" className="group">
+                <div className="relative aspect-video rounded-xl shadow-lg border border-stone-200 overflow-hidden transition-transform duration-300 group-hover:scale-105">
+                  <Image
+                    src="/map.png" // Replace with the path to your screenshot
+                    alt="A map showing the locations of stories from around the world."
+                    fill
+                    style={{ objectFit: 'cover' }}
+                  />
+
+                </div>
+              </Link>
               <div className="text-left">
                 <h2 className="font-serif text-4xl lg:text-5xl text-stone-900 mb-6">
                   The World is Full of Stories.
