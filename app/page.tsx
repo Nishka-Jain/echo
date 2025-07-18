@@ -146,7 +146,7 @@ return (
             <p className="mt-8 max-w-2xl mx-auto text-lg text-stone-200">
               A platform to record, preserve, and explore real stories, memories, and life wisdom — before they’re lost.
             </p>
-            <div className="mt-12 flex flex-col sm:flex-row justify-center items-center gap-4">
+            <div className="mt-12 flex flex-col sm:flex-row justify-center items-center gap-4 mx-6 sm:mx-0">
               <Link href="/submit" className="w-full sm:w-auto bg-transparent border border-white/50 px-12 py-3 rounded-lg text-lg font-semibold hover:bg-white/10 transition-all shadow-md transform hover:-translate-y-0.5 flex items-center justify-center gap-3">
                   <Mic size={20} /> Record a Memory
               </Link>
