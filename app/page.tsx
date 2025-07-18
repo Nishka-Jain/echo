@@ -14,10 +14,14 @@ import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import type { Story } from '@/lib/types';
 
 import StoryCard from './components/StoryCard'; 
-const HomepageMap = dynamic(() => import('./components/HomepageMap'), {
-  ssr: false,
-  loading: () => <div className="w-full h-full bg-stone-200 animate-pulse"></div>,
-});
+
+const HomepageMap = dynamic(
+  () => import('@/app/components/HomepageMap'), // Path to your map component
+  { 
+    ssr: false, // This is the crucial part
+    loading: () => <div className="w-full h-96 bg-stone-200 animate-pulse" /> // Optional: show a loading skeleton
+  }
+);
 
 const InstagramIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>;
 const FacebookIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>;
@@ -143,7 +147,7 @@ return (
               A platform to record, preserve, and explore real stories, memories, and life wisdom — before they’re lost.
             </p>
             <div className="mt-12 flex flex-col sm:flex-row justify-center items-center gap-4">
-              <Link href="/submit" className="w-full sm:w-auto bg-transparent border border-white/50 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-white/10 transition-all shadow-md transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+              <Link href="/submit" className="w-full sm:w-auto bg-transparent border border-white/50 px-12 py-3 rounded-lg text-lg font-semibold hover:bg-white/10 transition-all shadow-md transform hover:-translate-y-0.5 flex items-center justify-center gap-3">
                   <Mic size={20} /> Record a Memory
               </Link>
               <Link href="/explore" className="w-full sm:w-auto bg-white text-stone-800 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-stone-200 transition-all shadow-md transform hover:-translate-y-0.5">
@@ -254,7 +258,7 @@ return (
       
       <AnimatedSection>
           <section className="bg-white border-y border-stone-200 py-22 sm:py-28">
-            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div className="max-w-3xl mx-auto px-6 sm:px-8 lg:px-10 text-center">
                 <h2 className="font-serif text-4xl lg:text-5xl text-stone-900">Become a Part of the Archive Today</h2>
                 <div className="prose prose-xl max-w-none text-stone-600 leading-relaxed mt-8">               
                   <p>

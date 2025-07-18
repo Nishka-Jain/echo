@@ -32,23 +32,63 @@ const socialLinks = [
   { href: 'https://x.com', label: 'X', icon: <XIcon /> },
 ];
 
-const Stepper = ({ currentStep, steps }: { currentStep: number, steps: string[] }) => (
-    <div className="flex w-full items-center justify-center">
-        {steps.map((step, index) => (
-            <React.Fragment key={index}>
-                <div className="flex flex-col items-center text-center">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors ${currentStep >= index + 1 ? 'bg-stone-800 text-white' : 'bg-stone-200 text-stone-500'}`}>
-                        {currentStep > index + 1 ? <CheckCircle size={24} /> : index + 1}
-                    </div>
-                    <p className={`mt-2 text-sm font-medium w-24 ${currentStep >= index + 1 ? 'text-stone-800' : 'text-stone-500'}`}>{step}</p>
+const Stepper = ({ currentStep, steps }: { currentStep: number, steps: string[] }) => {
+    return (
+        <div className="w-full">
+            {/* --- Mobile View: Compact bar with current step text below --- */}
+            <div className="md:hidden">
+                {/* The visual bar of circles and connecting lines */}
+                <div className="flex items-center">
+                    {steps.map((step, index) => {
+                        const stepNumber = index + 1;
+                        const isCompleted = currentStep > stepNumber;
+                        const isActive = currentStep === stepNumber;
+                        return (
+                            <React.Fragment key={index}>
+                                {/* Circle */}
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-colors shrink-0 ${(isCompleted || isActive) ? 'bg-stone-800 text-white' : 'bg-stone-200 text-stone-500'}`}>
+                                    {isCompleted ? <CheckCircle size={16} /> : stepNumber}
+                                </div>
+                                {/* Connecting line (unless it's the last step) */}
+                                {index < steps.length - 1 && (
+                                    <div className={`flex-auto border-t-2 transition-colors mx-2 ${isCompleted ? 'border-stone-800' : 'border-stone-200'}`}></div>
+                                )}
+                            </React.Fragment>
+                        );
+                    })}
                 </div>
-                {index < steps.length - 1 && (
-                    <div className={`flex-auto border-t-2 transition-colors mx-4 ${currentStep > index + 1 ? 'border-stone-800' : 'border-stone-200'}`}></div>
-                )}
-            </React.Fragment>
-        ))}
-    </div>
-);
+                {/* Text for the current step, displayed below the bar */}
+                <p className="mt-4 text-center text-sm font-medium text-stone-800">
+                    Step {currentStep}: {steps[currentStep - 1]}
+                </p>
+            </div>
+
+            {/* --- Desktop View: Full Horizontal Stepper (Unchanged) --- */}
+            <div className="hidden md:flex w-full items-start justify-between">
+                {steps.map((step, index) => {
+                    const stepNumber = index + 1;
+                    const isCompleted = currentStep > stepNumber;
+                    const isActive = currentStep === stepNumber;
+
+                    return (
+                        <React.Fragment key={index}>
+                            <div className="flex flex-col items-center text-center w-1/5 flex-shrink min-w-0">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors shrink-0 ${(isCompleted || isActive) ? 'bg-stone-800 text-white' : 'bg-stone-200 text-stone-500'}`}>
+                                    {isCompleted ? <CheckCircle size={24} /> : stepNumber}
+                                </div>
+                                <p className={`mt-2 text-sm font-medium ${(isCompleted || isActive) ? 'text-stone-800' : 'text-stone-500'}`}>{step}</p>
+                            </div>
+                            {index < steps.length - 1 && (
+                                <div className={`flex-auto border-t-2 transition-colors mt-5 ${isCompleted ? 'border-stone-800' : 'border-stone-200'}`}></div>
+                            )}
+                        </React.Fragment>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
 
 export default function SubmitPage() {
     const [currentStep, setCurrentStep] = useState(1);

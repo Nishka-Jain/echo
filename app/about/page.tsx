@@ -33,7 +33,7 @@ export default function AboutPage() {
       <main className="overflow-hidden">
         <AnimatedSection>
             <header className="bg-white pt-20 pb-12 sm:pt-22 sm:pb-10">
-              <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+              <div className="max-w-5xl mx-auto px-6 sm:px-8 lg:px-10 text-center">
                     <h1 className="text-4xl sm:text-5xl lg:text-7xl font-serif tracking-tight text-stone-900">
                       A Bridge Between Generations.
                     </h1>
@@ -102,7 +102,7 @@ export default function AboutPage() {
           </AnimatedSection>
         
         <section className="bg-stone-900 text-white py-22 sm:py-28">
-          <div className="max-w-5xl mx-auto px-4 sm:px-8 lg:px-10">
+          <div className="max-w-5xl mx-auto px-8 sm:px-10 lg:px-12">
             <AnimatedSection>
               <div className="text-center">
                 <h2 className="font-serif text-3xl lg:text-5xl">Our Guiding Principles</h2>
@@ -145,7 +145,7 @@ export default function AboutPage() {
 
         <AnimatedSection>
           <section className="bg-white py-22 sm:py-28 border-y border-stone-200">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-5xl mx-auto px-8 sm:px-10 lg:px-12">
               <div className="text-center mb-16">
                 <h2 className="font-serif text-3xl lg:text-4xl text-stone-900">The Reason We Began</h2>
                 <p className="mt-6 text-lg text-stone-600">A word from our founders.</p>
@@ -205,7 +205,7 @@ export default function AboutPage() {
 
         <AnimatedSection>
           <section id="contact" className="bg-white py-22 sm:py-28 border-t border-stone-200">
-            <div className="max-w-7xl mx-auto px-4 sm:px-10 lg:px-15">
+            <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-15">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
 
                 <div className="md:col-span-1">
