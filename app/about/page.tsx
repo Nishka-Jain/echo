@@ -7,6 +7,24 @@ import { BookHeart, Globe, Leaf, Users } from 'lucide-react';
 import AnimatedSection from '../components/AnimatedSection';
 import Navbar from '@/app/components/Navbar';
 
+const InstagramIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>;
+const FacebookIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>;
+const XIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="m9.5 9.5 5 5"/><path d="m14.5 9.5-5 5"/></svg>;
+
+const footerLinks = [
+  { href: '/about', label: 'About' },
+  { href: '/submit', label: 'Submit' },
+  { href: '/explore', label: 'Explore' },
+  { href: '/about#contact', label: 'Contact' },
+];
+
+const socialLinks = [
+  { href: 'https://instagram.com', label: 'Instagram', icon: <InstagramIcon /> },
+  { href: 'https://facebook.com', label: 'Facebook', icon: <FacebookIcon /> },
+  { href: 'https://x.com', label: 'X', icon: <XIcon /> },
+];
+
+
 export default function AboutPage() {
   return (
     <div className="bg-white text-stone-800 font-sans">
@@ -219,42 +237,54 @@ export default function AboutPage() {
       </main>
 
       <footer className="bg-stone-900 text-stone-300">
-        <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8 text-center">
-
-          <Link href="/" className="text-2xl font-bold text-white">
-            Echo
-          </Link>
-          
-          <p className="mt-4 text-stone-400 max-w-md mx-auto">
-            Hold onto the stories that hold us together.
-          </p>
-
-
-          <div className="mt-8 flex justify-center items-center gap-6 text-sm font-medium text-stone-300">
-            <Link href="/about" className="hover:text-white transition-colors">About</Link>
-            <Link href="/submit" className="hover:text-white transition-colors">Submit</Link>
-            <Link href="/explore" className="hover:text-white transition-colors">Explore</Link>
-            <Link href="/about#contact" className="hover:text-white transition-colors">Contact</Link>
+          <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8 text-center">
             
-            <div className="h-4 w-px bg-stone-700"></div>
+            <Link href="/" className="text-2xl font-bold text-white">
+              Echo
+            </Link>
+            
+            <p className="mt-4 text-stone-400 max-w-md mx-auto">
+              Hold onto the stories that hold us together.
+            </p>
 
-            <div className="flex items-center gap-5">
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-white transition-colors">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
-              </a>
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-white transition-colors">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
-              </a>
-              <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-white transition-colors">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="m9.5 9.5 5 5"/><path d="m14.5 9.5-5 5"/></svg>
-              </a>
+            {/* All Links & Socials Container */}
+            <div className="mt-10 flex flex-col md:flex-row justify-center items-center gap-8 text-sm font-medium">
+              
+              {/* Navigation Links Group */}
+              <div className="flex flex-wrap justify-center gap-x-6 gap-y-4 text-stone-300">
+                {footerLinks.map((link) => (
+                  <Link key={link.href} href={link.href} className="hover:text-white transition-colors">
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+                
+              {/* Visual Separator for Desktop Only */}
+              <div className="h-4 w-px bg-stone-700 hidden md:block"></div>
+
+              {/* Social Icons */}
+              <div className="flex items-center gap-5">
+                {socialLinks.map((social) => (
+                  <a 
+                    key={social.href}
+                    href={social.href} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    aria-label={social.label}
+                    className="text-stone-400 hover:text-white transition-colors"
+                  >
+                    {social.icon}
+                  </a>
+                ))}
+              </div>
             </div>
+            
+            <p className="mt-10 text-xs text-stone-500">
+              &copy; {new Date().getFullYear()} Echo. All rights reserved.
+            </p>
+
           </div>
-
-          <p className="mt-10 text-xs text-stone-500">&copy; {new Date().getFullYear()} Echo. All rights reserved.</p>
-
-        </div>
-      </footer>
+        </footer>
     </div>
   );
 }
