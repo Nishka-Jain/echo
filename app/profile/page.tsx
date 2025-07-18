@@ -90,10 +90,29 @@ export default function ProfilePage() {
                     );
                     const querySnapshot = await getDocs(q);
                     
-                    const storiesData = querySnapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    })) as Story[];
+                    const storiesData = querySnapshot.docs.map(doc => {
+                        const data = doc.data();
+                        return {
+                            id: doc.id,
+                            title: data.title || 'Untitled Story',
+                            speaker: data.speaker || 'Unknown Speaker',
+                            age: data.age,
+                            pronouns: data.pronouns,
+                            excerpt: data.summary || 'No summary available.',
+                            photoUrl: data.photoUrl,
+                            tags: data.tags || [],
+                            location: data.location,
+                            // ✨ These fields fix the time period issue
+                            dateType: data.dateType,
+                            startYear: data.startYear,
+                            endYear: data.endYear,
+                            specificYear: data.specificYear,
+                            transcription: data.transcription,
+                            language: data.language,
+                            createdAt: data.createdAt?.toDate().toISOString(),
+                            authorId: data.authorId
+                        } as Story;
+                    });
 
                     setMyStories(storiesData);
                 } catch (error) {
@@ -211,9 +230,9 @@ const takePicture = () => {
 
     return (
         <>
-            <div className="bg-stone-50 min-h-screen">
+            <div className="bg-white min-h-screen">
                 <Navbar />
-                <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <main className="max-w-7xl mx-auto px-8 sm:px-10 lg:px-12 py-12">
                     <header className="relative mb-12 p-8 bg-white rounded-xl border border-stone-200">
                         {isEditing ? (
                             <div className="animate-fade-in">
@@ -268,18 +287,29 @@ const takePicture = () => {
                                 </div>
                             </div>
                         ) : (
-                            <>
-                                <button onClick={() => setIsEditing(true)} className="absolute top-6 right-6 flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-stone-600 bg-stone-100 rounded-lg hover:bg-stone-200 transition-colors">
-                                    <Edit size={14} /> Edit Profile
-                                </button>
-                                <div className="flex flex-col sm:flex-row items-center gap-8">
-                                    <Image src={user.photoURL || '/default-image.png'} alt={user.displayName || 'User'} width={128} height={128} className={`rounded-full object-cover aspect-square border-4 border-white shadow-md ${user.photoPosition || 'object-center'}`} />
-                                    <div className="text-center sm:text-left flex-grow">
+                            <div className="flex flex-col sm:flex-row sm:justify-between items-center sm:items-start gap-6">
+                                {/* Profile Info Block */}
+                                <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-8">
+                                    <Image 
+                                        src={user.photoURL || '/default-image.png'} 
+                                        alt={user.displayName || 'User'} 
+                                        width={128} height={128} 
+                                        className={`flex-shrink-0 rounded-full object-cover aspect-square border-4 border-white shadow-md ${user.photoPosition || 'object-center'}`} 
+                                    />
+                                    <div className="flex-grow">
                                         <h1 className="text-4xl font-serif text-stone-900">{user.displayName}</h1>
                                         <p className="mt-1 text-lg text-stone-500">{user.email}</p>
                                     </div>
                                 </div>
-                            </>
+                                
+                                {/* Edit Button */}
+                                <button 
+                                    onClick={() => setIsEditing(true)} 
+                                    className="flex-shrink-0 flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-stone-600 bg-stone-100 rounded-lg hover:bg-stone-200 transition-colors"
+                                >
+                                    <Edit size={14} /> Edit Profile
+                                </button>
+                            </div>
                         )}
                     </header>
 

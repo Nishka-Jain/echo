@@ -152,7 +152,7 @@ return (
     </div>
     
       <section id="about" className="py-22 sm:py-28 bg-white">
-        <div className="max-w-7xl mx-auto px-10 sm:px-10 lg:px-15">
+        <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-15">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-16 items-center">
                 <div className="md:col-span-2 flex flex-col justify-center h-full">
                      <h2 className="font-serif text-4xl lg:text-5xl text-stone-900 mb-8">Our Mission</h2>
@@ -198,7 +198,7 @@ return (
     
     <AnimatedSection>
       <section id="explore" className="py-24 sm:py-28 bg-white border-t border-stone-200">
-        <div className="max-w-7xl mx-auto px-10 sm:px-15 lg:px-20">
+        <div className="max-w-7xl mx-auto px-8 sm:px-15 lg:px-20">
             <div className="text-center">
                 <h2 className="text-4xl font-serif tracking-tight text-stone-900 sm:text-5xl">Explore the Web of Voices</h2>
                 <p className="mt-4 text-lg text-stone-600 max-w-2xl mx-auto">An ever-growing collection of authentic first-person narratives.</p>
@@ -227,9 +227,9 @@ return (
 
     <AnimatedSection>
         <section className="py-22 sm:py-28 bg-white border-t border-stone-200" >
-          <div className="max-w-7xl mx-auto px-10 sm:px-10 lg:px-15">
+          <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-15">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-              <Link href="/explore" className="group">
+              <Link href="/explore?view=map" className="group">
                 <div className="relative aspect-video rounded-xl shadow-lg border border-stone-200 overflow-hidden transition-transform duration-300 group-hover:scale-105">
                   <Image
                     src="/map.png" // Replace with the path to your screenshot
@@ -247,7 +247,7 @@ return (
                 <p className="text-xl text-stone-600 leading-relaxed mb-8">
                   Our interactive map allows you to discover oral histories by the places they come from. Journey from bustling city streets to quiet countrysides, and listen to the voices that shape our world.
                 </p>
-                <Link href="/explore" className="inline-flex items-center font-semibold text-amber-700 hover:text-amber-800 group text-lg">
+                <Link href="/explore?view=map" className="inline-flex items-center font-semibold text-amber-700 hover:text-amber-800 group text-lg">
                   Browse the Map <MapIcon className="ml-2 transition-transform group-hover:translate-x-1" size={20} />
                 </Link>
               </div>

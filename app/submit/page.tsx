@@ -251,10 +251,9 @@ export default function SubmitPage() {
         stopCameraStream();
     };
 
-    // --- NEW Transcription Handler ---
     const handleGenerateTranscription = async () => {
         if (!audioFile || transcriptionStatus === 'generating' || transcriptionStatus === 'success') {
-            return; // Don't re-transcribe if already done or in progress
+            return;
         }
         setTranscriptionStatus('generating');
         setTranscription('');
@@ -303,71 +302,7 @@ export default function SubmitPage() {
             setCurrentStep(currentStep + 1);
         }
     };
-    {/* --- NEW Step 3: Transcribe & Edit --- */}
-{currentStep === 3 && (
-    <div className="space-y-6 text-stone-700 animate-fade-in">
-        {/* Transcription Section */}
-        <div>
-            <label htmlFor="transcription" className="block text-lg font-semibold text-stone-800 mb-2">
-                Edit Transcription
-            </label>
-            <p className="text-sm text-stone-500 mb-4">
-                The AI-generated transcription is below. Please review and edit it for accuracy before proceeding.
-            </p>
 
-            {transcriptionStatus === 'generating' && (
-                <div className="w-full h-48 p-4 bg-stone-50 rounded-lg flex items-center justify-center gap-3 text-stone-600">
-                    <Loader2 size={20} className="animate-spin" />
-                    <p>Generating transcription... this may take a moment.</p>
-                </div>
-            )}
-
-            {(transcriptionStatus === 'success' || transcriptionStatus === 'error') && (
-                <textarea
-                    id="transcription"
-                    value={transcription}
-                    onChange={(e) => setTranscription(e.target.value)}
-                    rows={10}
-                    className="w-full p-4 border border-stone-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-stone-500 whitespace-pre-wrap"
-                    placeholder={transcriptionStatus === 'error' ? 'Could not generate transcription. You can type it manually here.' : 'Edit your transcription...'}
-                />
-            )}
-        </div>
-
-        {/* Translation Section */}
-        {transcriptionStatus === 'success' && (
-            <div className="pt-6 border-t border-stone-200 space-y-4">
-                <h3 className="text-xl font-serif font-semibold text-stone-800">Translate Transcription (Optional)</h3>
-                <div className="flex items-center gap-4">
-                    <select 
-                        value={targetLanguage} 
-                        onChange={(e) => setTargetLanguage(e.target.value)} 
-                        className="w-full p-3 border border-stone-300 rounded-lg bg-white"
-                    >
-                        <option>English</option>
-                        <option>Spanish</option>
-                        <option>French</option>
-                        <option>German</option>
-                        <option>Mandarin Chinese</option>
-                        {/* Add more languages as needed */}
-                    </select>
-                    <button 
-                        type="button" 
-                        onClick={handleTranslate} 
-                        disabled={translationStatus === 'generating'} 
-                        className="p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-blue-600 text-white transition-all font-semibold disabled:bg-blue-300 hover:bg-blue-700"
-                    >
-                        {translationStatus === 'generating' ? <Loader2 size={20} className="animate-spin" /> : <Languages size={20} />}
-                        Translate
-                    </button>
-                </div>
-                {translationStatus === 'generating' && (<div className="mt-2 p-4 bg-stone-50 rounded-lg flex items-center gap-3 text-stone-600"><Loader2 size={20} className="animate-spin" /><p>Translating...</p></div>)}
-                {translationStatus === 'success' && (<p className="mt-1 text-stone-600 whitespace-pre-wrap p-4 bg-stone-50 rounded-lg">{translatedText}</p>)}
-                {translationStatus === 'error' && (<p className="mt-2 text-red-600 p-4 bg-red-50 rounded-lg">Could not translate text.</p>)}
-            </div>
-        )}
-    </div>
-)}
     const handleBack = () => currentStep > 1 && setCurrentStep(currentStep - 1);
 
     const isStepValid = (() => {
@@ -385,26 +320,24 @@ export default function SubmitPage() {
 
     const handleFinalSubmit = async () => {
         
-        if (!isSubmittable || !user) { // Also check if the user exists
+        if (!isSubmittable || !user) {
             alert("You must be logged in to submit a story.");
             return;
         }
 
         if (!isSubmittable) return;
-        setIsSubmitting(true); // Start loading state
+        setIsSubmitting(true);
     
         try {
             let audioUrl = "";
             let photoUrl = "";
     
-            // 1. Upload Audio File to Firebase Storage
             if (audioFile) {
                 const audioRef = ref(storage, `stories/audio/${Date.now()}-${audioFile.name}`);
                 const audioSnapshot = await uploadBytes(audioRef, audioFile);
                 audioUrl = await getDownloadURL(audioSnapshot.ref);
             }
     
-            // 2. Upload Photo File (if it exists)
             if (speakerPhoto) {
                 const photoRef = ref(storage, `stories/photos/${Date.now()}-${speakerPhoto.name}`);
                 const photoSnapshot = await uploadBytes(photoRef, speakerPhoto);
@@ -413,7 +346,6 @@ export default function SubmitPage() {
 
             const finalLanguage = language === 'Other' ? otherLanguage.trim() : language;
 
-            // 3. Create the story object with the new URLs
             const storyData = { 
                 title: storyTitle,
                 age: speakerAge,
@@ -435,15 +367,14 @@ export default function SubmitPage() {
                 specificYear: dateType === 'year' ? Number(specificYear) : null,
             };
 
-            const docRef = await addDoc(collection(db, "stories"), storyData);
+            await addDoc(collection(db, "stories"), storyData);
     
-            setIsSubmitted(true); // Show success message
-    
+            setIsSubmitted(true);
         } catch (error) {
             console.error("Error submitting story: ", error);
             alert("There was an error submitting your story. Please try again.");
         } finally {
-            setIsSubmitting(false); // Stop loading state
+            setIsSubmitting(false);
         }
     };
     
@@ -459,13 +390,10 @@ export default function SubmitPage() {
       setCustomTag('');
       setLocation(null);
       setSummary('');
-      // The useEffect handles resetting these when audioFile changes, but it's here bc it's good practice
       setTranscription('');
       setTranscriptionStatus('idle');
-
       setTranslatedText('');
       setTranslationStatus('idle');
-
       setIsSubmitted(false);
     }
     if (!isMounted) {
@@ -478,17 +406,28 @@ export default function SubmitPage() {
             <main className="py-14 sm:py-16">
                 <div className="max-w-4xl mx-auto px-6 sm:px-10 lg:px-10">
                     {isSubmitted ? (
-                        <div className="bg-white rounded-xl shadow-md border border-stone-200 text-center p-8 sm:p-16 animate-fade-in">
-                            <PartyPopper className="h-16 w-16 mx-auto text-green-500" />
+                        <div className="bg-white rounded-xl shadow-md border border-stone-200 text-center p-8 sm:p-16 animate-fade-in flex flex-col items-center">
+                            <PartyPopper className="h-16 w-16 text-green-500" />
                             <h2 className="mt-6 font-serif text-3xl sm:text-4xl text-stone-900">Thank You!</h2>
-                            <p className="mt-4 text-lg text-stone-600">Your story has been successfully submitted. We're honored to be entrusted with this piece of your history.</p>
-                            <button 
-                                type="button" 
-                                onClick={handleResetForm}
-                                className="mt-8 p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-stone-800 text-white transition-all font-semibold hover:bg-stone-900 mx-auto"
-                            >
-                                Submit Another Story
-                            </button>
+                            <p className="mt-4 text-lg text-stone-600 max-w-xl">
+                                Your story has been successfully submitted. We're honored to be entrusted with this piece of your history.
+                            </p>
+                            
+                            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+                                <button 
+                                    type="button" 
+                                    onClick={handleResetForm}
+                                    className="w-full sm:w-auto p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-stone-800 text-white transition-all font-semibold hover:bg-stone-900"
+                                >
+                                    Submit Another Story
+                                </button>
+                                <Link 
+                                    href="/explore"
+                                    className="w-full sm:w-auto p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-stone-100 text-stone-800 border border-stone-300 hover:bg-stone-100 transition-all font-semibold"
+                                >
+                                    Explore More Stories
+                                </Link>
+                            </div>
                         </div>
                     ) : (
                         <>
@@ -507,7 +446,7 @@ export default function SubmitPage() {
                               </div>
 
                               <div className="p-6 sm:p-8">
-                                <form>
+                                <form onSubmit={(e) => e.preventDefault()}>
                                     {/* Step 1: Who's Speaking */}
                                     {currentStep === 1 && (
                                         <div className="space-y-6 animate-fade-in">
@@ -522,8 +461,6 @@ export default function SubmitPage() {
                                             <div>
                                                 <label className="block text-sm font-medium text-stone-700">Photo of Speaker <span className="text-stone-500">(Optional)</span></label>
                                                 <div className="mt-2 p-6 rounded-lg border border-stone-200 bg-stone-50 text-center">
-                                                    
-                                                    {/* Image Preview / Camera Feed */}
                                                     <div className="w-65 h-65 mx-auto bg-stone-200 rounded-lg flex items-center justify-center relative overflow-hidden shadow-inner">
                                                         {photoPreviewUrl && !stream && (
                                                             <Image src={photoPreviewUrl} alt="Speaker preview" fill className="object-cover" />
@@ -536,8 +473,6 @@ export default function SubmitPage() {
                                                         )}
                                                         <canvas ref={canvasRef} className="hidden" />
                                                     </div>
-                                                    
-                                                    {/* Action Buttons */}
                                                     <div className="mt-4">
                                                         {stream ? (
                                                           <div className="flex items-center justify-center gap-2">
@@ -565,7 +500,7 @@ export default function SubmitPage() {
                                             </div>
                                         </div>
                                     )}
-                                    {/* Step 2: Record */}
+                                    {/* Other steps remain the same */}
                                     {currentStep === 2 && (
                                       <div className="animate-fade-in">
                                         <div className="flex border-b border-stone-200 mb-6">
@@ -577,10 +512,8 @@ export default function SubmitPage() {
                                          {audioFile && (<div className="mt-6 p-3 bg-green-50 border border-green-200 text-green-800 rounded-lg flex items-center gap-3 text-sm"><CheckCircle size={20} /><span>File ready: <strong>{audioFile.name}</strong></span></div>)}
                                       </div>
                                     )}
-                                    {/* --- NEW Step 3: Review Transcription --- */}
                                     {currentStep === 3 && (
                                         <div className="space-y-6 text-stone-700 animate-fade-in">
-                                            {/* Transcription Section */}
                                             <div>
                                                 <label htmlFor="transcription" className="block text-lg font-semibold text-stone-800 mb-2">
                                                     Review & Edit Transcription
@@ -588,14 +521,12 @@ export default function SubmitPage() {
                                                 <p className="text-sm text-stone-500 mb-4">
                                                     The AI-generated transcription is below. Please review and edit it for accuracy before proceeding.
                                                 </p>
-
                                                 {transcriptionStatus === 'generating' && (
                                                     <div className="w-full h-48 p-4 bg-stone-50 rounded-lg flex items-center justify-center gap-3 text-stone-600">
                                                         <Loader2 size={20} className="animate-spin" />
                                                         <p>Generating transcription... this may take a moment.</p>
                                                     </div>
                                                 )}
-
                                                 {(transcriptionStatus === 'success' || transcriptionStatus === 'error') && (
                                                     <textarea
                                                         id="transcription"
@@ -607,8 +538,6 @@ export default function SubmitPage() {
                                                     />
                                                 )}
                                             </div>
-
-                                            {/* Translation Section */}
                                             {transcriptionStatus === 'success' && (
                                                 <div className="pt-6 border-t border-stone-200 space-y-4">
                                                     <h3 className="text-xl font-serif font-semibold text-stone-800">Translate Transcription (Optional)</h3>
@@ -618,47 +547,7 @@ export default function SubmitPage() {
                                                             onChange={(e) => setTargetLanguage(e.target.value)} 
                                                             className="w-full p-3 border border-stone-300 rounded-lg bg-white"
                                                         >
-                                                            <option>Arabic</option>
-                                                            <option>Bengali</option>
-                                                            <option>Cantonese</option>
-                                                            <option>Czech</option>
-                                                            <option>Danish</option>
-                                                            <option>Dutch</option>
-                                                            <option>English</option>
-                                                            <option>Filipino</option>
-                                                            <option>Finnish</option>
-                                                            <option>French</option>
-                                                            <option>German</option>
-                                                            <option>Greek</option>
-                                                            <option>Gujarati</option>
-                                                            <option>Hebrew</option>
-                                                            <option>Hindi</option>
-                                                            <option>Hungarian</option>
-                                                            <option>Indonesian</option>
-                                                            <option>Italian</option>
-                                                            <option>Japanese</option>
-                                                            <option>Kannada</option>
-                                                            <option>Korean</option>
-                                                            <option>Malay</option>
-                                                            <option>Mandarin Chinese</option>
-                                                            <option>Marathi</option>
-                                                            <option>Norwegian</option>
-                                                            <option>Persian (Farsi)</option>
-                                                            <option>Polish</option>
-                                                            <option>Portuguese</option>
-                                                            <option>Punjabi</option>
-                                                            <option>Romanian</option>
-                                                            <option>Russian</option>
-                                                            <option>Spanish</option>
-                                                            <option>Swahili</option>
-                                                            <option>Swedish</option>
-                                                            <option>Tamil</option>
-                                                            <option>Telugu</option>
-                                                            <option>Thai</option>
-                                                            <option>Turkish</option>
-                                                            <option>Ukrainian</option>
-                                                            <option>Urdu</option>
-                                                            <option>Vietnamese</option>
+                                                            {commonLanguages.map(lang => (<option key={lang} value={lang}>{lang}</option>))}
                                                         </select>
                                                         <button 
                                                             type="button" 
@@ -677,7 +566,6 @@ export default function SubmitPage() {
                                             )}
                                         </div>
                                     )}
-                                    {/* Step 4: Add Details */}
                                     {currentStep === 4 && (
                                         <div className="space-y-6 animate-fade-in">
                                             <div><label htmlFor="storyTitle" className="block text-sm font-medium text-stone-700 mb-1">Story Title <span className="text-red-500">*</span></label><input type="text" id="storyTitle" value={storyTitle} onChange={(e) => setStoryTitle(e.target.value)} className="w-full p-3 border border-stone-300 rounded-lg" required /></div>
@@ -693,81 +581,29 @@ export default function SubmitPage() {
                                                 </APIProvider>
                                             </div>
                                             <div>
-                                                <label htmlFor="language" className="block text-sm font-medium text-stone-700 mb-1">
-                                                    Language of Story <span className="text-red-500">*</span>
-                                                </label>
-                                                <select
-                                                    id="language"
-                                                    value={language}
-                                                    onChange={(e) => setLanguage(e.target.value)}
-                                                    className={`w-full p-3 border border-stone-300 rounded-lg bg-white ${!language ? 'text-stone-500' : 'text-stone-900'}`}
-                                                    required
-                                                >
+                                                <label htmlFor="language" className="block text-sm font-medium text-stone-700 mb-1">Language of Story <span className="text-red-500">*</span></label>
+                                                <select id="language" value={language} onChange={(e) => setLanguage(e.target.value)} className={`w-full p-3 border border-stone-300 rounded-lg bg-white ${!language ? 'text-stone-500' : 'text-stone-900'}`} required>
                                                     <option value="" disabled>-- Select a language --</option>
-                                                    {commonLanguages.map(lang => (
-                                                        <option key={lang} value={lang}>{lang}</option>
-                                                    ))}
+                                                    {commonLanguages.map(lang => (<option key={lang} value={lang}>{lang}</option>))}
                                                     <option value="Other">Other...</option>
                                                 </select>
-
-                                                {language === 'Other' && (
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Please specify the language"
-                                                        value={otherLanguage}
-                                                        onChange={(e) => setOtherLanguage(e.target.value)}
-                                                        className="w-full p-3 mt-2 border border-stone-300 rounded-lg animate-fade-in text-stone-900"
-                                                        required
-                                                    />
-                                                )}
+                                                {language === 'Other' && (<input type="text" placeholder="Please specify the language" value={otherLanguage} onChange={(e) => setOtherLanguage(e.target.value)} className="w-full p-3 mt-2 border border-stone-300 rounded-lg animate-fade-in text-stone-900" required />)}
                                             </div>
-                                            
                                             <div className="space-y-4 rounded-lg border border-stone-200 p-4">
                                                 <h4 className="font-medium text-stone-700">When did this story take place? <span className="text-red-500">*</span></h4>
-                                                
-                                                {/* The toggle buttons */}
                                                 <div className="flex items-center gap-2 rounded-lg bg-stone-100 p-1">
-                                                    <button type="button" onClick={() => setDateType('period')} className={`w-full py-2 text-sm font-semibold rounded-md transition-colors ${dateType === 'period' ? 'bg-white shadow-sm text-stone-800' : 'text-stone-500 hover:bg-stone-200'}`}>
-                                                        A Time Period
-                                                    </button>
-                                                    <button type="button" onClick={() => setDateType('year')} className={`w-full py-2 text-sm font-semibold rounded-md transition-colors ${dateType === 'year' ? 'bg-white shadow-sm text-stone-800' : 'text-stone-500 hover:bg-stone-200'}`}>
-                                                        A Specific Year
-                                                    </button>
+                                                    <button type="button" onClick={() => setDateType('period')} className={`w-full py-2 text-sm font-semibold rounded-md transition-colors ${dateType === 'period' ? 'bg-white shadow-sm text-stone-800' : 'text-stone-500 hover:bg-stone-200'}`}>A Time Period</button>
+                                                    <button type="button" onClick={() => setDateType('year')} className={`w-full py-2 text-sm font-semibold rounded-md transition-colors ${dateType === 'year' ? 'bg-white shadow-sm text-stone-800' : 'text-stone-500 hover:bg-stone-200'}`}>A Specific Year</button>
                                                 </div>
-
-                                                {/* Conditional Inputs */}
-                                                {dateType === 'period' && (
-                                                    <div className="grid grid-cols-2 gap-4 animate-fade-in">
-                                                        <div>
-                                                            <label htmlFor="startYear" className="text-sm text-stone-600">Start Year</label>
-                                                            <input id="startYear" type="number" placeholder="e.g., 1960" value={startYear} onChange={e => setStartYear(e.target.value)} className="w-full mt-1 p-3 border border-stone-300 rounded-lg" />
-                                                        </div>
-                                                        <div>
-                                                            <label htmlFor="endYear" className="text-sm text-stone-600">End Year</label>
-                                                            <input id="endYear" type="number" placeholder="e.g., 1969" value={endYear} onChange={e => setEndYear(e.target.value)} className="w-full mt-1 p-3 border border-stone-300 rounded-lg" />
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                
-                                                {dateType === 'year' && (
-                                                    <div className="animate-fade-in">
-                                                        <label htmlFor="specificYear" className="text-sm text-stone-600">Year</label>
-                                                        <input id="specificYear" type="number" placeholder="e.g., 1995" value={specificYear} onChange={e => setSpecificYear(e.target.value)} className="w-full mt-1 p-3 border border-stone-300 rounded-lg" />
-                                                    </div>
-                                                )}
+                                                {dateType === 'period' && (<div className="grid grid-cols-2 gap-4 animate-fade-in"><div><label htmlFor="startYear" className="text-sm text-stone-600">Start Year</label><input id="startYear" type="number" placeholder="e.g., 1960" value={startYear} onChange={e => setStartYear(e.target.value)} className="w-full mt-1 p-3 border border-stone-300 rounded-lg" /></div><div><label htmlFor="endYear" className="text-sm text-stone-600">End Year</label><input id="endYear" type="number" placeholder="e.g., 1969" value={endYear} onChange={e => setEndYear(e.target.value)} className="w-full mt-1 p-3 border border-stone-300 rounded-lg" /></div></div>)}
+                                                {dateType === 'year' && (<div className="animate-fade-in"><label htmlFor="specificYear" className="text-sm text-stone-600">Year</label><input id="specificYear" type="number" placeholder="e.g., 1995" value={specificYear} onChange={e => setSpecificYear(e.target.value)} className="w-full mt-1 p-3 border border-stone-300 rounded-lg" /></div>)}
                                             </div>
                                             <div><label htmlFor="summary" className="block text-sm font-medium text-stone-700 mb-1">Describe the story <span className="text-stone-500">(Optional)</span></label><textarea id="summary" value={summary} onChange={(e) => setSummary(e.target.value)} rows={4} className="w-full p-3 border border-stone-300 rounded-lg"></textarea></div>
                                         </div>
                                     )}
-                                    {/* Step 5: Review */}
                                     {currentStep === 5 && (
                                         <div className="space-y-4 text-stone-700 animate-fade-in">
-                                            {audioPreviewUrl && (
-                                                <div className="bg-stone-50 rounded-lg p-4">
-                                                    <p className="text-sm font-medium text-stone-600 mb-2">Listen to your recording:</p>
-                                                    <audio src={audioPreviewUrl} controls className="w-full" />
-                                                </div>
-                                            )}
+                                            {audioPreviewUrl && (<div className="bg-stone-50 rounded-lg p-4"><p className="text-sm font-medium text-stone-600 mb-2">Listen to your recording:</p><audio src={audioPreviewUrl} controls className="w-full" /></div>)}
                                             <h4 className="text-lg font-semibold text-stone-800 border-b border-stone-200 pb-2 pt-4">Review your story details:</h4>
                                             <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Title:</strong> <span className="text-right">{storyTitle || 'Not provided'}</span></div>
                                             <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Speaker:</strong> <span className="text-right">{speakerName || 'Not provided'}</span></div>
@@ -775,29 +611,16 @@ export default function SubmitPage() {
                                             <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Location:</strong> <span className="text-right">{location?.name || 'None'}</span></div>
                                             <div className="flex justify-between py-3 border-b border-stone-100 items-start"><strong className="font-medium text-stone-500">Photo:</strong> {photoPreviewUrl ? <img src={photoPreviewUrl} alt="Speaker preview" className="w-16 h-16 rounded-lg object-cover" /> : 'None'}</div>
                                             <div className="py-3"><strong className="font-medium text-stone-500">Summary:</strong> <p className="mt-1 text-stone-600 whitespace-pre-wrap">{summary || 'None'}</p></div>
-                                            {/* --- Final Transcription Display --- */}
-                                            <div className="py-3">
-                                                <strong className="font-medium text-stone-500">Final Transcription:</strong>
-                                                <p className="mt-1 text-stone-600 whitespace-pre-wrap p-4 bg-stone-50 rounded-lg">
-                                                    {transcription || 'No transcription was provided.'}
-                                                </p>
-                                            </div>
+                                            <div className="py-3"><strong className="font-medium text-stone-500">Final Transcription:</strong><p className="mt-1 text-stone-600 whitespace-pre-wrap p-4 bg-stone-50 rounded-lg">{transcription || 'No transcription was provided.'}</p></div>
                                         </div>
                                     )}
                                 </form>
-                                {/* --- Navigation Buttons --- */}
                                 <div className="pt-8 border-t border-stone-200 mt-8 flex justify-between items-center">
-                                    <button type="button" onClick={handleBack} className={`p-3 rounded-lg flex items-center justify-center gap-2 bg-white text-stone-800 border border-stone-300 hover:bg-stone-100 transition-all font-semibold ${currentStep === 1 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-                                        <ArrowLeft size={20}/> Back
-                                    </button>
+                                    <button type="button" onClick={handleBack} className={`p-3 rounded-lg flex items-center justify-center gap-2 bg-white text-stone-800 border border-stone-300 hover:bg-stone-100 transition-all font-semibold ${currentStep === 1 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}><ArrowLeft size={20}/> Back</button>
                                    {currentStep < steps.length ? (
-                                        <button type="button" onClick={handleNext} disabled={!isStepValid} className="p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-stone-800 text-white transition-all font-semibold disabled:bg-stone-300 disabled:cursor-not-allowed hover:bg-stone-900">
-                                            Next <ArrowRight size={20}/>
-                                        </button>
+                                        <button type="button" onClick={handleNext} disabled={!isStepValid} className="p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-stone-800 text-white transition-all font-semibold disabled:bg-stone-300 disabled:cursor-not-allowed hover:bg-stone-900">Next <ArrowRight size={20}/></button>
                                    ) : (
-                                        <button type="button" onClick={handleFinalSubmit} disabled={!isSubmittable || isSubmitting} className="p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-green-600 text-white transition-all font-semibold disabled:bg-stone-300 disabled:cursor-not-allowed hover:bg-green-700">
-                                              {isSubmitting ? 'Submitting...' : 'Submit Story'} <CheckCircle size={20}/>
-                                        </button>
+                                        <button type="button" onClick={handleFinalSubmit} disabled={!isSubmittable || isSubmitting} className="p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-green-600 text-white transition-all font-semibold disabled:bg-stone-300 disabled:cursor-not-allowed hover:bg-green-700">{isSubmitting ? 'Submitting...' : 'Submit Story'} <CheckCircle size={20}/></button>
                                    )}
                                 </div>
                               </div>
@@ -809,53 +632,20 @@ export default function SubmitPage() {
 
             <footer className="bg-stone-900 text-stone-300">
                 <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8 text-center">
-                    
-                    <Link href="/" className="text-2xl font-bold text-white">
-                    Echo
-                    </Link>
-                    
-                    <p className="mt-4 text-stone-400 max-w-md mx-auto">
-                    Hold onto the stories that hold us together.
-                    </p>
-
-                    {/* All Links & Socials Container */}
+                    <Link href="/" className="text-2xl font-bold text-white">Echo</Link>
+                    <p className="mt-4 text-stone-400 max-w-md mx-auto">Hold onto the stories that hold us together.</p>
                     <div className="mt-10 flex flex-col md:flex-row justify-center items-center gap-8 text-sm font-medium">
-                    
-                    {/* Navigation Links Group */}
-                    <div className="flex flex-wrap justify-center gap-x-6 gap-y-4 text-stone-300">
-                        {footerLinks.map((link) => (
-                        <Link key={link.href} href={link.href} className="hover:text-white transition-colors">
-                            {link.label}
-                        </Link>
-                        ))}
+                        <div className="flex flex-wrap justify-center gap-x-6 gap-y-4 text-stone-300">
+                            {footerLinks.map((link) => (<Link key={link.href} href={link.href} className="hover:text-white transition-colors">{link.label}</Link>))}
+                        </div>
+                        <div className="h-4 w-px bg-stone-700 hidden md:block"></div>
+                        <div className="flex items-center gap-5">
+                            {socialLinks.map((social) => (<a key={social.href} href={social.href} target="_blank" rel="noopener noreferrer" aria-label={social.label} className="text-stone-400 hover:text-white transition-colors">{social.icon}</a>))}
+                        </div>
                     </div>
-                        
-                    {/* Visual Separator for Desktop Only */}
-                    <div className="h-4 w-px bg-stone-700 hidden md:block"></div>
-
-                    {/* Social Icons */}
-                    <div className="flex items-center gap-5">
-                        {socialLinks.map((social) => (
-                        <a 
-                            key={social.href}
-                            href={social.href} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            aria-label={social.label}
-                            className="text-stone-400 hover:text-white transition-colors"
-                        >
-                            {social.icon}
-                        </a>
-                        ))}
-                    </div>
-                    </div>
-                    
-                    <p className="mt-10 text-xs text-stone-500">
-                    &copy; {new Date().getFullYear()} Echo. All rights reserved.
-                    </p>
-
+                    <p className="mt-10 text-xs text-stone-500">&copy; {new Date().getFullYear()} Echo. All rights reserved.</p>
                 </div>
-                </footer>
+            </footer>
         </div>
     );
 }

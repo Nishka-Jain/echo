@@ -4,10 +4,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import { Search, Map, List, Mic } from 'lucide-react';
+import { Search, Map, List, Mic, ChevronLeft, ChevronRight } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import Navbar from '@/app/components/Navbar';
+import { useSearchParams } from 'next/navigation';
 
 // Shared types and components are now imported
 import type { Story } from '@/lib/types';
@@ -49,10 +50,29 @@ export default function ExplorePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTag, setActiveTag] = useState<string | null>(null);
-    const [viewMode, setViewMode] = useState('grid');
-
-    const [selectedLanguage, setSelectedLanguage] = useState(''); // Empty string for "All"
-
+    const [selectedLanguage, setSelectedLanguage] = useState('');
+    
+    // --- 1. NEW STATE FOR PAGINATION ---
+    const [currentPage, setCurrentPage] = useState(1);
+    const [isMobile, setIsMobile] = useState(false);
+    
+    const searchParams = useSearchParams();
+    const initialView = searchParams.get('view') === 'map' ? 'map' : 'grid';
+    const [viewMode, setViewMode] = useState(initialView);
+    
+    // --- 2. NEW EFFECT FOR RESPONSIVE ITEMS PER PAGE ---
+    // Sets items per page based on screen size (md breakpoint: 768px)
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        // Check on initial load
+        checkScreenSize();
+        // Add listener for screen resize
+        window.addEventListener('resize', checkScreenSize);
+        // Cleanup listener
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
 
     useEffect(() => {
         const fetchStories = async () => {
@@ -92,6 +112,7 @@ export default function ExplorePage() {
         };
         fetchStories();
     }, []);
+    
     const filteredStories = useMemo(() => {
         return allStories.filter(story => {
             const searchLower = searchTerm.toLowerCase();
@@ -108,11 +129,30 @@ export default function ExplorePage() {
         });
     }, [searchTerm, activeTag, selectedLanguage, allStories]); 
 
+    // --- 3. NEW DERIVED STATE AND MEMO FOR PAGINATED DATA ---
+    // Set items per page: 5 for mobile, 9 for desktop
+    const itemsPerPage = isMobile ? 5 : 9;
+
+    // Reset to page 1 whenever the filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, activeTag, selectedLanguage]);
+    
+    // Calculate the stories to show on the current page
+    const currentStories = useMemo(() => {
+        const indexOfLastStory = currentPage * itemsPerPage;
+        const indexOfFirstStory = indexOfLastStory - itemsPerPage;
+        return filteredStories.slice(indexOfFirstStory, indexOfLastStory);
+    }, [currentPage, itemsPerPage, filteredStories]);
+    
+    // Calculate total pages for pagination controls
+    const totalPages = Math.ceil(filteredStories.length / itemsPerPage);
+
     return (
         <div className="bg-white min-h-screen text-stone-800 font-sans">
             <Navbar />
 
-            <main className="max-w-7xl mx-auto px-10 sm:px-12 lg:px-12 py-16">
+            <main className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-12 py-16">
                 <header className="text-center mb-12">
                     <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-900">Explore Stories</h1>
                     <p className="mt-4 max-w-2xl mx-auto text-lg text-stone-600">Discover a living archive of voices, memories, and wisdom from around the world.</p>
@@ -183,12 +223,43 @@ export default function ExplorePage() {
                         <>
                             {viewMode === 'grid' && (
                                 <div className="animate-fade-in">
-                                    {filteredStories.length > 0 ? (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                                            {filteredStories.map(story => (
-                                                <StoryCard key={story.id} {...story} />
-                                            ))}
-                                        </div>
+                                    {/* --- 4. UPDATED RENDER LOGIC --- */}
+                                    {/* Check currentStories.length instead of filteredStories.length */}
+                                    {currentStories.length > 0 ? (
+                                        <>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                                                {/* Map over currentStories instead of filteredStories */}
+                                                {currentStories.map(story => (
+                                                    <StoryCard key={story.id} {...story} />
+                                                ))}
+                                            </div>
+                                            
+                                            {/* --- 5. NEW PAGINATION CONTROLS --- */}
+                                            {/* Only show controls if there's more than one page */}
+                                            {totalPages > 1 && (
+                                                <div className="mt-12 flex justify-center items-center gap-4">
+                                                    <button
+                                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                                        disabled={currentPage === 1}
+                                                        className="px-4 py-2 bg-stone-100 text-stone-700 rounded-lg hover:bg-stone-200 disabled:bg-stone-50 disabled:text-stone-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                                                        aria-label="Previous page"
+                                                    >
+                                                        <ChevronLeft size={16} /> Previous
+                                                    </button>
+                                                    <span className="text-stone-600 font-medium text-sm">
+                                                        Page {currentPage} of {totalPages}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                                        disabled={currentPage === totalPages}
+                                                        className="px-4 py-2 bg-stone-100 text-stone-700 rounded-lg hover:bg-stone-200 disabled:bg-stone-50 disabled:text-stone-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                                                        aria-label="Next page"
+                                                    >
+                                                        Next <ChevronRight size={16} />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </>
                                     ) : (
                                         <div className="text-center py-24 border-2 border-dashed border-stone-300 rounded-xl">
                                             <h3 className="text-2xl font-serif text-stone-800">No Stories Found</h3>
@@ -224,10 +295,8 @@ export default function ExplorePage() {
                     Hold onto the stories that hold us together.
                     </p>
 
-                    {/* All Links & Socials Container */}
                     <div className="mt-10 flex flex-col md:flex-row justify-center items-center gap-8 text-sm font-medium">
                     
-                    {/* Navigation Links Group */}
                     <div className="flex flex-wrap justify-center gap-x-6 gap-y-4 text-stone-300">
                         {footerLinks.map((link) => (
                         <Link key={link.href} href={link.href} className="hover:text-white transition-colors">
@@ -236,10 +305,8 @@ export default function ExplorePage() {
                         ))}
                     </div>
                         
-                    {/* Visual Separator for Desktop Only */}
                     <div className="h-4 w-px bg-stone-700 hidden md:block"></div>
 
-                    {/* Social Icons */}
                     <div className="flex items-center gap-5">
                         {socialLinks.map((social) => (
                         <a 

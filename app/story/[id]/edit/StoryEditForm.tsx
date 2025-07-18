@@ -167,7 +167,68 @@ export default function StoryEditForm({ initialStory }: { initialStory: Story })
                     </div>
                      <div>
                         <label>When did this story take place? <span className="text-red-500">*</span></label>
-                         {/* Time Period selection logic here */}
+                        <div className="mt-2 space-y-4">
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setDateType('period')}
+                                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${dateType === 'period' ? 'bg-stone-800 text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}
+                                >
+                                    A Period of Time
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setDateType('year')}
+                                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${dateType === 'year' ? 'bg-stone-800 text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}
+                                >
+                                    A Specific Year
+                                </button>
+                            </div>
+
+                            {dateType === 'period' && (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label htmlFor="startYear" className="text-sm">Start Year</label>
+                                        <input
+                                            id="startYear"
+                                            type="number"
+                                            placeholder="e.g., 1985"
+                                            value={startYear}
+                                            onChange={(e) => setStartYear(e.target.value)}
+                                            className="w-full mt-1 p-3 border rounded-lg"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="endYear" className="text-sm">End Year</label>
+                                        <input
+                                            id="endYear"
+                                            type="number"
+                                            placeholder="e.g., 1992"
+                                            value={endYear}
+                                            onChange={(e) => setEndYear(e.target.value)}
+                                            className="w-full mt-1 p-3 border rounded-lg"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {dateType === 'year' && (
+                                <div>
+                                    <label htmlFor="specificYear" className="text-sm">Specific Year</label>
+                                    <input
+                                        id="specificYear"
+                                        type="number"
+                                        placeholder="e.g., 2001"
+                                        value={specificYear}
+                                        onChange={(e) => setSpecificYear(e.target.value)}
+                                        className="w-full mt-1 p-3 border rounded-lg"
+                                        required
+                                    />
+                                </div>
+                            )}
+                        </div>
                     </div>
                     <div>
                         <label htmlFor="summary">Story Summary</label>

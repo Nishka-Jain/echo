@@ -43,9 +43,7 @@ export default function AboutPage() {
               </div>
             </header>
         </AnimatedSection>
-        
-        <AnimatedSection>
-            <section className="pt-12 pb-24 sm:pt-20 sm:pb-28">
+        <section className="pt-12 pb-24 sm:pt-20 sm:pb-28">
               <div className="max-w-7xl mx-auto px-8 sm:px-10 lg:px-12">
                 <div className="grid md:grid-cols-2 gap-16 md:gap-24">
 
@@ -99,7 +97,6 @@ export default function AboutPage() {
                 </div>
               </div>
             </section>
-          </AnimatedSection>
         
         <section className="bg-stone-900 text-white py-22 sm:py-28">
           <div className="max-w-5xl mx-auto px-8 sm:px-10 lg:px-12">
@@ -154,6 +151,15 @@ export default function AboutPage() {
               <div className="space-y-20">
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 items-center">
+                  <div className="md:col-span-1 flex justify-center md:justify-end md:order-last">
+                    <Image
+                      src="/nishka.png" 
+                      alt="Picture of Nishka Jain"
+                      width={220}
+                      height={220}
+                      className="rounded-full object-cover aspect-square object-top"
+                    />
+                  </div>
                   <div className="md:col-span-2">
                     <blockquote className="font-serif text-xl lg:text-2xl text-black leading-relaxed">
                     "I started Echo for a selfish reason: I was terrified of forgetting the exact sound of my grandmother's laugh. But I soon realized this wasn't just my fear; it's a universal one. We build this platform not just to archive sounds, but to preserve the feeling of connection itself—to create a legacy of love that future generations can actually hear."
@@ -163,19 +169,10 @@ export default function AboutPage() {
                       <span className="ml-2 font-normal text-stone-800">(Co-Founder)</span>
                     </cite>
                   </div>
-                  <div className="md:col-span-1 flex justify-center md:justify-end">
-                    <Image
-                      src="/nishka.png" 
-                      alt="Picture of Nishka Jain"
-                      width={220}
-                      height={220}
-                      className="rounded-full object-cover aspect-square object-top"
-                    />
-                  </div>
                 </div>
 
                 <hr className="border-stone-200" />
-
+                
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 items-center">
                   <div className="md:col-span-1 flex justify-center md:justify-start">
                     <Image
@@ -186,7 +183,6 @@ export default function AboutPage() {
                       className="rounded-full object-cover aspect-square object-top"
                     />
                   </div>
-                  
                   <div className="md:col-span-2">
                     <blockquote className="font-serif text-xl lg:text-2xl text-black leading-relaxed">
                     "We live in an age of endless information, but we're starving for wisdom. That wisdom isn't in a database; it's in the cadence of our elders' voices, in the stories shared across generations. Echo is our way of building a new kind of library—not of data, but of humanity itself."
