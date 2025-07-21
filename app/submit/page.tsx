@@ -103,6 +103,7 @@ export default function SubmitPage() {
     const [customTag, setCustomTag] = useState('');
     const [location, setLocation] = useState<Place | null>(null);
     const [summary, setSummary] = useState('');
+
     
     const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
     const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
@@ -120,12 +121,16 @@ export default function SubmitPage() {
     const [newPhoto, setNewPhoto] = useState<File | null>(null);
 
     const steps = ["Who's Speaking", "Record Audio", "Review Transcription", "Add Details", "Review & Submit"];
-    const [availableTags, setAvailableTags] = useState(["Family", "Migration", "Food", "Tradition", "Love", "Loss", "Childhood", "Work"]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
+    
 
     const [transcription, setTranscription] = useState('');
     const [transcriptionStatus, setTranscriptionStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle');
+
+    const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
+    const [suggestedSummary, setSuggestedSummary] = useState('');
+    const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false);
 
     const [translatedText, setTranslatedText] = useState('');
     const [translationStatus, setTranslationStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle');
@@ -188,15 +193,14 @@ export default function SubmitPage() {
     };
 
     const handleTagClick = (tag: string) => {
-        setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
+        setSelectedTags(prev =>
+            prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+        );
     };
     
     const handleAddCustomTag = () => {
         const newTag = customTag.trim();
         if (newTag && !selectedTags.includes(newTag)) {
-            if (!availableTags.includes(newTag)) {
-                setAvailableTags(prev => [...prev, newTag]);
-            }
             setSelectedTags(prev => [...prev, newTag]);
             setCustomTag('');
         }
@@ -302,6 +306,35 @@ export default function SubmitPage() {
             setCurrentStep(currentStep + 1);
         }
     };
+    useEffect(() => {
+        const generateSuggestions = async () => {
+            // Only run on step 4, if we have a transcript, and if we haven't already fetched suggestions.
+            if (currentStep === 4 && transcription && !isGeneratingSuggestions && suggestedTags.length === 0) {
+                setIsGeneratingSuggestions(true);
+                try {
+                    const response = await fetch('/api/suggest-details', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ transcription }),
+                    });
+    
+                    if (!response.ok) throw new Error('API call failed');
+    
+                    const data = await response.json();
+                    setSuggestedSummary(data.summary || '');
+                    setSuggestedTags(data.tags || []);
+    
+                } catch (error) {
+                    console.error("Error fetching AI suggestions:", error);
+                    toast.error("Could not generate AI suggestions.");
+                } finally {
+                    setIsGeneratingSuggestions(false);
+                }
+            }
+        };
+    
+        generateSuggestions();
+    }, [currentStep, transcription]);
 
     const handleBack = () => currentStep > 1 && setCurrentStep(currentStep - 1);
 
@@ -568,18 +601,89 @@ export default function SubmitPage() {
                                     )}
                                     {currentStep === 4 && (
                                         <div className="space-y-6 animate-fade-in">
-                                            <div><label htmlFor="storyTitle" className="block text-sm font-medium text-stone-700 mb-1">Story Title <span className="text-red-500">*</span></label><input type="text" id="storyTitle" value={storyTitle} onChange={(e) => setStoryTitle(e.target.value)} className="w-full p-3 border border-stone-300 rounded-lg" required /></div>
+                                            {/* Story Title Input */}
                                             <div>
-                                                <label className="block text-sm font-medium text-stone-700 mb-2">Tags <span className="text-red-500">*</span> <span className="text-stone-500">(What is this story about?)</span></label>
-                                                <div className="flex flex-wrap gap-2">{availableTags.map(tag => (<button type="button" key={tag} onClick={() => handleTagClick(tag)} className={`px-4 py-2 rounded-full border transition-colors text-sm font-medium ${selectedTags.includes(tag) ? 'bg-stone-800 text-white border-stone-800' : 'bg-white text-stone-700 border-stone-300 hover:bg-stone-100'}`}>{tag}</button>))}</div>
-                                                <div className="flex items-center gap-2 mt-4"><input type="text" value={customTag} onChange={(e) => setCustomTag(e.target.value)} onKeyDown={handleCustomTagKeyDown} placeholder="Add your own tag and press Enter" className="flex-grow p-3 border border-stone-300 rounded-lg" /><button type="button" onClick={handleAddCustomTag} className="p-3 bg-stone-200 text-stone-800 rounded-lg hover:bg-stone-300 transition-colors"><Plus size={20} /></button></div>
+                                                <label htmlFor="storyTitle" className="block text-sm font-medium text-stone-700 mb-1">Story Title <span className="text-red-500">*</span></label>
+                                                <input type="text" id="storyTitle" value={storyTitle} onChange={(e) => setStoryTitle(e.target.value)} className="w-full p-3 border border-stone-300 rounded-lg" required />
                                             </div>
+
+                                            {/* Loading indicator */}
+                                            {isGeneratingSuggestions && (
+                                                <div className="flex items-center gap-3 text-sm text-stone-600 p-3 bg-stone-50 rounded-lg border border-stone-200">
+                                                    <Loader2 size={16} className="animate-spin" />
+                                                    Generating AI suggestions from your transcript...
+                                                </div>
+                                            )}
+
+                                            {/* --- REDESIGNED Tags Section --- */}
+                                            <div className="space-y-4">
+                                                <label className="block text-sm font-medium text-stone-700">Tags <span className="text-red-500">*</span></label>
+
+                                                {/* Area to display currently selected tags */}
+                                                <div className="flex flex-wrap gap-2 p-3 min-h-[50px] bg-stone-50 border border-stone-200 rounded-lg">
+                                                    {selectedTags.length > 0 ? (
+                                                        selectedTags.map(tag => (
+                                                            <span key={tag} className="flex items-center gap-2 px-3 py-1 bg-stone-800 text-white rounded-full text-sm font-medium animate-fade-in">
+                                                                {tag}
+                                                                <button type="button" onClick={() => handleTagClick(tag)} className="bg-stone-600 rounded-full p-0.5 hover:bg-stone-500 transition-colors">
+                                                                    <X size={12} />
+                                                                </button>
+                                                            </span>
+                                                        ))
+                                                    ) : (
+                                                        <p className="text-sm text-stone-500 self-center">Click suggestions or add your own tags below.</p>
+                                                    )}
+                                                </div>
+                                                
+                                                {/* AI Suggested Tags */}
+                                                {suggestedTags.length > 0 && !isGeneratingSuggestions && (
+                                                    <div>
+                                                        <p className="text-sm font-medium text-stone-600 mb-2 flex items-center gap-2"><PartyPopper size={16}/> AI Suggestions</p>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {suggestedTags.map(tag => {
+                                                                const isSelected = selectedTags.includes(tag);
+                                                                return (
+                                                                    <button
+                                                                        type="button"
+                                                                        key={`suggestion-${tag}`}
+                                                                        onClick={() => handleTagClick(tag)}
+                                                                        disabled={isSelected}
+                                                                        className={`px-3 py-1.5 rounded-full flex items-center gap-1.5 text-sm font-medium transition-colors border ${
+                                                                            isSelected
+                                                                                ? 'bg-green-100 text-green-700 border-green-200 cursor-not-allowed'
+                                                                                : 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200'
+                                                                        }`}
+                                                                    >
+                                                                        {isSelected ? <CheckCircle size={14} /> : <Plus size={14} />}
+                                                                        {tag}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Custom Tag Input */}
+                                                <div>
+                                                    <p className="text-sm font-medium text-stone-600 mb-2">Add your own tag:</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <input type="text" value={customTag} onChange={(e) => setCustomTag(e.target.value)} onKeyDown={handleCustomTagKeyDown} placeholder="Type here and press Enter" className="flex-grow p-3 border border-stone-300 rounded-lg" />
+                                                        <button type="button" onClick={handleAddCustomTag} className="p-3 bg-stone-200 text-stone-800 rounded-lg hover:bg-stone-300 transition-colors">
+                                                            <Plus size={20} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Location */}
                                             <div>
-                                            <label htmlFor="location" className="block text-sm font-medium text-stone-700 mb-1">Location <span className="text-red-500">*</span></label>
+                                                <label htmlFor="location" className="block text-sm font-medium text-stone-700 mb-1">Location <span className="text-red-500">*</span></label>
                                                 <APIProvider apiKey={process.env.NEXT_PUBLIC_Maps_API_KEY!}>
                                                     <LocationSearch onPlaceSelect={(place) => setLocation(place)} />
                                                 </APIProvider>
                                             </div>
+
+                                            {/* Language of Story */}
                                             <div>
                                                 <label htmlFor="language" className="block text-sm font-medium text-stone-700 mb-1">Language of Story <span className="text-red-500">*</span></label>
                                                 <select id="language" value={language} onChange={(e) => setLanguage(e.target.value)} className={`w-full p-3 border border-stone-300 rounded-lg bg-white ${!language ? 'text-stone-500' : 'text-stone-900'}`} required>
@@ -589,6 +693,8 @@ export default function SubmitPage() {
                                                 </select>
                                                 {language === 'Other' && (<input type="text" placeholder="Please specify the language" value={otherLanguage} onChange={(e) => setOtherLanguage(e.target.value)} className="w-full p-3 mt-2 border border-stone-300 rounded-lg animate-fade-in text-stone-900" required />)}
                                             </div>
+
+                                            {/* Date of Story */}
                                             <div className="space-y-4 rounded-lg border border-stone-200 p-4">
                                                 <h4 className="font-medium text-stone-700">When did this story take place? <span className="text-red-500">*</span></h4>
                                                 <div className="flex items-center gap-2 rounded-lg bg-stone-100 p-1">
@@ -598,7 +704,21 @@ export default function SubmitPage() {
                                                 {dateType === 'period' && (<div className="grid grid-cols-2 gap-4 animate-fade-in"><div><label htmlFor="startYear" className="text-sm text-stone-600">Start Year</label><input id="startYear" type="number" placeholder="e.g., 1960" value={startYear} onChange={e => setStartYear(e.target.value)} className="w-full mt-1 p-3 border border-stone-300 rounded-lg" /></div><div><label htmlFor="endYear" className="text-sm text-stone-600">End Year</label><input id="endYear" type="number" placeholder="e.g., 1969" value={endYear} onChange={e => setEndYear(e.target.value)} className="w-full mt-1 p-3 border border-stone-300 rounded-lg" /></div></div>)}
                                                 {dateType === 'year' && (<div className="animate-fade-in"><label htmlFor="specificYear" className="text-sm text-stone-600">Year</label><input id="specificYear" type="number" placeholder="e.g., 1995" value={specificYear} onChange={e => setSpecificYear(e.target.value)} className="w-full mt-1 p-3 border border-stone-300 rounded-lg" /></div>)}
                                             </div>
-                                            <div><label htmlFor="summary" className="block text-sm font-medium text-stone-700 mb-1">Describe the story <span className="text-stone-500">(Optional)</span></label><textarea id="summary" value={summary} onChange={(e) => setSummary(e.target.value)} rows={4} className="w-full p-3 border border-stone-300 rounded-lg"></textarea></div>
+
+                                            {/* Summary Section */}
+                                            <div>
+                                                <label htmlFor="summary" className="block text-sm font-medium text-stone-700 mb-1">Describe the story <span className="text-stone-500">(Optional)</span></label>
+                                                {suggestedSummary && !isGeneratingSuggestions && (
+                                                    <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                                        <p className="text-sm font-medium text-blue-900 mb-2 flex items-center gap-2"><PartyPopper size={16}/> AI Suggestion</p>
+                                                        <p className="text-stone-700 text-sm">{suggestedSummary}</p>
+                                                        <button type="button" onClick={() => setSummary(suggestedSummary)} className="mt-2 text-sm font-semibold text-blue-600 hover:text-blue-800">
+                                                            Use this summary
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                <textarea id="summary" value={summary} onChange={(e) => setSummary(e.target.value)} rows={4} className="w-full p-3 border border-stone-300 rounded-lg"></textarea>
+                                            </div>
                                         </div>
                                     )}
                                     {currentStep === 5 && (

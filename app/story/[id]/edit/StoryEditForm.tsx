@@ -14,6 +14,8 @@ import { APIProvider } from '@vis.gl/react-google-maps';
 import LocationSearch from '@/app/components/LocationSearch';
 import type { Place } from '@/app/components/LocationSearch';
 import Link from 'next/link';
+import { storage } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 import { Pencil, Save, X, Plus, Camera, UploadCloud, ArrowUp, Dot, ArrowDown } from 'lucide-react';
 
@@ -81,18 +83,29 @@ export default function StoryEditForm({ initialStory }: { initialStory: Story })
         setIsSubmitting(true);
         const toastId = toast.loading("Saving changes...");
         
+        // This reference to the story document is correct
         const storyRef = doc(db, "stories", initialStory.id);
-
+    
         try {
-            // If there's a new photo, upload it first via the context function
-            if (newPhoto && user) {
-                await updateUserProfile({ newPhoto, photoPosition: objectPosition });
+            let photoUrl = initialStory.photoUrl; // Start with the existing photo URL
+    
+            // --- NEW LOGIC ---
+            // If a new photo file has been selected, upload it to Firebase Storage
+            if (newPhoto) {
+                // Create a unique path for the new photo in storage
+                const storageRef = ref(storage, `stories/photos/${Date.now()}-${newPhoto.name}`);
+                
+                // Upload the file
+                const uploadResult = await uploadBytes(storageRef, newPhoto);
+                
+                // Get the public URL of the uploaded photo
+                photoUrl = await getDownloadURL(uploadResult.ref);
             }
-
+    
             // Prepare the data object for Firestore
             const storyUpdateData = {
                 title: storyTitle,
-                speaker: speakerName, // Ensure this matches what you use elsewhere
+                speaker: speakerName,
                 age: speakerAge,
                 pronouns: speakerPronouns,
                 summary: summary,
@@ -102,11 +115,15 @@ export default function StoryEditForm({ initialStory }: { initialStory: Story })
                 startYear: dateType === 'period' ? Number(startYear) : null,
                 endYear: dateType === 'period' ? Number(endYear) : null,
                 specificYear: dateType === 'year' ? Number(specificYear) : null,
+                photoUrl: photoUrl, // Add the new (or existing) photo URL to the update object
             };
-
+    
+            // Update the story document in Firestore
             await updateDoc(storyRef, storyUpdateData);
             toast.success("Story updated successfully!", { id: toastId });
             router.push(`/story/${initialStory.id}`);
+            router.refresh(); // Good practice to refresh server components
+    
         } catch (error) {
             console.error("Error updating document: ", error);
             toast.error("Failed to update story.", { id: toastId });
