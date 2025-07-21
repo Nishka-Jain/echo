@@ -259,7 +259,7 @@ return (
       <AnimatedSection>
           <section className="bg-white border-y border-stone-200 py-22 sm:py-28">
             <div className="max-w-3xl mx-auto px-6 sm:px-8 lg:px-10 text-center">
-                <h2 className="font-serif text-4xl lg:text-5xl text-stone-900">Become a Part of the Archive Today</h2>
+                <h2 className="font-serif text-4xl lg:text-5xl text-stone-900">Become Part of the Archive Today</h2>
                 <div className="prose prose-xl max-w-none text-stone-600 leading-relaxed mt-8">               
                   <p>
                     Whether you're a student, a teacher, a family historian, or simply someone with a story to share, Echo is for you. Join us in building a lasting resource for generations to come.

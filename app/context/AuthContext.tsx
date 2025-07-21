@@ -1,15 +1,14 @@
 "use client";
 
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { getAuth, onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut, updateProfile } from 'firebase/auth';
+import { onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut, updateProfile } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
-import { app, db } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import type { UserProfile } from '@/lib/types';
 import AuthModal from '@/app/components/AuthModal';
 
-const auth = getAuth(app);
-const storage = getStorage(app);
+const storage = getStorage();
 
 interface AuthContextType {
   user: UserProfile | null;
