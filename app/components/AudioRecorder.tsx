@@ -67,6 +67,42 @@ export default function AudioRecorder({ onRecordingComplete }: AudioRecorderProp
     const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
     const [finalAudioFile, setFinalAudioFile] = useState<File | null>(null);
     const [isWaveSurferReady, setIsWaveSurferReady] = useState<boolean>(false);
+    // Stopwatch state
+    const [recordingTime, setRecordingTime] = useState<number>(0);
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
+    // Format seconds as mm:ss
+    const formatTime = (seconds: number) => {
+        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    };
+    // Handle stopwatch timer
+    useEffect(() => {
+        if (status === 'recording') {
+            if (!timerRef.current) {
+                timerRef.current = setInterval(() => {
+                    setRecordingTime(prev => prev + 1);
+                }, 1000);
+            }
+        } else if (status === 'paused') {
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+        } else {
+            // Reset timer on stop/idle/other
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+        }
+        return () => {
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+        };
+    }, [status]);
 
     useEffect(() => {
         // @ts-ignore
@@ -132,6 +168,7 @@ export default function AudioRecorder({ onRecordingComplete }: AudioRecorderProp
     const handleStartRecording = () => {
         if (recordPluginRef.current) {
             if (wavesurferRef.current?.getDuration() > 0) wavesurferRef.current.empty();
+            setRecordingTime(0); // Reset stopwatch
             recordPluginRef.current.startRecording();
         }
     };
@@ -220,15 +257,25 @@ export default function AudioRecorder({ onRecordingComplete }: AudioRecorderProp
         setStatus('idle');
         setFinalAudioFile(null);
         setRecordedBlob(null);
+        setRecordingTime(0);
         onRecordingComplete(null);
     };
 
     return (
         <div className="p-4 bg-white rounded-xl border border-stone-200 shadow-sm w-full mx-auto space-y-4">
             <div ref={waveformRef} id="waveform" className="w-full h-32 border-2 border-dashed border-stone-300 rounded-lg bg-stone-50 transition-all"></div>
-            
+
             {status === 'loading' && <p className="text-center text-stone-500 py-12">Loading Audio Editor...</p>}
             {status === 'error' && <p className="text-center text-red-500 py-12">Error loading editor. Please refresh.</p>}
+
+            {/* Stopwatch display */}
+            {(status === 'recording' || status === 'paused') && (
+                <div className="flex items-center justify-center mb-2">
+                    <span className="text-base font-mono text-stone-500">
+                        {formatTime(recordingTime)}
+                    </span>
+                </div>
+            )}
 
             <div className="flex items-center justify-center gap-4 flex-wrap min-h-[64px]">
                 {status === 'idle' && (
