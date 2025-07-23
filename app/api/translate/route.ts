@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
     // Create a clear, direct prompt for translation
 const prompt = `TASK: Translate the entire text block below into a single, cohesive ${targetLanguage} translation.

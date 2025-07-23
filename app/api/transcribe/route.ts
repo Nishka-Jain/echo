@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     const audioBase64 = audioBuffer.toString("base64");
 
     // Prepare the audio data and a prompt for the Gemini API
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
     const audioPart = {
       inlineData: {
