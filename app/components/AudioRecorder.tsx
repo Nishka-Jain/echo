@@ -51,6 +51,7 @@ export default function AudioRecorder({ onRecordingComplete }: AudioRecorderProp
     const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
     const [finalAudioFile, setFinalAudioFile] = useState<File | null>(null);
     const [isWaveSurferReady, setIsWaveSurferReady] = useState<boolean>(false);
+    const [isConverting, setIsConverting] = useState<boolean>(false);
     // Stopwatch state
     const [recordingTime, setRecordingTime] = useState<number>(0);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -231,14 +232,19 @@ export default function AudioRecorder({ onRecordingComplete }: AudioRecorderProp
     };
     const handleConfirm = async () => {
         if (!recordedBlob || !wavesurferRef.current) return;
-        // Decode the WAV blob to AudioBuffer
-        const arrayBuffer = await recordedBlob.arrayBuffer();
-        const audioCtx = new window.AudioContext();
-        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-        const mp3Blob = audioBufferToMp3(audioBuffer);
-        const file = new File([mp3Blob], `echo-recording-${Date.now()}.mp3`, { type: 'audio/mp3' });
-        setFinalAudioFile(file);
-        onRecordingComplete(file);
+        setIsConverting(true);
+        try {
+            // Decode the WAV blob to AudioBuffer
+            const arrayBuffer = await recordedBlob.arrayBuffer();
+            const audioCtx = new window.AudioContext();
+            const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+            const mp3Blob = audioBufferToMp3(audioBuffer);
+            const file = new File([mp3Blob], `echo-recording-${Date.now()}.mp3`, { type: 'audio/mp3' });
+            setFinalAudioFile(file);
+            onRecordingComplete(file);
+        } finally {
+            setIsConverting(false);
+        }
     };
     const handleRestart = () => {
         handleCancelTrimming();
@@ -282,19 +288,27 @@ export default function AudioRecorder({ onRecordingComplete }: AudioRecorderProp
                         </button>
                     </>
                 )}
-                {status === 'finished' && (
-                    <>
-                        <button type="button" onClick={handleEnableTrimming} className="flex items-center gap-3 p-3 px-4 rounded-lg bg-stone-600 text-white hover:bg-stone-700 transition-colors font-medium">
-                            <Scissors size={16} /> Trim
-                        </button>
-                        <button type="button" onClick={handleRestart} className="flex items-center gap-3 p-3 px-4 rounded-lg bg-stone-200 text-stone-800 hover:bg-stone-300 transition-colors font-medium">
-                            <RotateCcw size={16} /> Re-record
-                        </button>
-                        <button type="button" onClick={handleConfirm} className="flex items-center gap-3 p-4 px-6 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors font-semibold">
-                            <Check size={20} /> Use This Recording
-                        </button>
-                    </>
-                )}
+            {status === 'finished' && (
+                <>
+                    <button type="button" onClick={handleEnableTrimming} className="flex items-center gap-3 p-3 px-4 rounded-lg bg-stone-600 text-white hover:bg-stone-700 transition-colors font-medium">
+                        <Scissors size={16} /> Trim
+                    </button>
+                    <button type="button" onClick={handleRestart} className="flex items-center gap-3 p-3 px-4 rounded-lg bg-stone-200 text-stone-800 hover:bg-stone-300 transition-colors font-medium">
+                        <RotateCcw size={16} /> Re-record
+                    </button>
+                    <button type="button" onClick={handleConfirm} disabled={isConverting} className={`flex items-center gap-3 p-4 px-6 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors font-semibold ${isConverting ? 'opacity-50 cursor-not-allowed' : ''}`}> 
+                        <Check size={20} />
+                        {isConverting ? (
+                            <span className="flex items-center gap-2">
+                                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+                                Converting...
+                            </span>
+                        ) : (
+                            'Use This Recording'
+                        )}
+                    </button>
+                </>
+            )}
                 {status === 'trimming' && (
                     <>
                         <button type="button" onClick={handleCancelTrimming} className="flex items-center gap-3 p-3 px-4 rounded-lg bg-stone-200 text-stone-800 hover:bg-stone-300 transition-colors font-medium">
