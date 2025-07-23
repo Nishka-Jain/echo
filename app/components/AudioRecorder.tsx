@@ -233,7 +233,7 @@ export default function AudioRecorder({ onRecordingComplete }: AudioRecorderProp
         if (!recordedBlob || !wavesurferRef.current) return;
         // Decode the WAV blob to AudioBuffer
         const arrayBuffer = await recordedBlob.arrayBuffer();
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const audioCtx = new window.AudioContext();
         const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
         const mp3Blob = audioBufferToMp3(audioBuffer);
         const file = new File([mp3Blob], `echo-recording-${Date.now()}.mp3`, { type: 'audio/mp3' });
