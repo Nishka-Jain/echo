@@ -228,7 +228,7 @@ export default function AudioRecorder({ onRecordingComplete }: AudioRecorderProp
         source.start(0, start, end - start);
 
         const newBuffer = await offlineContext.startRendering();
-        const newBlob = audioBufferToWav(newBuffer);
+        const newBlob = audioBufferToMp3(newBuffer);
         const newUrl = URL.createObjectURL(newBlob);
         if (currentAudioUrlRef.current) URL.revokeObjectURL(currentAudioUrlRef.current);
         currentAudioUrlRef.current = newUrl;
@@ -245,36 +245,16 @@ export default function AudioRecorder({ onRecordingComplete }: AudioRecorderProp
         activeRegionRef.current = null;
         setStatus('finished');
     };
-    const handleConfirm = () => {
-        if (!recordedBlob) return;
-        // Convert WAV Blob to MP3 using @breezystack/lamejs
-        const convertWavBlobToMp3 = async (wavBlob: Blob): Promise<File> => {
-            const lamejs = await import('@breezystack/lamejs');
-            const wavArrayBuffer = await wavBlob.arrayBuffer();
-            // Parse WAV header manually
-            const view = new DataView(wavArrayBuffer);
-            const channels = view.getUint16(22, true);
-            const sampleRate = view.getUint32(24, true);
-            const bitsPerSample = view.getUint16(34, true);
-            const dataOffset = 44; // Standard PCM WAV header size
-            const samples = new Int16Array(wavArrayBuffer, dataOffset);
-            const mp3Encoder = new lamejs.Mp3Encoder(channels, sampleRate, 128);
-            const mp3Data = [];
-            const sampleBlockSize = 1152;
-            for (let i = 0; i < samples.length; i += sampleBlockSize) {
-                const sampleChunk = samples.subarray(i, i + sampleBlockSize);
-                const mp3buf = mp3Encoder.encodeBuffer(sampleChunk);
-                if (mp3buf.length > 0) mp3Data.push(mp3buf);
-            }
-            const mp3buf = mp3Encoder.flush();
-            if (mp3buf.length > 0) mp3Data.push(mp3buf);
-            const mp3Blob = new Blob(mp3Data, { type: 'audio/mp3' });
-            return new File([mp3Blob], `echo-recording-${Date.now()}.mp3`, { type: 'audio/mp3' });
-        };
-        convertWavBlobToMp3(recordedBlob).then(file => {
-            setFinalAudioFile(file);
-            onRecordingComplete(file);
-        });
+    const handleConfirm = async () => {
+        if (!recordedBlob || !wavesurferRef.current) return;
+        // Decode the WAV blob to AudioBuffer
+        const arrayBuffer = await recordedBlob.arrayBuffer();
+        const audioCtx = new window.AudioContext();
+        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+        const mp3Blob = audioBufferToMp3(audioBuffer);
+        const file = new File([mp3Blob], `echo-recording-${Date.now()}.mp3`, { type: 'audio/mp3' });
+        setFinalAudioFile(file);
+        onRecordingComplete(file);
     };
     const handleRestart = () => {
         handleCancelTrimming();
