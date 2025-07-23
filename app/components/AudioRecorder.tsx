@@ -212,7 +212,7 @@ export default function AudioRecorder({ onRecordingComplete }: AudioRecorderProp
         source.start(0, start, end - start);
 
         const newBuffer = await offlineContext.startRendering();
-        const newBlob = audioBufferToWav(newBuffer);
+        const newBlob = audioBufferToMp3(newBuffer);
         const newUrl = URL.createObjectURL(newBlob);
         if (currentAudioUrlRef.current) URL.revokeObjectURL(currentAudioUrlRef.current);
         currentAudioUrlRef.current = newUrl;
