@@ -26,19 +26,16 @@ input::placeholder,
 textarea::placeholder {
   color: theme('colors.stone.400');
 }
-.react-plyr-wrapper {
-  --plyr-control-background: #000; /* stone-50 background */
-  --plyr-color-main: #000;
-  --plyr-control-radius: 12px;
-  --plyr-font-family: inherit;
+.react-plyr-wrapper .plyr--audio {
+  background: #fafaf9 !important; /* stone-50 background. !important ensures this rule is applied. */
+  border-radius: 12px;
 }
-
-/* Hides the default browser controls */
+.react-plyr-wrapper {
+  --plyr-color-main: #000
+}
 .react-plyr-wrapper audio::-webkit-media-controls-panel {
   display: none !important;
 }
-
-/* Hides the buffer bar */
 .react-plyr-wrapper .plyr__progress__buffer {
   display: none !important;
 }
