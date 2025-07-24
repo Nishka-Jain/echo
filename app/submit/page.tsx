@@ -89,6 +89,53 @@ const Stepper = ({ currentStep, steps }: { currentStep: number, steps: string[] 
     );
 };
 
+// --- Alternating fun facts and progress messages for loading state ---
+const FUN_FACTS = [
+  "Did you know? The word 'echo' comes from Greek mythology, where Echo was a nymph who could only repeat the words of others.",
+  "Over 40% of the world's 7,000+ languages are endangered and may disappear within the next century.",
+  "Every two weeks, another language is lost somewhere in the world.",
+  "Recording stories helps preserve culture and memory for future generations.",
+  "Some languages have no written form and can only be preserved through audio recordings.",
+  "The oldest known audio recording is from 1860, using a device called a phonautograph.",
+  "Your story could help researchers and communities revive lost languages!",
+  "Language is the key to understanding history, identity, and belonging.",
+];
+
+const PROGRESS_MESSAGES = [
+  "Hang tight, we're transcribing your story...",
+  "Just a moment more!",
+  "We're working on it...",
+  "Almost there!",
+  "Thank you for your patience.",
+  "Almost done!",
+];
+
+// Alternates between progress messages and fun facts
+const ALTERNATING_ITEMS: (string | number | bigint | boolean | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined)[] = [];
+for (let i = 0; i < Math.max(FUN_FACTS.length, PROGRESS_MESSAGES.length); i++) {
+  if (i < PROGRESS_MESSAGES.length) ALTERNATING_ITEMS.push(PROGRESS_MESSAGES[i]);
+  if (i < FUN_FACTS.length) ALTERNATING_ITEMS.push(FUN_FACTS[i]);
+}
+
+export function TranscriptionLoadingFacts() {
+  const [index, setIndex] = React.useState(0);
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex(i => (i + 1) % ALTERNATING_ITEMS.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+  return (
+    <div className="w-full h-48 p-4 bg-stone-50 rounded-lg flex flex-col items-center justify-center gap-3 text-stone-600 animate-fade-in">
+      <Loader2 size={24} className="animate-spin mb-2" />
+      <p className="font-semibold text-base">Generating transcription... this may take a minute.</p>
+      <div className="mt-4 text-center text-sm text-stone-700 italic max-w-xl">
+        {ALTERNATING_ITEMS[index]}
+      </div>
+    </div>
+  );
+}
+
 
 export default function SubmitPage() {
     const [currentStep, setCurrentStep] = useState(1);
@@ -551,31 +598,26 @@ export default function SubmitPage() {
                                       </div>
                                     )}
                                     {currentStep === 3 && (
-                                        <div className="space-y-6 text-stone-700 animate-fade-in">
-                                            <div>
-                                                <label htmlFor="transcription" className="block text-lg font-semibold text-stone-800 mb-2">
-                                                    Review & Edit Transcription
-                                                </label>
-                                                <p className="text-sm text-stone-500 mb-4">
-                                                    The AI-generated transcription is below. Please review and edit it for accuracy before proceeding.
-                                                </p>
-                                                {transcriptionStatus === 'generating' && (
-                                                    <div className="w-full h-48 p-4 bg-stone-50 rounded-lg flex items-center justify-center gap-3 text-stone-600">
-                                                        <Loader2 size={20} className="animate-spin" />
-                                                        <p>Generating transcription... this may take a moment.</p>
-                                                    </div>
-                                                )}
-                                                {(transcriptionStatus === 'success' || transcriptionStatus === 'error') && (
-                                                    <textarea
-                                                        id="transcription"
-                                                        value={transcription}
-                                                        onChange={(e) => setTranscription(e.target.value)}
-                                                        rows={10}
-                                                        className="w-full p-4 border border-stone-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-stone-500 whitespace-pre-wrap"
-                                                        placeholder={transcriptionStatus === 'error' ? 'Could not generate transcription. You can type it manually here.' : 'Edit your transcription...'}
-                                                    />
-                                                )}
-                                            </div>
+        <div className="space-y-6 text-stone-700 animate-fade-in">
+            <div>
+                <label htmlFor="transcription" className="block text-lg font-semibold text-stone-800 mb-2">
+                    Review & Edit Transcription
+                </label>
+                <p className="text-sm text-stone-500 mb-4">
+                    The AI-generated transcription is below. Please review and edit it for accuracy before proceeding.
+                </p>
+                {transcriptionStatus === 'generating' && <TranscriptionLoadingFacts />}
+                {(transcriptionStatus === 'success' || transcriptionStatus === 'error') && (
+                    <textarea
+                        id="transcription"
+                        value={transcription}
+                        onChange={(e) => setTranscription(e.target.value)}
+                        rows={10}
+                        className="w-full p-4 border border-stone-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-stone-500 whitespace-pre-wrap"
+                        placeholder={transcriptionStatus === 'error' ? 'Could not generate transcription. You can type it manually here.' : 'Edit your transcription...'}
+                    />
+                )}
+            </div>
                                             {transcriptionStatus === 'success' && (
                                                 <div className="pt-6 border-t border-stone-200 space-y-4">
                                                     <h3 className="text-xl font-serif font-semibold text-stone-800">Translate Transcription (Optional)</h3>
