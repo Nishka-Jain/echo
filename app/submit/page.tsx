@@ -98,6 +98,7 @@ export default function SubmitPage() {
     const [speakerPronouns, setSpeakerPronouns] = useState('');
     const [speakerPhoto, setSpeakerPhoto] = useState<File | null>(null);
     const [audioFile, setAudioFile] = useState<File | null>(null);
+    const [audioFirebaseUrl, setAudioFirebaseUrl] = useState<string | null>(null);
     const [audioTab, setAudioTab] = useState('record');
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [customTag, setCustomTag] = useState('');
@@ -261,14 +262,32 @@ export default function SubmitPage() {
         }
         setTranscriptionStatus('generating');
         setTranscription('');
+        setAudioFirebaseUrl(null);
         try {
-            const formData = new FormData();
-            formData.append('audio', audioFile);
-            const response = await fetch('/api/transcribe', { method: 'POST', body: formData });
-            if (!response.ok) throw new Error('Transcription API call failed');
-            const result = await response.json();
-            setTranscription(result.transcription);
-            setTranscriptionStatus('success');
+            await toast.promise(
+                (async () => {
+                    // Upload audio to Firebase Storage
+                    const audioRef = ref(storage, `stories/audio/${Date.now()}-${audioFile.name}`);
+                    const audioSnapshot = await uploadBytes(audioRef, audioFile);
+                    const url = await getDownloadURL(audioSnapshot.ref);
+                    setAudioFirebaseUrl(url);
+                    // Send URL and mimeType to API
+                    const response = await fetch('/api/transcribe', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ audioUrl: url, mimeType: audioFile.type }),
+                    });
+                    if (!response.ok) throw new Error('Transcription API call failed');
+                    const result = await response.json();
+                    setTranscription(result.transcription);
+                    setTranscriptionStatus('success');
+                })(),
+                {
+                    loading: 'Uploading audio & generating transcription...',
+                    success: 'Transcription complete!',
+                    error: 'Failed to transcribe audio.',
+                }
+            );
         } catch (error) {
             console.error("Error generating transcription:", error);
             setTranscriptionStatus('error');
@@ -349,43 +368,29 @@ export default function SubmitPage() {
         return true;
     })();
     
-    const isSubmittable = !!(audioFile && storyTitle && speakerName && !!location && selectedTags.length > 0 && !!language);
+    const isSubmittable = !!(audioFirebaseUrl && storyTitle && speakerName && !!location && selectedTags.length > 0 && !!language);
 
     const handleFinalSubmit = async () => {
-        
         if (!isSubmittable || !user) {
             alert("You must be logged in to submit a story.");
             return;
         }
-
-        if (!isSubmittable) return;
         setIsSubmitting(true);
-    
         try {
-            let audioUrl = "";
             let photoUrl = "";
-    
-            if (audioFile) {
-                const audioRef = ref(storage, `stories/audio/${Date.now()}-${audioFile.name}`);
-                const audioSnapshot = await uploadBytes(audioRef, audioFile);
-                audioUrl = await getDownloadURL(audioSnapshot.ref);
-            }
-    
             if (speakerPhoto) {
                 const photoRef = ref(storage, `stories/photos/${Date.now()}-${speakerPhoto.name}`);
                 const photoSnapshot = await uploadBytes(photoRef, speakerPhoto);
                 photoUrl = await getDownloadURL(photoSnapshot.ref);
             }
-
             const finalLanguage = language === 'Other' ? otherLanguage.trim() : language;
-
             const storyData = { 
                 title: storyTitle,
                 age: speakerAge,
                 pronouns: speakerPronouns,
                 speaker: speakerName,
                 photoUrl: photoUrl, 
-                audioUrl: audioUrl,
+                audioUrl: audioFirebaseUrl,
                 tags: selectedTags, 
                 language: finalLanguage,
                 location: location,
@@ -399,9 +404,7 @@ export default function SubmitPage() {
                 endYear: dateType === 'period' ? Number(endYear) : null,
                 specificYear: dateType === 'year' ? Number(specificYear) : null,
             };
-
             await addDoc(collection(db, "stories"), storyData);
-    
             setIsSubmitted(true);
         } catch (error) {
             console.error("Error submitting story: ", error);
@@ -419,6 +422,7 @@ export default function SubmitPage() {
       setSpeakerPronouns('');
       setSpeakerPhoto(null);
       setAudioFile(null);
+      setAudioFirebaseUrl(null);
       setSelectedTags([]);
       setCustomTag('');
       setLocation(null);
