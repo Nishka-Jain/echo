@@ -1,36 +1,32 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Mp3Encoder } from '@breezystack/lamejs';
 import { Mic, Square, Pause, Play, Check, RotateCcw, Scissors, X } from 'lucide-react';
 
 type WaveSurferInstance = any;
 type RecordPluginInstance = any;
 type RegionsPluginInstance = any;
 type Region = any;
-// This function converts an AudioBuffer to a WAV Blob
-// Converts an AudioBuffer to an MP3 Blob using lamejs
-const audioBufferToMp3 = (buffer: AudioBuffer): Blob => {
-    const numChannels = buffer.numberOfChannels;
-    const sampleRate = buffer.sampleRate;
-    const mp3Encoder = new Mp3Encoder(numChannels, sampleRate, 128); // 128 kbps
-    let mp3Data: Uint8Array[] = [];
-    const samples = buffer.getChannelData(0);
-    const samplesInt16 = new Int16Array(samples.length);
-    for (let i = 0; i < samples.length; i++) {
-        samplesInt16[i] = Math.max(-32768, Math.min(32767, samples[i] * 32767));
+// Converts a WAV Blob to an MP3 Blob using ffmpeg.wasm (client-only)
+const wavBlobToMp3 = async (wavBlob: Blob): Promise<Blob> => {
+    if (typeof window === 'undefined') throw new Error('ffmpeg can only run in the browser');
+    // Use named import for createFFmpeg (since only FFmpeg and FFFSType are present)
+    const { FFmpeg } = await import('@ffmpeg/ffmpeg');
+    if (!FFmpeg) {
+        throw new Error('Could not find FFmpeg in ffmpeg.wasm import.');
     }
-    let remaining = samplesInt16.length;
-    let maxSamples = 1152;
-    for (let i = 0; remaining >= maxSamples; i += maxSamples) {
-        const mono = samplesInt16.subarray(i, i + maxSamples);
-        const mp3buf = mp3Encoder.encodeBuffer(mono);
-        if (mp3buf.length > 0) mp3Data.push(mp3buf);
-        remaining -= maxSamples;
+    const ffmpeg = new FFmpeg({ log: false });
+    if (!ffmpeg.loaded) {
+        await ffmpeg.load();
     }
-    const mp3buf = mp3Encoder.flush();
-    if (mp3buf.length > 0) mp3Data.push(mp3buf);
-    return new Blob(mp3Data, { type: 'audio/mp3' });
+    const wavData = await wavBlob.arrayBuffer();
+    await ffmpeg.writeFile('input.wav', new Uint8Array(wavData));
+    await ffmpeg.exec(['-i', 'input.wav', '-codec:a', 'libmp3lame', '-b:a', '128k', 'output.mp3']);
+    const mp3Data = await ffmpeg.readFile('output.mp3');
+    // Clean up
+    await ffmpeg.deleteFile('input.wav');
+    await ffmpeg.deleteFile('output.mp3');
+    return new Blob([mp3Data.buffer], { type: 'audio/mp3' });
 };
 
 interface AudioRecorderProps {
@@ -223,20 +219,25 @@ export default function AudioRecorder({ onRecordingComplete }: AudioRecorderProp
         if (!originalBuffer || end - start <= 0) return;
 
         const OfflineAudioContext = window.OfflineAudioContext;
-        const offlineContext = new OfflineAudioContext(originalBuffer.numberOfChannels, (end - start) * originalBuffer.sampleRate, originalBuffer.sampleRate);
+        const offlineContext = new OfflineAudioContext(
+            originalBuffer.numberOfChannels,
+            (end - start) * originalBuffer.sampleRate,
+            originalBuffer.sampleRate
+        );
         const source = offlineContext.createBufferSource();
         source.buffer = originalBuffer;
         source.connect(offlineContext.destination);
         source.start(0, start, end - start);
 
         const newBuffer = await offlineContext.startRendering();
-        const newBlob = audioBufferToMp3(newBuffer);
-        const newUrl = URL.createObjectURL(newBlob);
+        // Convert AudioBuffer to WAV Blob
+        const wavBlob = await audioBufferToWavBlob(newBuffer);
+        const mp3Blob = await wavBlobToMp3(wavBlob);
+        const newUrl = URL.createObjectURL(mp3Blob);
         if (currentAudioUrlRef.current) URL.revokeObjectURL(currentAudioUrlRef.current);
         currentAudioUrlRef.current = newUrl;
-        
         wavesurferRef.current.load(newUrl);
-        setRecordedBlob(newBlob);
+        setRecordedBlob(mp3Blob);
         handleCancelTrimming();
     };
     const handleCancelTrimming = () => {
@@ -251,11 +252,8 @@ export default function AudioRecorder({ onRecordingComplete }: AudioRecorderProp
         if (!recordedBlob || !wavesurferRef.current) return;
         setIsConverting(true);
         try {
-            // Decode the WAV blob to AudioBuffer
-            const arrayBuffer = await recordedBlob.arrayBuffer();
-            const audioCtx = new window.AudioContext();
-            const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-            const mp3Blob = audioBufferToMp3(audioBuffer);
+            // Convert the recorded WAV blob to MP3 using ffmpeg.wasm
+            const mp3Blob = await wavBlobToMp3(recordedBlob);
             const file = new File([mp3Blob], `echo-recording-${Date.now()}.mp3`, { type: 'audio/mp3' });
             setFinalAudioFile(file);
             onRecordingComplete(file);
@@ -263,6 +261,62 @@ export default function AudioRecorder({ onRecordingComplete }: AudioRecorderProp
             setIsConverting(false);
         }
     };
+// Helper: Convert AudioBuffer to WAV Blob
+function audioBufferToWavBlob(buffer: AudioBuffer): Promise<Blob> {
+    return new Promise((resolve) => {
+        const numOfChan = buffer.numberOfChannels,
+            length = buffer.length * numOfChan * 2 + 44,
+            bufferArray = new ArrayBuffer(length),
+            view = new DataView(bufferArray),
+            channels = [],
+            sampleRate = buffer.sampleRate;
+        let offset = 0;
+        let pos = 0;
+
+        // Write WAV header
+        setUint32(0x46464952); // "RIFF"
+        setUint32(length - 8); // file length - 8
+        setUint32(0x45564157); // "WAVE"
+
+        setUint32(0x20746d66); // "fmt "
+        setUint32(16); // PCM format chunk length
+        setUint16(1); // format = 1
+        setUint16(numOfChan);
+        setUint32(sampleRate);
+        setUint32(sampleRate * 2 * numOfChan); // avg. bytes/sec
+        setUint16(numOfChan * 2); // block-align
+        setUint16(16); // 16-bit (hardcoded in this demo)
+
+        setUint32(0x61746164); // "data"
+        setUint32(length - pos - 4);
+
+        // Write interleaved data
+        for (let i = 0; i < buffer.numberOfChannels; i++)
+            channels.push(buffer.getChannelData(i));
+
+        let sample = 0;
+        while (pos < length) {
+            for (let i = 0; i < numOfChan; i++) {
+                sample = Math.max(-1, Math.min(1, channels[i][offset]));
+                sample = (0.5 + sample * 32767) | 0;
+                view.setInt16(pos, sample, true);
+                pos += 2;
+            }
+            offset++;
+        }
+
+        resolve(new Blob([bufferArray], { type: 'audio/wav' }));
+
+        function setUint16(data: number) {
+            view.setUint16(pos, data, true);
+            pos += 2;
+        }
+        function setUint32(data: number) {
+            view.setUint32(pos, data, true);
+            pos += 4;
+        }
+    });
+}
     const handleRestart = () => {
         handleCancelTrimming();
         wavesurferRef.current?.empty();
