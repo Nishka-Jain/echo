@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
+import { Mp3Encoder } from '@breezystack/lamejs';
 import { Mic, Square, Pause, Play, Check, RotateCcw, Scissors, X } from 'lucide-react';
 
 type WaveSurferInstance = any;
@@ -8,45 +9,28 @@ type RecordPluginInstance = any;
 type RegionsPluginInstance = any;
 type Region = any;
 // This function converts an AudioBuffer to a WAV Blob
-const audioBufferToWav = (buffer: AudioBuffer): Blob => {
+// Converts an AudioBuffer to an MP3 Blob using lamejs
+const audioBufferToMp3 = (buffer: AudioBuffer): Blob => {
     const numChannels = buffer.numberOfChannels;
     const sampleRate = buffer.sampleRate;
-    const format = 1; // PCM
-    const bitDepth = 16;
-    const bytesPerSample = bitDepth / 8;
-    const blockAlign = numChannels * bytesPerSample;
-    const dataSize = buffer.length * numChannels * bytesPerSample;
-    const bufferSize = 44 + dataSize;
-    const arrayBuffer = new ArrayBuffer(bufferSize);
-    const view = new DataView(arrayBuffer);
-    const writeString = (view: DataView, offset: number, string: string) => {
-        for (let i = 0; i < string.length; i++) {
-            view.setUint8(offset + i, string.charCodeAt(i));
-        }
-    };
-    writeString(view, 0, 'RIFF');
-    view.setUint32(4, bufferSize - 8, true);
-    writeString(view, 8, 'WAVE');
-    writeString(view, 12, 'fmt ');
-    view.setUint32(16, 16, true);
-    view.setUint16(20, format, true);
-    view.setUint16(22, numChannels, true);
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, sampleRate * blockAlign, true);
-    view.setUint16(32, blockAlign, true);
-    view.setUint16(34, bitDepth, true);
-    writeString(view, 36, 'data');
-    view.setUint32(40, dataSize, true);
-    let offset = 44;
-    for (let i = 0; i < buffer.length; i++) {
-        for (let channel = 0; channel < numChannels; channel++) {
-            const sample = buffer.getChannelData(channel)[i];
-            const intSample = Math.max(-1, Math.min(1, sample)) * 32767;
-            view.setInt16(offset, intSample, true);
-            offset += 2;
-        }
+    const mp3Encoder = new Mp3Encoder(numChannels, sampleRate, 128); // 128 kbps
+    let mp3Data: Uint8Array[] = [];
+    const samples = buffer.getChannelData(0);
+    const samplesInt16 = new Int16Array(samples.length);
+    for (let i = 0; i < samples.length; i++) {
+        samplesInt16[i] = Math.max(-32768, Math.min(32767, samples[i] * 32767));
     }
-    return new Blob([arrayBuffer], { type: 'audio/wav' });
+    let remaining = samplesInt16.length;
+    let maxSamples = 1152;
+    for (let i = 0; remaining >= maxSamples; i += maxSamples) {
+        const mono = samplesInt16.subarray(i, i + maxSamples);
+        const mp3buf = mp3Encoder.encodeBuffer(mono);
+        if (mp3buf.length > 0) mp3Data.push(mp3buf);
+        remaining -= maxSamples;
+    }
+    const mp3buf = mp3Encoder.flush();
+    if (mp3buf.length > 0) mp3Data.push(mp3buf);
+    return new Blob(mp3Data, { type: 'audio/mp3' });
 };
 
 interface AudioRecorderProps {
@@ -145,23 +129,40 @@ export default function AudioRecorder({ onRecordingComplete }: AudioRecorderProp
         recordPluginRef.current = record;
 
         record.on('record-start', () => { setStatus('recording'); setFinalAudioFile(null); });
+        
+        // --- MODIFIED SECTION ---
         record.on('record-end', (blob: Blob) => {
+            // The Record plugin already rendered the waveform. We don't need to load it again.
+            // Removing `wavesurfer.load(url)` fixes the "two bars" issue.
+
+            // We still create the URL for trimming and saving operations.
             const url = URL.createObjectURL(blob);
-            if (currentAudioUrlRef.current) URL.revokeObjectURL(currentAudioUrlRef.current);
+            if (currentAudioUrlRef.current) {
+                URL.revokeObjectURL(currentAudioUrlRef.current);
+            }
             currentAudioUrlRef.current = url;
-            wavesurfer.load(url);
+            
             setRecordedBlob(blob);
             setStatus('finished');
+
+            // Move the playhead to the beginning so the user can play the audio.
+            wavesurfer.seekTo(0); 
         });
 
         wavesurfer.on('play', () => setIsPlaybackPlaying(true));
         wavesurfer.on('pause', () => setIsPlaybackPlaying(false));
-        wavesurfer.on('finish', () => setIsPlaybackPlaying(false));
+        wavesurfer.on('finish', () => {
+            setIsPlaybackPlaying(false);
+            // Optional but good UX: reset cursor to the start when audio finishes.
+            wavesurfer.seekTo(0);
+        });
         
         setStatus('idle');
 
         return () => {
-            if (currentAudioUrlRef.current) URL.revokeObjectURL(currentAudioUrlRef.current);
+            if (currentAudioUrlRef.current) {
+                URL.revokeObjectURL(currentAudioUrlRef.current);
+            }
             wavesurfer.destroy();
         };
     }, [isWaveSurferReady]);

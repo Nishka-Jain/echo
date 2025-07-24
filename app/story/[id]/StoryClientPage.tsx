@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import dynamic from 'next/dynamic';
 
 // App-specific hooks and components
 import { useAuth } from '@/app/context/AuthContext';
@@ -18,6 +19,14 @@ import { ref, deleteObject } from "firebase/storage";
 // Icon imports
 import { MapPin, Tag, UserCircle, Calendar, AlertTriangle, Edit, Loader2, Languages } from 'lucide-react';
 
+const DynamicAudioPlayer = dynamic(
+    () => import('@/app/components/CustomAudioPlayer'),
+    { 
+      ssr: false, 
+      loading: () => <div className="w-full h-[56px] bg-stone-900 animate-pulse rounded-lg flex items-center justify-center text-stone-500">Loading Player...</div>
+    }
+  );
+  
 // --- Local Components ---
 const DeleteConfirmationModal = ({ story, onConfirm, onCancel, isDeleting }: { story: Story; onConfirm: () => void; onCancel: () => void; isDeleting: boolean; }) => (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 animate-fade-in">
@@ -206,11 +215,13 @@ export default function StoryClientPage({ story }: { story: Story | null }) {
                             )}
 
                             {/* The audio player section */}
-                            <div className="bg-stone-50 rounded-lg p-6 border border-stone-200 h-full flex flex-col justify-center">
-                                 <h3 className="font-semibold text-stone-800 mb-3">Listen to the Story</h3>
-                                 {story.audioUrl ? (
-                                    <audio controls src={story.audioUrl} className="w-full">Your browser does not support the audio element.</audio>
-                                 ) : ( <p className="text-stone-500">No audio was uploaded for this story.</p> )}
+                            <div className="bg-stone-50 rounded-lg p-6 border border-stone-200">
+                                <h3 className="font-semibold text-stone-800 mb-3">Listen to the Story</h3>
+                                {story.audioUrl ? (
+                                    <DynamicAudioPlayer src={story.audioUrl} />
+                                ) : (
+                                    <p className="text-stone-500">No audio was uploaded for this story.</p>
+                                )}
                             </div>
                         </div>
                         

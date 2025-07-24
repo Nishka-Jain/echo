@@ -6,6 +6,8 @@ import './globals.css';
 import 'leaflet/dist/leaflet.css'; 
 import { AuthProvider } from './context/AuthContext';
 
+import './globals.css' // Or your main stylesheet
+
 // Configure the Lato font for body text
 const lato = Lato({ 
   subsets: ["latin"],
