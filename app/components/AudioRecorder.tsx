@@ -15,7 +15,7 @@ const wavBlobToMp3 = async (wavBlob: Blob): Promise<Blob> => {
     if (!FFmpeg) {
         throw new Error('Could not find FFmpeg in ffmpeg.wasm import.');
     }
-    const ffmpeg = new FFmpeg({ log: false });
+    const ffmpeg = new FFmpeg();
     if (!ffmpeg.loaded) {
         await ffmpeg.load();
     }
