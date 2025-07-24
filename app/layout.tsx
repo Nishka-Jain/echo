@@ -44,7 +44,7 @@ export default function RootLayout({
           crossOrigin=""
         />
       </head>
-      <body>
+      <body className={`${lato.variable} ${playfairDisplay.variable}`} suppressHydrationWarning={true}>
         <AuthProvider> 
           <Toaster position="top-center" /> 
           {children}
