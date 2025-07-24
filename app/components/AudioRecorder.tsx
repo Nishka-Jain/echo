@@ -48,6 +48,7 @@ export default function AudioRecorder({ onRecordingComplete }: AudioRecorderProp
     const [finalAudioFile, setFinalAudioFile] = useState<File | null>(null);
     const [isWaveSurferReady, setIsWaveSurferReady] = useState<boolean>(false);
     const [isConverting, setIsConverting] = useState<boolean>(false);
+    const [workerError, setWorkerError] = useState<string | null>(null);
     // Stopwatch state
     const [recordingTime, setRecordingTime] = useState<number>(0);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -329,6 +330,15 @@ function audioBufferToWavBlob(buffer: AudioBuffer): Promise<Blob> {
 
     return (
         <div className="p-4 bg-white rounded-xl border border-stone-200 shadow-sm w-full mx-auto space-y-4">
+            {isConverting && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+                    <div className="p-6 bg-white rounded shadow-lg text-center">
+                        <div className="mb-2">Converting audio to MP3...</div>
+                        <div className="animate-spin h-8 w-8 border-4 border-blue-400 border-t-transparent rounded-full mx-auto" />
+                        {workerError && <div className="text-red-500 mt-2">{workerError}</div>}
+                    </div>
+                </div>
+            )}
             <div ref={waveformRef} id="waveform" className="w-full h-32 border-2 border-dashed border-stone-300 rounded-lg bg-stone-50 transition-all"></div>
 
             {status === 'loading' && <p className="text-center text-stone-500 py-12">Loading Audio Editor...</p>}
@@ -410,7 +420,7 @@ function audioBufferToWavBlob(buffer: AudioBuffer): Promise<Blob> {
             {finalAudioFile && (
                 <div className="mt-4 p-3 text-center bg-green-100 border border-green-200 text-green-800 rounded-lg flex items-center justify-center gap-3 text-sm">
                     <Check size={20} />
-                    <span>Recording confirmed: <strong>{finalAudioFile.name}</strong></span>
+                    <span>Recording confirmed: <strong>{finalAudioFile ? finalAudioFile.name : ''}</strong></span>
                 </div>
             )}
         </div>

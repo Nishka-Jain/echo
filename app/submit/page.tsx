@@ -129,7 +129,7 @@ function TranscriptionLoadingFacts() {
     <div className="w-full h-48 p-4 bg-stone-50 rounded-lg flex flex-col items-center justify-center gap-3 text-stone-600 animate-fade-in">
       <Loader2 size={24} className="animate-spin mb-2" />
       <p className="font-semibold text-base">Generating transcription... this may take a minute.</p>
-      <div className="mt-4 text-center text-sm text-stone-700 italic max-w-xl">
+      <div className="mt-4 text-center text-sm text-black italic max-w-xl">
         {ALTERNATING_ITEMS[index]}
       </div>
     </div>
