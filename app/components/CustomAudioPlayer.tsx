@@ -38,26 +38,6 @@ const CustomAudioPlayer = ({ src }: CustomAudioPlayerProps) => {
     <div className="react-plyr-wrapper">
       {/* The 'controls' attribute ensures the element is visible before Plyr takes over. */}
       <audio ref={ref} controls src={src} />
-
-      {/* All styling is now self-contained in this block. */}
-      <style jsx global>{`
-        /* This hides the native browser controls, leaving a blank space for Plyr. */
-        .react-plyr-wrapper audio::-webkit-media-controls-panel {
-          display: none !important;
-        }
-        
-        /* This hides the buffer bar as requested. */
-        .react-plyr-wrapper .plyr__progress__buffer {
-          display: none !important;
-        }
-
-        /* Your custom theme. */
-        .react-plyr-wrapper {
-          --plyr-color-main: #6e41e2;
-          --plyr-control-radius: 8px;
-          --plyr-font-family: inherit;
-        }
-      `}</style>
     </div>
   );
 };
