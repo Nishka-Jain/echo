@@ -40,26 +40,23 @@ const CustomAudioPlayer = ({ src }: CustomAudioPlayerProps) => {
       <audio ref={ref} controls src={src} />
 
       <style jsx global>{`
-        /* --- Add this new rule to change the background --- */
-        .react-plyr-wrapper .plyr--audio {
-          background: #fafaf9; /* Replace with your desired color */
-          border-radius: 12px;   /* Optional: makes the corners nicely rounded */
-        }
-
-        /* This hides the native browser controls, leaving a blank space for Plyr. */
+        /* This hides the native browser controls */
         .react-plyr-wrapper audio::-webkit-media-controls-panel {
           display: none !important;
         }
         
-        /* This hides the buffer bar as requested. */
+        /* This hides the buffer bar */
         .react-plyr-wrapper .plyr__progress__buffer {
           display: none !important;
         }
 
-        /* Your custom theme. */
+        /* Your custom theme and background color */
         .react-plyr-wrapper {
-          --plyr-color-main: #000;
-          --plyr-control-radius: 8px;
+          /* Add this line to set the player's background color */
+          --plyr-control-background: #fafaf9; /* This is the hex code for stone-50 */
+
+          --plyr-color-main: #6e41e2; /* This is the purple for the progress bar */
+          --plyr-control-radius: 12px;
           --plyr-font-family: inherit;
         }
       `}</style>
