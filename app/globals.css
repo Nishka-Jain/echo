@@ -27,8 +27,8 @@ textarea::placeholder {
   color: theme('colors.stone.400');
 }
 .react-plyr-wrapper {
-  --plyr-control-background: #fafaf9; /* stone-50 background */
-  --plyr-color-main: #6e41e2;
+  --plyr-control-background: #000; /* stone-50 background */
+  --plyr-color-main: #000;
   --plyr-control-radius: 12px;
   --plyr-font-family: inherit;
 }
