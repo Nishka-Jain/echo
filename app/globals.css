@@ -26,14 +26,3 @@ input::placeholder,
 textarea::placeholder {
   color: theme('colors.stone.400');
 }
-
-:root {
-  --plyr-color-main: #000;      /* Sets the main color for the progress bar and controls */
-  --plyr-control-radius: 8px;     /* Rounds the corners of the controls */
-  --plyr-font-family: inherit;    /* Makes the player use your site's font */
-}
-
-/* This rule hides the buffer bar, as we configured previously */
-.plyr__progress__buffer {
-  display: none !important;
-}
