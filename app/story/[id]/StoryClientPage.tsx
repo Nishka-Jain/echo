@@ -23,7 +23,7 @@ const DynamicAudioPlayer = dynamic(
     () => import('@/app/components/CustomAudioPlayer'),
     { 
       ssr: false, 
-      loading: () => <div className="w-full h-[56px] bg-stone-900 animate-pulse rounded-lg flex items-center justify-center text-stone-500">Loading Player...</div>
+      loading: () => <div className="w-full h-[56px] bg-stone-50 animate-pulse rounded-lg flex items-center justify-center text-stone-500">Loading Player...</div>
     }
   );
   
