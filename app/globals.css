@@ -26,16 +26,16 @@ input::placeholder,
 textarea::placeholder {
   color: theme('colors.stone.400');
 }
-.react-plyr-wrapper .plyr--audio {
-  background: #fafaf9 !important; /* stone-50 background. !important ensures this rule is applied. */
-  border-radius: 12px;
-}
 .react-plyr-wrapper {
-  --plyr-color-main: #000
+  /* This specifically sets the audio player's background color. */
+  --plyr-audio-controls-background: #fafaf9; /* stone-50 color */
+  
+  /* This sets the accent color for the progress bar and icons. */
+  --plyr-color-main: #000;
 }
-.react-plyr-wrapper audio::-webkit-media-controls-panel {
-  display: none !important;
-}
+
+/* These rules hide the default browser controls and the buffer bar. */
+.react-plyr-wrapper audio::-webkit-media-controls-panel,
 .react-plyr-wrapper .plyr__progress__buffer {
   display: none !important;
 }
