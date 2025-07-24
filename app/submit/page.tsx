@@ -117,7 +117,7 @@ for (let i = 0; i < Math.max(FUN_FACTS.length, PROGRESS_MESSAGES.length); i++) {
   if (i < FUN_FACTS.length) ALTERNATING_ITEMS.push(FUN_FACTS[i]);
 }
 
-export function TranscriptionLoadingFacts() {
+function TranscriptionLoadingFacts() {
   const [index, setIndex] = React.useState(0);
   React.useEffect(() => {
     const interval = setInterval(() => {
