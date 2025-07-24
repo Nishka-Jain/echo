@@ -26,7 +26,7 @@ const wavBlobToMp3 = async (wavBlob: Blob): Promise<Blob> => {
     // Clean up
     await ffmpeg.deleteFile('input.wav');
     await ffmpeg.deleteFile('output.mp3');
-    return new Blob([mp3Data.buffer], { type: 'audio/mp3' });
+    return new Blob([mp3Data], { type: 'audio/mp3' });
 };
 
 interface AudioRecorderProps {
