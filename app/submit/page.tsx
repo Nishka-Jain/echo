@@ -540,12 +540,13 @@ export default function SubmitPage() {
                                     {/* Other steps remain the same */}
                                     {currentStep === 2 && (
                                       <div className="animate-fade-in">
-                                        <div className="flex border-b border-stone-200 mb-6">
+                                        {/* Only show Record Audio tab, hide Upload Audio */}
+                                        {/* <div className="flex border-b border-stone-200 mb-6">
                                             <button type="button" onClick={() => setAudioTab('record')} className={`px-4 py-3 text-sm font-medium transition-colors ${audioTab === 'record' ? 'border-b-2 border-stone-800 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}>Record Audio</button>
                                             <button type="button" onClick={() => setAudioTab('upload')} className={`px-4 py-3 text-sm font-medium transition-colors ${audioTab === 'upload' ? 'border-b-2 border-stone-800 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}>Upload Audio</button>
-                                        </div>
-                                        {audioTab === 'record' && (<AudioRecorder onRecordingComplete={setAudioFile} />)}
-                                        {audioTab === 'upload' && (<div className="text-center py-12 border border-dashed border-stone-300 rounded-lg"><Upload size={40} className="mx-auto text-stone-400 mb-4"/><p className="text-stone-500 mb-4">Upload an audio file (MP3, WAV, etc.)</p><label htmlFor="audio-upload-main" className="p-3 px-6 rounded-lg bg-stone-800 text-white hover:bg-stone-900 cursor-pointer transition-colors font-semibold">Choose File<input id="audio-upload-main" type="file" accept="audio/*" className="hidden" onChange={handleAudioChange}/></label></div>)}
+                                        </div> */}
+                                        <AudioRecorder onRecordingComplete={setAudioFile} />
+                                        {/* {audioTab === 'upload' && (<div className="text-center py-12 border border-dashed border-stone-300 rounded-lg"><Upload size={40} className="mx-auto text-stone-400 mb-4"/><p className="text-stone-500 mb-4">Upload an audio file (MP3, WAV, etc.)</p><label htmlFor="audio-upload-main" className="p-3 px-6 rounded-lg bg-stone-800 text-white hover:bg-stone-900 cursor-pointer transition-colors font-semibold">Choose File<input id="audio-upload-main" type="file" accept="audio/*" className="hidden" onChange={handleAudioChange}/></label></div>)} */}
                                          {audioFile && (<div className="mt-6 p-3 bg-green-50 border border-green-200 text-green-800 rounded-lg flex items-center gap-3 text-sm"><CheckCircle size={20} /><span>File ready: <strong>{audioFile.name}</strong></span></div>)}
                                       </div>
                                     )}
