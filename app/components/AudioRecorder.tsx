@@ -330,15 +330,7 @@ function audioBufferToWavBlob(buffer: AudioBuffer): Promise<Blob> {
 
     return (
         <div className="p-4 bg-white rounded-xl border border-stone-200 shadow-sm w-full mx-auto space-y-4">
-            {isConverting && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-                    <div className="p-6 bg-white rounded shadow-lg text-center">
-                        <div className="mb-2">Converting audio to MP3...</div>
-                        <div className="animate-spin h-8 w-8 border-4 border-blue-400 border-t-transparent rounded-full mx-auto" />
-                        {workerError && <div className="text-red-500 mt-2">{workerError}</div>}
-                    </div>
-                </div>
-            )}
+            {/* Removed full-screen overlay. Spinner and status will be shown on the button below. */}
             <div ref={waveformRef} id="waveform" className="w-full h-32 border-2 border-dashed border-stone-300 rounded-lg bg-stone-50 transition-all"></div>
 
             {status === 'loading' && <p className="text-center text-stone-500 py-12">Loading Audio Editor...</p>}
@@ -382,7 +374,7 @@ function audioBufferToWavBlob(buffer: AudioBuffer): Promise<Blob> {
                         {isConverting ? (
                             <span className="flex items-center gap-2">
                                 <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
-                                Saving...
+                                Converting to MP3...
                             </span>
                         ) : (
                             'Use This Recording'
