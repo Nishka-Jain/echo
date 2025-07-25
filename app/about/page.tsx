@@ -132,7 +132,7 @@ export default function AboutPage() {
                   <div className="flex-shrink-0"><Leaf className="h-8 w-8 text-white"/></div>
                   <div>
                     <h3 className="text-2xl font-semibold">Sustain Wisdom</h3>
-                    <p className="mt-2 text-stone-300 leading-relaxed">True sustainability isn't just about the planet; it's about ensuring human wisdom endures.</p>
+                    <p className="mt-2 text-stone-300 leading-relaxed">We build a classroom across time, ensuring future generations can learn directly from the voices and wisdom of the past.</p>
                   </div>
                 </div>
               </div>
@@ -162,7 +162,7 @@ export default function AboutPage() {
                   </div>
                   <div className="md:col-span-2">
                     <blockquote className="font-serif text-xl lg:text-2xl text-black leading-relaxed">
-                    "I started Echo for a selfish reason: I was terrified of forgetting the exact sound of my grandmother's laugh. But I soon realized this wasn't just my fear; it's a universal one. We build this platform not just to archive sounds, but to preserve the feeling of connection itself—to create a legacy of love that future generations can actually hear."
+                      "Echo began when I found an old, faded photograph of my great-grandparents. I saw their kind eyes and felt the profound loss of the stories they could never tell me—a history class I could never take, a mentorship I would never receive. It was then I knew we had to build a library for those unwritten lessons, a way to ensure a legacy of love and learning endures."
                     </blockquote>
                     <cite className="mt-6 block font-semibold text-black not-italic">
                       Nishka Jain
