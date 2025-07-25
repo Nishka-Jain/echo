@@ -35,15 +35,15 @@ export async function POST(req: NextRequest) {
         data: base64,
       },
     };
-    const prompt = `TASK: Transcribe the user-provided audio VERBATIM.
+    const prompt = `TASK: Transcribe the user-provided audio VERBATIM. Your only role is speech-to-text transcription.`;
 
-    RULES:
-    - OUTPUT ONLY THE TRANSCRIBED TEXT.
-    - DO NOT add any extra words, introductory phrases, or explanations.
-    - DO NOT generate a story or summarize the content.
-    - IGNORE all non-verbal sounds (coughs, background noise, clicks, etc.).
-    - Format the output as clean, readable paragraphs with correct punctuation.
-    - Ensure the output is a clean, literal transcription of the spoken words.`;
+    // RULES:
+    // - OUTPUT ONLY THE TRANSCRIBED TEXT.
+    // - DO NOT add any extra words, introductory phrases, or explanations.
+    // - DO NOT generate a story or summarize the content.
+    // - IGNORE all non-verbal sounds (coughs, background noise, clicks, etc.).
+    // - Format the output as clean, readable paragraphs with correct punctuation.
+    // - Ensure the output is a clean, literal transcription of the spoken words.`;
 
     // Send to Gemini
     const result = await model.generateContent([prompt, audioPart]);
