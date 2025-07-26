@@ -3,41 +3,59 @@
 import React, { useEffect, useRef } from 'react';
 import Plyr from 'plyr';
 
-// This component does NOT import any CSS. Styling is handled inside.
 interface CustomAudioPlayerProps {
   src: string;
 }
 
 const CustomAudioPlayer = ({ src }: CustomAudioPlayerProps) => {
-  const ref = useRef<HTMLAudioElement | null>(null);
+  // This ref will point to our wrapper div, not the audio element itself.
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    // This check is important.
-    if (!ref.current) {
-      return;
-    }
+    if (!wrapperRef.current) return;
 
-    // Initialize Plyr. This is the code that runs on mount.
-    const player = new Plyr(ref.current);
+    // --- Setup ---
+    // 1. Programmatically create a fresh <audio> element.
+    const audio = document.createElement('audio');
+    audio.src = src;
+    audio.controls = true;
 
-    // This is the cleanup function that runs on unmount.
+    // 2. Append it to our wrapper div.
+    wrapperRef.current.appendChild(audio);
+
+    // 3. Initialize Plyr on the new element.
+    const player = new Plyr(audio);
+
+    // --- Cleanup ---
     return () => {
-      // The try/catch block handles the StrictMode error gracefully.
-      try {
-        player.destroy();
-      } catch (error) {
-        if ((error as DOMException).name !== 'NotFoundError') {
-          throw error;
-        }
+      // 4. Destroy the Plyr instance.
+      player.destroy();
+      
+      // 5. CRITICAL STEP: Remove all inner content from the wrapper.
+      // This throws away the old, modified <audio> element, ensuring the
+      // next run starts from a completely clean slate.
+      if (wrapperRef.current) {
+        wrapperRef.current.innerHTML = '';
       }
     };
-  }, []); // The empty array ensures this effect runs only once per mount/unmount cycle.
+  }, [src]); // We add `src` as a dependency to re-create the player if the audio source changes.
 
   return (
-    // We use a wrapper div to reliably target our styles.
-    <div className="react-plyr-wrapper">
-      {/* The 'controls' attribute ensures the element is visible before Plyr takes over. */}
-      <audio ref={ref} controls src={src} />
+    // The JSX now only contains the wrapper div and the styles.
+    <div ref={wrapperRef} className="react-plyr-wrapper">
+      <style jsx global>{`
+        .react-plyr-wrapper .plyr--audio {
+          background: #fafaf9 !important; /* stone-50 color */
+        }
+        /* Other styles remain the same... */
+        .react-plyr-wrapper {
+          --plyr-color-main: #6e41e2;
+          --plyr-control-radius: 12px;
+        }
+        .react-plyr-wrapper .plyr__progress__buffer {
+          display: none !important;
+        }
+      `}</style>
     </div>
   );
 };
