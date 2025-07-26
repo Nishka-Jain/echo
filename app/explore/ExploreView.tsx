@@ -49,7 +49,6 @@ export default function ExploreView() {
     const [allStories, setAllStories] = useState<Story[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [activeTag, setActiveTag] = useState<string | null>(null);
     const [selectedLanguage, setSelectedLanguage] = useState('');
     
     // --- 1. NEW STATE FOR PAGINATION ---
@@ -119,15 +118,15 @@ export default function ExploreView() {
             const matchesSearch = searchTerm.trim() === '' ? true : (
                 story.title?.toLowerCase().includes(searchLower) ||
                 story.speaker?.toLowerCase().includes(searchLower) ||
+                story.excerpt?.toLowerCase().includes(searchLower) || // ✨ This line is new
                 story.transcription?.toLowerCase().includes(searchLower) ||
                 story.tags?.some(tag => tag.toLowerCase().includes(searchLower))
             );
-            const matchesTag = activeTag ? story.tags?.includes(activeTag) : true;
             const matchesLanguage = selectedLanguage ? story.language === selectedLanguage : true;
-
-            return matchesSearch && matchesTag && matchesLanguage;
+    
+            return matchesSearch && matchesLanguage;
         });
-    }, [searchTerm, activeTag, selectedLanguage, allStories]); 
+    }, [searchTerm, selectedLanguage, allStories]);
 
     // --- 3. NEW DERIVED STATE AND MEMO FOR PAGINATED DATA ---
     // Set items per page: 5 for mobile, 9 for desktop
@@ -136,7 +135,7 @@ export default function ExploreView() {
     // Reset to page 1 whenever the filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm, activeTag, selectedLanguage]);
+    }, [searchTerm, selectedLanguage]);
     
     // Calculate the stories to show on the current page
     const currentStories = useMemo(() => {
@@ -195,23 +194,6 @@ export default function ExploreView() {
                                 </select>
                             </div>
                         </div>
-                    <div className="mt-4 flex items-center gap-2 pb-1 overflow-x-auto">
-                        <button 
-                            onClick={() => setActiveTag(null)}
-                            className={`px-4 py-1.5 text-sm rounded-full transition-colors ${!activeTag ? 'bg-stone-800 text-white' : 'bg-stone-100 hover:bg-stone-200 text-stone-700'}`}
-                        >
-                            All
-                        </button>
-                        {popularTags.map(tag => (
-                            <button 
-                                key={tag} 
-                                onClick={() => setActiveTag(tag)}
-                                className={`px-4 py-1.5 text-sm rounded-full transition-colors whitespace-nowrap ${activeTag === tag ? 'bg-stone-800 text-white' : 'bg-stone-100 hover:bg-stone-200 text-stone-700'}`}
-                            >
-                                {tag}
-                            </button>
-                        ))}
-                    </div>
                 </div>
 
                 <div className="relative z-10">
