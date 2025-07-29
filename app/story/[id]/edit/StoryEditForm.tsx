@@ -133,7 +133,7 @@ export default function StoryEditForm({ initialStory }: { initialStory: Story })
     };
 
     return (
-        <div className="bg-white rounded-xl shadow-md p-8">
+        <div className="bg-white rounded-xl shadow-md p-8" style={{ color: '#111' }}>
             <h1 className="text-4xl font-serif mb-8 flex items-center gap-3"><Pencil size={30}/> Edit Story</h1>
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Speaker Info */}
@@ -141,16 +141,16 @@ export default function StoryEditForm({ initialStory }: { initialStory: Story })
                     <legend className="text-lg font-semibold px-2">Speaker Details</legend>
                     <div>
                         <label htmlFor="speakerName">Speaker Name <span className="text-red-500">*</span></label>
-                        <input id="speakerName" type="text" value={speakerName} onChange={e => setSpeakerName(e.target.value)} className="w-full mt-1 p-3 border rounded-lg text-stone-900" required />
+                        <input id="speakerName" type="text" value={speakerName} onChange={e => setSpeakerName(e.target.value)} className="w-full mt-1 p-3 border rounded-lg text-stone-900" required style={{ color: '#111', background: '#fff', caretColor: '#111' }} />
                     </div>
                     <div className="grid md:grid-cols-2 gap-4">
                         <div>
                             <label htmlFor="speakerAge">Age (Optional)</label>
-                            <input id="speakerAge" type="text" value={speakerAge} onChange={e => setSpeakerAge(e.target.value)} className="w-full mt-1 p-3 border rounded-lg text-stone-900" />
+                            <input id="speakerAge" type="text" value={speakerAge} onChange={e => setSpeakerAge(e.target.value)} className="w-full mt-1 p-3 border rounded-lg text-stone-900" style={{ color: '#111', background: '#fff', caretColor: '#111' }} />
                         </div>
                         <div>
                             <label htmlFor="speakerPronouns">Pronouns (Optional)</label>
-                            <input id="speakerPronouns" type="text" value={speakerPronouns} onChange={e => setSpeakerPronouns(e.target.value)} className="w-full mt-1 p-3 border rounded-lg text-stone-900" />
+                            <input id="speakerPronouns" type="text" value={speakerPronouns} onChange={e => setSpeakerPronouns(e.target.value)} className="w-full mt-1 p-3 border rounded-lg text-stone-900" style={{ color: '#111', background: '#fff', caretColor: '#111' }} />
                         </div>
                     </div>
                      <div>
@@ -214,6 +214,7 @@ export default function StoryEditForm({ initialStory }: { initialStory: Story })
                                             onChange={(e) => setStartYear(e.target.value)}
                                             className="w-full mt-1 p-3 border rounded-lg"
                                             required
+                                            style={{ color: '#111', background: '#fff', caretColor: '#111' }}
                                         />
                                     </div>
                                     <div>
@@ -226,6 +227,7 @@ export default function StoryEditForm({ initialStory }: { initialStory: Story })
                                             onChange={(e) => setEndYear(e.target.value)}
                                             className="w-full mt-1 p-3 border rounded-lg"
                                             required
+                                            style={{ color: '#111', background: '#fff', caretColor: '#111' }}
                                         />
                                     </div>
                                 </div>
@@ -242,6 +244,7 @@ export default function StoryEditForm({ initialStory }: { initialStory: Story })
                                         onChange={(e) => setSpecificYear(e.target.value)}
                                         className="w-full mt-1 p-3 border rounded-lg"
                                         required
+                                        style={{ color: '#111', background: '#fff', caretColor: '#111' }}
                                     />
                                 </div>
                             )}
@@ -249,7 +252,7 @@ export default function StoryEditForm({ initialStory }: { initialStory: Story })
                     </div>
                     <div>
                         <label htmlFor="summary">Story Summary</label>
-                        <textarea id="summary" value={summary} onChange={e => setSummary(e.target.value)} rows={5} className="w-full mt-1 p-3 border rounded-lg text-stone-900" />
+                        <textarea id="summary" value={summary} onChange={e => setSummary(e.target.value)} rows={5} className="w-full mt-1 p-3 border rounded-lg text-stone-900" style={{ color: '#111', background: '#fff', caretColor: '#111' }} />
                     </div>
                 </fieldset>
 
