@@ -18,7 +18,7 @@ async function getStory(id: string): Promise<Story | null> {
               speaker: data.speaker,
               age: data.age,
               pronouns: data.pronouns,
-              excerpt: data.summary,
+              summary: data.summary,
               photoUrl: data.photoUrl,
               audioUrl: data.audioUrl,
               tags: data.tags,

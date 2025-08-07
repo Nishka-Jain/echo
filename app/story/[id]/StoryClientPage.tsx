@@ -226,7 +226,7 @@ export default function StoryClientPage({ story }: { story: Story | null }) {
                         </div>
                         
                         <div className="mt-12 prose prose-lg max-w-none prose-stone">
-                            <p>{story.excerpt}</p>
+                            <p>{story.summary}</p>
                         </div>
 
                         {story.tags && story.tags.length > 0 && (

@@ -28,7 +28,7 @@ export default function StoryEditForm({ initialStory }: { initialStory: Story })
     const [speakerName, setSpeakerName] = useState(initialStory.speaker || '');
     const [speakerAge, setSpeakerAge] = useState(initialStory.age || '');
     const [speakerPronouns, setSpeakerPronouns] = useState(initialStory.pronouns || '');
-    const [summary, setSummary] = useState(initialStory.excerpt || '');
+    const [summary, setSummary] = useState(initialStory.summary || '');
     const [selectedTags, setSelectedTags] = useState<string[]>(initialStory.tags || []);
     const [customTag, setCustomTag] = useState('');
     const [availableTags, setAvailableTags] = useState(["Family", "Migration", "Food", "Tradition", "Love", "Loss", "Childhood", "Work"]);
