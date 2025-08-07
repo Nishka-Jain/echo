@@ -330,6 +330,10 @@ function audioBufferToWavBlob(buffer: AudioBuffer): Promise<Blob> {
 
     return (
         <div className="p-4 bg-white rounded-xl border border-stone-200 shadow-sm w-full mx-auto space-y-4">
+            {/* Reassurance message for users */}
+            <div className="mb-2 p-3 bg-stone-50 border border-stone-200 rounded-lg text-stone-800 text-center text-base font-medium">
+                You can re-record as many times as you want. Your recording won't be submitted until you submit on the last page.
+            </div>
             {/* Removed full-screen overlay. Spinner and status will be shown on the button below. */}
             <div ref={waveformRef} id="waveform" className="w-full h-32 border-2 border-dashed border-stone-300 rounded-lg bg-stone-50 transition-all"></div>
 
@@ -357,7 +361,7 @@ function audioBufferToWavBlob(buffer: AudioBuffer): Promise<Blob> {
                             {status === 'recording' ? <Pause size={20} /> : <Play size={20} />} {status === 'recording' ? 'Pause' : 'Resume'}
                         </button>
                         <button type="button" onClick={handleStopRecording} className="flex items-center gap-3 p-4 px-6 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors font-semibold">
-                            <Square size={20} /> End
+                            <Square size={20} /> End & Review
                         </button>
                     </>
                 )}
@@ -366,9 +370,11 @@ function audioBufferToWavBlob(buffer: AudioBuffer): Promise<Blob> {
                     <button type="button" onClick={handleEnableTrimming} className="flex items-center gap-3 p-3 px-4 rounded-lg bg-stone-600 text-white hover:bg-stone-700 transition-colors font-medium">
                         <Scissors size={16} /> Trim
                     </button>
-                    <button type="button" onClick={handleRestart} className="flex items-center gap-3 p-3 px-4 rounded-lg bg-stone-200 text-stone-800 hover:bg-stone-300 transition-colors font-medium">
-                        <RotateCcw size={16} /> Re-record
-                    </button>
+                    <div className="relative">
+                        <button type="button" onClick={handleRestart} className="flex items-center gap-3 p-3 px-4 rounded-lg bg-stone-200 text-stone-800 hover:bg-stone-300 transition-colors font-medium" aria-describedby="rerecord-help">
+                            <RotateCcw size={16} /> Re-record
+                        </button>
+                    </div>
                     <button type="button" onClick={handleConfirm} disabled={isConverting} className={`flex items-center gap-3 p-4 px-6 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors font-semibold ${isConverting ? 'opacity-50 cursor-not-allowed' : ''}`}> 
                         <Check size={20} />
                         {isConverting ? (
