@@ -88,7 +88,7 @@ export default function ExploreView() {
                         speaker: data.speaker|| 'Unknown Speaker',
                         age: data.age,
                         pronouns: data.pronouns,
-                        excerpt: data.summary || 'No summary available.',
+                        summary: data.summary || 'No summary available.',
                         photoUrl: data.photoUrl,
                         tags: data.tags || [],
                         location: data.location,
@@ -118,7 +118,7 @@ export default function ExploreView() {
             const matchesSearch = searchTerm.trim() === '' ? true : (
                 story.title?.toLowerCase().includes(searchLower) ||
                 story.speaker?.toLowerCase().includes(searchLower) ||
-                story.excerpt?.toLowerCase().includes(searchLower) || // ✨ This line is new
+                story.summary?.toLowerCase().includes(searchLower) || // ✨ This line is new
                 story.transcription?.toLowerCase().includes(searchLower) ||
                 story.tags?.some(tag => tag.toLowerCase().includes(searchLower))
             );
