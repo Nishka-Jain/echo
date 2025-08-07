@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, fetchSignInMethodsForEmail } from 'firebase/auth'; // ✨ Keep fetchSignInMethodsForEmail
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, fetchSignInMethodsForEmail } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { X, Mail, Lock, User } from 'lucide-react';
 
@@ -11,13 +11,7 @@ interface AuthModalProps {
 }
 
 const GoogleIcon = () => (
-  <svg className="h-5 w-5" viewBox="0 0 48 48">
-    <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"></path>
-    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.82l-7.11-5.52c-2.16 1.45-4.92 2.3-8.78 2.3-6.76 0-12.48-4.56-14.52-10.68H1.26v5.7C5.25 42.62 13.86 48 24 48z"></path>
-    <path fill="#FBBC05" d="M9.48 28.32c-.41-1.24-.64-2.57-.64-3.96s.23-2.72.64-3.96V14.7H1.26C.46 16.63 0 18.75 0 21.36c0 2.61.46 4.73 1.26 6.66l8.22-6.7z"></path>
-    <path fill="#EA4335" d="M24 9.36c3.51 0 6.58 1.22 9.02 3.54l6.32-6.32C35.91 2.45 30.48 0 24 0 13.86 0 5.25 5.38 1.26 14.7l8.22 6.7c2.04-6.12 7.76-10.68 14.52-10.68z"></path>
-    <path fill="none" d="M0 0h48v48H0z"></path>
-  </svg>
+    <svg className="h-5 w-5" viewBox="0 0 48 48"><path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.82l-7.11-5.52c-2.16 1.45-4.92 2.3-8.78 2.3-6.76 0-12.48-4.56-14.52-10.68H1.26v5.7C5.25 42.62 13.86 48 24 48z"></path><path fill="#FBBC05" d="M9.48 28.32c-.41-1.24-.64-2.57-.64-3.96s.23-2.72.64-3.96V14.7H1.26C.46 16.63 0 18.75 0 21.36c0 2.61.46 4.73 1.26 6.66l8.22-6.7z"></path><path fill="#EA4335" d="M24 9.36c3.51 0 6.58 1.22 9.02 3.54l6.32-6.32C35.91 2.45 30.48 0 24 0 13.86 0 5.25 5.38 1.26 14.7l8.22 6.7c2.04-6.12 7.76-10.68 14.52-10.68z"></path><path fill="none" d="M0 0h48v48H0z"></path></svg>
 );
 
 export default function AuthModal({ onClose }: AuthModalProps) {
@@ -27,25 +21,42 @@ export default function AuthModal({ onClose }: AuthModalProps) {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [suggestGoogleSignIn, setSuggestGoogleSignIn] = useState(false); // ✨ NEW: State to track Google sign-in suggestion
+  const [suggestGoogleSignIn, setSuggestGoogleSignIn] = useState(false);
   const { signInWithGoogle } = useAuth();
 
   const defaultPhotoURL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a8a29e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='12' cy='7' r='4'%3E%3C/circle%3E%3C/svg%3E";
 
-  // ✨ NEW: Function to check email provider on blur
+  // ✨ THIS IS THE FUNCTION TO WATCH ✨
   const checkEmailOnBlur = async () => {
-    // Only perform the check in the login view and if the email seems valid
+    // Checkpoint 1: See if the function is running at all.
+    console.log("--- Firing onBlur Check ---");
+
+    // Checkpoint 2: See the values that determine if the check proceeds.
+    console.log(`Value of isLoginView: ${isLoginView}`);
+    console.log(`Value of email: "${email}"`);
+    console.log(`Is the email valid? ${/^\S+@\S+\.\S+$/.test(email)}`);
+
     if (!isLoginView || !/^\S+@\S+\.\S+$/.test(email)) {
+      // Checkpoint 3: This will log if the function exits early.
+      console.log("-> Condition NOT met. The Firebase check will NOT run.");
       return;
     }
+    
+    // Checkpoint 4: If you see this, the code is proceeding correctly.
+    console.log("-> Condition MET. Proceeding to Firebase check...");
+
     try {
       setIsLoading(true);
       const methods = await fetchSignInMethodsForEmail(auth, email);
       if (methods.includes('google.com')) {
-        setSuggestGoogleSignIn(true); // Suggest Google if it's a known provider
+        setSuggestGoogleSignIn(true);
+      } else {
+        // This handles cases where the email is valid but not linked to Google
+        console.log("Email found, but not linked to a Google Sign-In for this project.");
       }
-    } catch (err) {
-      console.info("Could not check email, proceeding normally.", err);
+    } catch (err: any) {
+      console.error("-> ERROR during Firebase check:", err);
+      setError("Could not verify email. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +89,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
             photoURL: defaultPhotoURL,
         });
       }
-      onClose(); // Close modal on success
+      onClose();
     } catch (err: any) {
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') {
         setError('No account found with this email. Maybe you used a different sign-in method?');
@@ -95,7 +106,6 @@ export default function AuthModal({ onClose }: AuthModalProps) {
     }
   };
 
-  // ✨ NEW: Handler to reset suggestion state when email changes
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSuggestGoogleSignIn(false);
     setError('');

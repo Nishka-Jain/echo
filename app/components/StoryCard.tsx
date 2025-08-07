@@ -2,49 +2,38 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import type { Story } from '@/lib/types';
-import { Calendar } from 'lucide-react';
+import Voiceprint from './Voiceprint'; 
 
-const formatStoryDate = (story: Story) => {
-    if (story.dateType === 'year' && story.specificYear) {
-        return story.specificYear.toString();
-    }
-    if (story.dateType === 'period' && story.startYear && story.endYear) {
-        return `${story.startYear} - ${story.endYear}`;
-    }
-    if (story.dateType === 'period' && story.startYear) {
-        return `From ${story.startYear}`;
-    }
-    return null;
-};
-
-const StoryCard = ({ id, photoUrl, title, speaker, tags, excerpt, ...story }: Story) => {
-    const displayDate = formatStoryDate(story as Story);
+const StoryCard = ({ id, title, speaker, tags, excerpt, ...story }: Story) => {
+    const storyYear = story.specificYear || story.startYear;
 
     return (
-        <Link href={`/story/${id}`} className="flex flex-col bg-white rounded-xl border border-stone-200 overflow-hidden group transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-            <div className="relative w-full h-48 bg-stone-100">
-                {photoUrl && (
-                    <Image src={photoUrl} alt={`An evocative image for the story titled ${title}`} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
-                )}
-            </div>
-            <div className="p-6 flex flex-col flex-grow">
+        <Link 
+          href={`/story/${id}`} 
+          className="flex flex-col bg-white rounded-xl border border-stone-200 p-6 text-center group transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+        >
+            {/* --- 1. Main Content - Typography Focused --- */}
+            <div className="flex flex-col flex-grow items-center">
                 <p className="text-sm font-semibold text-amber-700">{speaker}</p>
-                <h3 className="text-2xl font-serif text-stone-900 mt-1">{title}</h3>
-                
-                {displayDate && (
-                    <div className="flex items-center gap-2 text-sm text-stone-500 mt-2">
-                        <Calendar size={14} />
-                        <span>{displayDate}</span>
-                    </div>
+                <h3 className="text-3xl font-serif text-stone-900 mt-2 transition-colors duration-300 group-hover:text-amber-800">{title}</h3>
+                {storyYear && (
+                    <p className="text-xs text-stone-500 font-mono mt-2">EST. {storyYear}</p>
                 )}
-
-                <p className="text-stone-600 mt-3 h-20 line-clamp-3 leading-relaxed flex-grow">{excerpt}</p>
-                <div className="mt-4 flex flex-wrap gap-2">
+                <p className="text-stone-600 mt-4 max-w-prose flex-grow">{excerpt}</p>
+                
+                {/* --- Tags Section (Newly Added) --- */}
+                <div className="mt-6 flex flex-wrap justify-center gap-2">
                     {tags?.slice(0, 3).map(tag => (
-                        <span key={tag} className="text-sm font-medium text-stone-600 bg-stone-100 px-3 py-1 rounded-full">{tag}</span>
+                        <span key={tag} className="text-xs font-medium text-stone-600 bg-stone-100 px-2 py-1 rounded-full">{tag}</span>
                     ))}
+                </div>
+            </div>
+
+            {/* --- 2. Graphic as a "Signature" --- */}
+            <div className="mt-6 pt-6 border-t border-stone-100 flex-shrink-0">
+                <div className="w-48 h-10 mx-auto">
+                    <Voiceprint text={id} />
                 </div>
             </div>
         </Link>
