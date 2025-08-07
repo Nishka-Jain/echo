@@ -5,7 +5,7 @@ import Link from 'next/link';
 import type { Story } from '@/lib/types';
 import Voiceprint from './Voiceprint'; 
 
-const StoryCard = ({ id, title, speaker, tags, excerpt, ...story }: Story) => {
+const StoryCard = ({ id, title, speaker, tags, summary, ...story }: Story) => {
     const storyYear = story.specificYear || story.startYear;
 
     return (
@@ -20,7 +20,7 @@ const StoryCard = ({ id, title, speaker, tags, excerpt, ...story }: Story) => {
                 {storyYear && (
                     <p className="text-xs text-stone-500 font-mono mt-2">EST. {storyYear}</p>
                 )}
-                <p className="text-stone-600 mt-4 max-w-prose flex-grow">{excerpt}</p>
+                <p className="text-stone-600 mt-4 max-w-prose flex-grow">{summary}</p>
                 
                 {/* --- Tags Section (Newly Added) --- */}
                 <div className="mt-6 flex flex-wrap justify-center gap-2">
@@ -33,7 +33,8 @@ const StoryCard = ({ id, title, speaker, tags, excerpt, ...story }: Story) => {
             {/* --- 2. Graphic as a "Signature" --- */}
             <div className="mt-6 pt-6 border-t border-stone-100 flex-shrink-0">
                 <div className="w-48 h-10 mx-auto">
-                    <Voiceprint text={id} />
+                    <Voiceprint text={id} 
+                />
                 </div>
             </div>
         </Link>

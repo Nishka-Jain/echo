@@ -92,10 +92,14 @@ export default function HomePage() {
         );
         const querySnapshot = await getDocs(q);
         
-        const stories = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        })) as Story[];
+        const stories = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          console.log("1. Data directly from Firestore:", data); // <-- ADD THIS LINE
+          return {
+              id: doc.id,
+              ...data
+          };
+      }) as Story[];
         
         setFeaturedStories(stories);
       } catch (error) {

@@ -9,7 +9,7 @@ export type Story = {
   age?: string;
   pronouns?: string;
   audioUrl?: string;
-  excerpt: string;
+  summary: string;
   tags: string[];
   authorId?: string;
   createdAt?: string;
