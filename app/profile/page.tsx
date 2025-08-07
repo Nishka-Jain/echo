@@ -98,7 +98,7 @@ export default function ProfilePage() {
                             speaker: data.speaker || 'Unknown Speaker',
                             age: data.age,
                             pronouns: data.pronouns,
-                            excerpt: data.summary || 'No summary available.',
+                            summary: data.summary || 'No summary available.',
                             photoUrl: data.photoUrl,
                             tags: data.tags || [],
                             location: data.location,
