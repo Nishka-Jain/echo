@@ -589,7 +589,7 @@ export default function SubmitPage() {
                                       <div className="animate-fade-in">
                                         {!user ? (
                                           <div className="text-center text-stone-600 p-8">
-                                            <strong>Sign in to record and upload an audio memory.</strong>
+                                            <strong>Sign in to record and upload an audio memory. Once you have an account, you can edit or delete any submissions.</strong>
                                           </div>
                                         ) : (
                                           <>
