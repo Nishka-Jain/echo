@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, fetchSignInMethodsForEmail } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, fetchSignInMethodsForEmail } from 'firebase/auth'; // ✨ Keep fetchSignInMethodsForEmail
 import { auth } from '@/lib/firebase';
 import { X, Mail, Lock, User } from 'lucide-react';
 
@@ -27,17 +27,39 @@ export default function AuthModal({ onClose }: AuthModalProps) {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [suggestGoogleSignIn, setSuggestGoogleSignIn] = useState(false); // ✨ NEW: State to track Google sign-in suggestion
   const { signInWithGoogle } = useAuth();
 
   const defaultPhotoURL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a8a29e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='12' cy='7' r='4'%3E%3C/circle%3E%3C/svg%3E";
 
+  // ✨ NEW: Function to check email provider on blur
+  const checkEmailOnBlur = async () => {
+    // Only perform the check in the login view and if the email seems valid
+    if (!isLoginView || !/^\S+@\S+\.\S+$/.test(email)) {
+      return;
+    }
+    try {
+      setIsLoading(true);
+      const methods = await fetchSignInMethodsForEmail(auth, email);
+      if (methods.includes('google.com')) {
+        setSuggestGoogleSignIn(true); // Suggest Google if it's a known provider
+      }
+    } catch (err) {
+      console.info("Could not check email, proceeding normally.", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleGoogleSignIn = async () => {
+    setIsLoading(true);
     try {
       await signInWithGoogle();
       onClose();
     } catch (err) {
       console.error("Google sign-in error:", err);
       setError("Failed to sign in with Google. Please try again.");
+      setIsLoading(false);
     }
   };
 
@@ -48,28 +70,22 @@ export default function AuthModal({ onClose }: AuthModalProps) {
 
     try {
       if (isLoginView) {
-        // --- LOGIN LOGIC ---
-        // We will attempt to sign in directly.
-        // If it fails because the user doesn't exist, the catch block will handle it.
         await signInWithEmailAndPassword(auth, email, password);
-        onClose(); // Success
       } else {
-        // --- SIGN-UP LOGIC ---
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(userCredential.user, {
             displayName: name,
             photoURL: defaultPhotoURL,
         });
-        onClose(); // Success
       }
+      onClose(); // Close modal on success
     } catch (err: any) {
-      // This unified catch block will now handle all errors correctly.
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') {
-        setError('No account found with this email.');
+        setError('No account found with this email. Maybe you used a different sign-in method?');
       } else if (err.code === 'auth/wrong-password') {
         setError('Incorrect password. Please try again.');
       } else if (err.code === 'auth/email-already-in-use') {
-        setError('This email is already registered. Please sign up first.');
+        setError('An account with this email already exists.');
       } else {
         console.error("Firebase Error:", err);
         setError('An unexpected error occurred.');
@@ -78,6 +94,14 @@ export default function AuthModal({ onClose }: AuthModalProps) {
       setIsLoading(false);
     }
   };
+
+  // ✨ NEW: Handler to reset suggestion state when email changes
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSuggestGoogleSignIn(false);
+    setError('');
+    setEmail(e.target.value);
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-white rounded-2xl w-full max-w-md p-8 shadow-xl relative animate-fade-in" onClick={(e) => e.stopPropagation()}>
@@ -103,35 +127,64 @@ export default function AuthModal({ onClose }: AuthModalProps) {
               <label className="text-sm font-medium text-stone-700" htmlFor="email">Email</label>
               <div className="relative mt-1">
                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-stone-400" />
-                 <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full pl-10 pr-4 py-2 border border-stone-300 rounded-lg focus:ring-amber-500 focus:border-amber-500" />
+                 {/* ✨ CHANGED: Added onBlur and updated onChange */}
+                 <input id="email" type="email" value={email} onChange={handleEmailChange} onBlur={checkEmailOnBlur} required className="w-full pl-10 pr-4 py-2 border border-stone-300 rounded-lg focus:ring-amber-500 focus:border-amber-500" />
               </div>
             </div>
-            <div>
-              <label className="text-sm font-medium text-stone-700" htmlFor="password">Password</label>
-              <div className="relative mt-1">
-                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-stone-400" />
-                 <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className="w-full pl-10 pr-4 py-2 border border-stone-300 rounded-lg focus:ring-amber-500 focus:border-amber-500" />
+            
+            {/* ✨ CHANGED: Conditionally render based on suggestion */}
+            {isLoginView && suggestGoogleSignIn ? (
+              <div className='text-center p-2 rounded-lg'>
+                <p className='text-sm text-stone-600'>It looks like you signed up with Google.</p>
               </div>
-            </div>
+            ) : (
+              <div>
+                <label className="text-sm font-medium text-stone-700" htmlFor="password">Password</label>
+                <div className="relative mt-1">
+                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-stone-400" />
+                   <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className="w-full pl-10 pr-4 py-2 border border-stone-300 rounded-lg focus:ring-amber-500 focus:border-amber-500" />
+                </div>
+              </div>
+            )}
+            
             {error && <p className="text-sm text-red-500 text-center">{error}</p>}
-            <button type="submit" disabled={isLoading} className="w-full p-3 rounded-lg bg-stone-800 text-white font-semibold hover:bg-stone-900 transition-colors disabled:bg-stone-300">
-              {isLoading ? 'Loading...' : (isLoginView ? 'Login' : 'Create Account')}
-            </button>
+
+            {/* ✨ CHANGED: Hide normal submit button when suggesting Google */}
+            {!(isLoginView && suggestGoogleSignIn) && (
+              <button type="submit" disabled={isLoading} className="w-full p-3 rounded-lg bg-stone-800 text-white font-semibold hover:bg-stone-900 transition-colors disabled:bg-stone-300">
+                {isLoading ? 'Loading...' : (isLoginView ? 'Login' : 'Create Account')}
+              </button>
+            )}
+
           </form>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-stone-300"></span></div>
-            <div className="relative flex justify-center text-sm"><span className="bg-white px-2 text-stone-500">OR</span></div>
-          </div>
+          {/* ✨ CHANGED: Show OR divider only if password form is visible */}
+          {!(isLoginView && suggestGoogleSignIn) && (
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-stone-300"></span></div>
+              <div className="relative flex justify-center text-sm"><span className="bg-white px-2 text-stone-500">OR</span></div>
+            </div>
+          )}
           
-          <button onClick={handleGoogleSignIn} disabled={isLoading} className="w-full p-3 rounded-lg border border-stone-300 font-semibold text-stone-700 hover:bg-stone-50 flex items-center justify-center gap-3 transition-colors disabled:opacity-50">
+          <button onClick={handleGoogleSignIn} disabled={isLoading} className={`w-full p-3 rounded-lg border font-semibold flex items-center justify-center gap-3 transition-colors disabled:opacity-50 ${isLoginView && suggestGoogleSignIn ? 'border-amber-500 bg-amber-50 text-amber-800 ring-2 ring-amber-500' : 'border-stone-300 text-stone-700 hover:bg-stone-50'}`}>
              <GoogleIcon /> Continue with Google
           </button>
+          
+          {/* ✨ NEW: Allow user to override suggestion */}
+          {isLoginView && suggestGoogleSignIn && (
+            <div className='text-center'>
+              <button onClick={() => setSuggestGoogleSignIn(false)} className="text-sm text-stone-500 hover:text-stone-800 underline">
+                Sign in with password instead
+              </button>
+            </div>
+          )}
+
         </div>
         
         <p className="text-center text-sm text-stone-500 mt-8">
           {isLoginView ? "Don't have an account?" : "Already have an account?"}
-          <button onClick={() => { setIsLoginView(!isLoginView); setError(''); }} className="font-semibold text-amber-700 hover:underline ml-1">
+          {/* ✨ CHANGED: Reset suggestion state when toggling view */}
+          <button onClick={() => { setIsLoginView(!isLoginView); setError(''); setSuggestGoogleSignIn(false); }} className="font-semibold text-amber-700 hover:underline ml-1">
             {isLoginView ? 'Sign Up' : 'Log In'}
           </button>
         </p>
