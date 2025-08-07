@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
         data: base64,
       },
     };
-    const prompt = `TASK: Transcribe the user-provided audio VERBATIM. Your only role is speech-to-text transcription.`;
+    const prompt = `TASK: Transcribe the user-provided audio VERBATIM. Your only role is speech-to-text transcription. Do not include timestamps in the transcription`;
 
     // RULES:
     // - OUTPUT ONLY THE TRANSCRIBED TEXT.
