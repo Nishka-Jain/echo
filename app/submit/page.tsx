@@ -14,6 +14,9 @@ import { APIProvider } from '@vis.gl/react-google-maps';
 import LocationSearch from '@/app/components/LocationSearch';
 import type { Place } from '@/app/components/LocationSearch';
 import toast from 'react-hot-toast';
+import Modal from '@/app/components/Modal';
+import RandomPromptGenerator from '@/app/components/RandomPromptGenerator';
+
 
 const InstagramIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>;
 const FacebookIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>;
@@ -138,6 +141,7 @@ function TranscriptionLoadingFacts() {
 
 
 export default function SubmitPage() {
+    const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
     const [currentStep, setCurrentStep] = useState(1);
     const [storyTitle, setStoryTitle] = useState('');
     const [speakerName, setSpeakerName] = useState('');
@@ -486,6 +490,13 @@ export default function SubmitPage() {
     return (
         <div className="bg-white min-h-screen font-sans">
             <Navbar />
+            <Modal 
+                isOpen={isPromptModalOpen} 
+                onClose={() => setIsPromptModalOpen(false)}
+                title="Prompts To Get Started"
+            >
+                <RandomPromptGenerator />
+            </Modal>
 
             <main className="py-14 sm:py-16">
                 <div className="max-w-4xl mx-auto px-6 sm:px-10 lg:px-10">
@@ -518,6 +529,15 @@ export default function SubmitPage() {
                             <div className="text-center mb-14">
                                 <h1 className="text-4xl sm:text-5xl font-serif text-stone-900">Record a Memory</h1>
                                 <p className="mt-4 text-lg text-stone-600">Follow our guided process to capture and preserve an important story.</p>
+
+                                {/* ✨ ADD THIS BUTTON ✨ */}
+                                <button 
+                                type="button"
+                                onClick={() => setIsPromptModalOpen(true)}
+                                className="mt-6 font-semibold text-stone-700 hover:text-stone-900 transition-colors underline decoration-2 underline-offset-4"
+                                >
+                                Feeling Stuck? Try a Prompt
+                                </button>
                             </div>
 
                             <div className="mb-12">
@@ -586,24 +606,28 @@ export default function SubmitPage() {
                                     )}
                                     {/* Other steps remain the same */}
                                     {currentStep === 2 && (
-                                      <div className="animate-fade-in">
-                                        {!user ? (
-                                          <div className="text-center text-stone-600 p-8">
-                                            <strong>Sign in to record and upload an audio memory. Once you have an account, you can edit or delete any submissions.</strong>
-                                          </div>
-                                        ) : (
-                                          <>
-                                            <AudioRecorder onRecordingComplete={setAudioFile} />
-                                            {audioFile && (
-                                              <div className="mt-6 p-3 bg-green-50 border border-green-200 text-green-800 rounded-lg flex items-center gap-3 text-sm">
-                                                <CheckCircle size={20} />
-                                                <span>File ready: <strong>{audioFile.name}</strong></span>
-                                              </div>
+                                        <div className="animate-fade-in">
+                                            {!user ? (
+                                            <div className="text-center text-stone-600 p-8">
+                                                <strong>Sign in to record and upload an audio memory. Once you have an account, you can edit or delete any submissions.</strong>
+                                            </div>
+                                            ) : (
+                                            <>
+                                                {/* ✨ ADD THE NEW COMPONENT HERE ✨ */}
+                                                <RandomPromptGenerator /> 
+                                                
+                                                <AudioRecorder onRecordingComplete={setAudioFile} />
+                                                
+                                                {audioFile && (
+                                                <div className="mt-6 p-3 bg-green-50 border border-green-200 text-green-800 rounded-lg flex items-center gap-3 text-sm">
+                                                    <CheckCircle size={20} />
+                                                    <span>File ready: <strong>{audioFile.name}</strong></span>
+                                                </div>
+                                                )}
+                                            </>
                                             )}
-                                          </>
+                                        </div>
                                         )}
-                                      </div>
-                                    )}
                                     {currentStep === 3 && (
         <div className="space-y-6 text-stone-700 animate-fade-in">
             <div>
