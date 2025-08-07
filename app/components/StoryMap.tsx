@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { divIcon } from 'leaflet';
+import React, { useMemo, useEffect, useRef, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
+import L, { divIcon } from 'leaflet';
 import Link from 'next/link';
 import type { Story } from '@/lib/types';
 import { Languages, Calendar } from 'lucide-react';
+import "leaflet/dist/leaflet.css"; // Essential for Leaflet styles
 
+// Helper function to format dates remains the same
 const formatStoryDate = (story: Story): string | null => {
     if (story.dateType === 'year' && story.specificYear) return story.specificYear.toString();
     if (story.dateType === 'period') {
@@ -19,7 +21,7 @@ const formatStoryDate = (story: Story): string | null => {
     return null;
 };
 
-// Updated single story popup
+// SingleStoryPopup component remains the same
 const SingleStoryPopup = ({ story }: { story: Story }) => {
     const displayDate = formatStoryDate(story);
     return (
@@ -40,7 +42,6 @@ const SingleStoryPopup = ({ story }: { story: Story }) => {
                 )}
             </div>
             <p className="text-stone-600 mb-2 text-sm">by {story.speaker}</p>
-            {/* ✨ FIX: Added a margin-bottom class (mb-1) */}
             <Link href={`/story/${story.id}`} className="text-amber-700 font-semibold hover:underline mt-1 mb-1 inline-block text-sm">
                 Listen to Story &rarr;
             </Link>
@@ -48,7 +49,7 @@ const SingleStoryPopup = ({ story }: { story: Story }) => {
     );
 };
 
-// Updated multi-story popup
+// MultiStoryPopup component remains the same
 const MultiStoryPopup = ({ stories }: { stories: Story[] }) => (
     <div className="font-sans w-64">
         <h3 className="font-serif font-bold text-lg mb-2 border-b pb-1">
@@ -75,7 +76,6 @@ const MultiStoryPopup = ({ stories }: { stories: Story[] }) => (
                                 </span>
                             )}
                          </div>
-                        {/* ✨ FIX: Added a margin-bottom class (mb-1) */}
                         <Link href={`/story/${story.id}`} className="text-xs font-semibold text-amber-700 hover:underline mt-2 mb-3 inline-block">
                             Listen to Story &rarr;
                         </Link>
@@ -86,10 +86,17 @@ const MultiStoryPopup = ({ stories }: { stories: Story[] }) => (
     </div>
 );
 
-const createClusterIcon = (count: number) => {
+// --- MODIFICATION 1: UPDATED ICON CREATION ---
+// The function now accepts an `isSelected` boolean to apply a different style.
+const createClusterIcon = (count: number, isSelected: boolean) => {
+  // A glowing effect for the selected marker
+  const selectedStyle = isSelected 
+    ? 'box-shadow: 0 0 12px 4px #FBBF24; border-radius: 9999px; transition: box-shadow 0.3s;' 
+    : '';
+
   return divIcon({
     html: `
-      <div class="relative">
+      <div class="relative" style="${selectedStyle}">
         <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" style="width: 28px; height: 28px;" />
         ${count > 1 ? `
           <span class="absolute -top-1 -right-2 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 border-2 border-white rounded-full">
@@ -104,12 +111,58 @@ const createClusterIcon = (count: number) => {
   });
 };
 
+// --- MODIFICATION 2: NEW PROPS INTERFACE ---
 interface StoryMapProps {
   stories: Story[];
+  selectedStoryId: string | null;
+  onMapClick: () => void;
 }
 
-const StoryMap = ({ stories = [] }: StoryMapProps) => {
-  const storiesWithLocation = stories.filter(story => story.location && story.location.lat && story.location.lng);
+// --- MODIFICATION 3: NEW HELPER COMPONENTS ---
+// This component handles clicking on the map to deselect a story.
+const MapClickHandler = ({ onMapClick }: { onMapClick: () => void }) => {
+    useMapEvents({
+        click: () => {
+            onMapClick();
+        },
+    });
+    return null;
+};
+
+// This component handles the logic for flying to and opening the popup of a selected marker.
+const HighlightHandler = ({ groupedStories, selectedStoryId, markerRefs }: any) => {
+    const map = useMap();
+    useEffect(() => {
+        if (!selectedStoryId) return;
+
+        let targetGroupKey: string | null = null;
+        for (const [key, group] of groupedStories.entries()) {
+            if (group.some((s: Story) => s.id === selectedStoryId)) {
+                targetGroupKey = key;
+                break;
+            }
+        }
+
+        if (targetGroupKey && markerRefs.current.has(targetGroupKey)) {
+            const marker = markerRefs.current.get(targetGroupKey);
+            if (marker) {
+                const latLng = marker.getLatLng();
+                // Fly to the location and open the popup
+                map.flyTo(latLng, Math.max(map.getZoom(), 10), { duration: 1 });
+                marker.openPopup();
+            }
+        }
+    }, [selectedStoryId, groupedStories, map, markerRefs]);
+
+    return null;
+}
+
+// --- MODIFICATION 4: UPDATED STORYMAP COMPONENT ---
+const StoryMap = ({ stories = [], selectedStoryId, onMapClick }: StoryMapProps) => {
+  const storiesWithLocation = stories.filter(story => story.location?.lat && story.location?.lng);
+  
+  // A ref to store all marker instances, mapping a location key to a marker.
+  const markerRefs = useRef<Map<string, L.Marker>>(new Map());
 
   const groupedStories = useMemo(() => {
     const groups = new Map<string, Story[]>();
@@ -125,31 +178,44 @@ const StoryMap = ({ stories = [] }: StoryMapProps) => {
 
   return (
     <MapContainer center={[25, 0]} zoom={2} className="h-full w-full" scrollWheelZoom={true}>
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png"
-      />
+        <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png"
+        />
+        
+        {/* Add the event handler components to the map */}
+        <MapClickHandler onMapClick={onMapClick} />
+        <HighlightHandler 
+            groupedStories={groupedStories} 
+            selectedStoryId={selectedStoryId}
+            markerRefs={markerRefs} 
+        />
       
-      {Array.from(groupedStories.entries()).map(([key, storiesInGroup]) => {
-        const position = { lat: storiesInGroup[0].location!.lat, lng: storiesInGroup[0].location!.lng };
-        const icon = createClusterIcon(storiesInGroup.length);
+        {Array.from(groupedStories.entries()).map(([key, storiesInGroup]) => {
+            const position = { lat: storiesInGroup[0].location!.lat, lng: storiesInGroup[0].location!.lng };
+            
+            // Check if the currently selected story is in this group
+            const isSelected = storiesInGroup.some(s => s.id === selectedStoryId);
+            const icon = createClusterIcon(storiesInGroup.length, isSelected);
 
-        return (
-            <Marker 
-                key={key} 
-                position={[position.lat, position.lng]}
-                icon={icon}
-            >
-                <Popup>
-                    {storiesInGroup.length === 1 ? (
-                        <SingleStoryPopup story={storiesInGroup[0]} />
-                    ) : (
-                        <MultiStoryPopup stories={storiesInGroup} />
-                    )}
-                </Popup>
-            </Marker>
-        );
-      })}
+            return (
+                <Marker 
+                    key={key} 
+                    position={[position.lat, position.lng]}
+                    icon={icon}
+                    // Store the marker instance in our ref map
+                    ref={(el) => { if (el) { markerRefs.current.set(key, el); } }}
+                >
+                    <Popup>
+                        {storiesInGroup.length === 1 ? (
+                            <SingleStoryPopup story={storiesInGroup[0]} />
+                        ) : (
+                            <MultiStoryPopup stories={storiesInGroup} />
+                        )}
+                    </Popup>
+                </Marker>
+            );
+        })}
     </MapContainer>
   );
 };
