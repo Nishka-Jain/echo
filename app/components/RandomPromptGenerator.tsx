@@ -36,7 +36,10 @@ export default function RandomPromptGenerator() {
   return (
     // This div provides the blue background box
     <div className="w-full p-6 bg-blue-50 border border-blue-200 rounded-lg text-center">
-      <p className="font-sans text-stone-800 text-xl min-h-[96px] flex items-center justify-center mb-6">
+      <div className="mb-3 text-blue-700 text-sm font-medium">
+        The prompt below is just a suggestion. You can ignore it and record any story you wish.
+      </div>
+      <p className="font-sans text-stone-700 text-xl min-h-[96px] flex items-center justify-center mb-6">
         {prompt}
       </p>
 
