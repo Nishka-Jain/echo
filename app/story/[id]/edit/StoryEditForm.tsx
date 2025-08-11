@@ -33,6 +33,7 @@ export default function StoryEditForm({ initialStory }: { initialStory: Story })
     const [customTag, setCustomTag] = useState('');
     const [availableTags, setAvailableTags] = useState(["Family", "Migration", "Food", "Tradition", "Love", "Loss", "Childhood", "Work"]);
     const [location, setLocation] = useState<Place | null>(initialStory.location || null);
+    const [transcription, setTranscription] = useState(initialStory.transcription || ''); 
     
     // Date state
     const [dateType, setDateType] = useState<'period' | 'year'>(initialStory.dateType || 'period');
@@ -116,6 +117,7 @@ export default function StoryEditForm({ initialStory }: { initialStory: Story })
                 endYear: dateType === 'period' ? Number(endYear) : null,
                 specificYear: dateType === 'year' ? Number(specificYear) : null,
                 photoUrl: photoUrl, // Add the new (or existing) photo URL to the update object
+                transcription: transcription,
             };
     
             // Update the story document in Firestore
@@ -173,8 +175,57 @@ export default function StoryEditForm({ initialStory }: { initialStory: Story })
                     <div>
                         <label>Tags <span className="text-red-500">*</span></label>
                         <div className="flex flex-wrap gap-2 mt-2">
-                           {/* Tag selection logic here */}
+                            {/* Render available tags as clickable buttons */}
+                            {availableTags.map(tag => (
+                                <button
+                                    type="button"
+                                    key={tag}
+                                    onClick={() => handleTagClick(tag)}
+                                    className={`px-3 py-1 rounded-full text-sm font-semibold transition-colors ${
+                                        selectedTags.includes(tag)
+                                            ? 'bg-stone-800 text-white'
+                                            : 'bg-stone-200 text-stone-700 hover:bg-stone-300'
+                                    }`}
+                                >
+                                    {tag}
+                                </button>
+                            ))}
                         </div>
+                        <div className="mt-4 flex gap-2">
+                            {/* Input for adding a new custom tag */}
+                            <input
+                                type="text"
+                                value={customTag}
+                                onChange={e => setCustomTag(e.target.value)}
+                                onKeyDown={handleCustomTagKeyDown}
+                                placeholder="Add a custom tag"
+                                className="w-full p-2 border rounded-lg text-stone-900"
+                                style={{ color: '#111', background: '#fff', caretColor: '#111' }}
+                            />
+                            <button
+                                type="button"
+                                onClick={handleAddCustomTag}
+                                className="px-4 py-2 rounded-lg bg-amber-700 text-white font-semibold hover:bg-amber-800"
+                            >
+                                <Plus size={16} />
+                            </button>
+                        </div>
+                        {/* Display currently selected tags */}
+                        {selectedTags.length > 0 && (
+                            <div className="mt-3 flex flex-wrap gap-2 items-center">
+                                <h4 className="text-sm font-semibold">Selected:</h4>
+                                {selectedTags.map(tag => (
+                                    <div key={tag} className="flex items-center gap-1 bg-stone-800 text-white px-3 py-1 rounded-full">
+                                        <span className="text-sm">{tag}</span>
+                                        {/* Button to remove (deselect) a tag */}
+                                        <button type="button" onClick={() => handleTagClick(tag)}>
+                                            <X size={14} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        
                     </div>
                     <div>
                         <label>Location <span className="text-red-500">*</span></label>
@@ -254,9 +305,23 @@ export default function StoryEditForm({ initialStory }: { initialStory: Story })
                         <label htmlFor="summary">Story Summary</label>
                         <textarea id="summary" value={summary} onChange={e => setSummary(e.target.value)} rows={5} className="w-full mt-1 p-3 border rounded-lg text-stone-900" style={{ color: '#111', background: '#fff', caretColor: '#111' }} />
                     </div>
+                    <div>
+                        <label htmlFor="transcription" className="font-semibold">Transcription</label>
+                        <p className="text-sm text-stone-600 mb-2">Edit the full story transcription below.</p>
+                        <textarea
+                            id="transcription"
+                            value={transcription} // Make sure you added the 'transcription' state
+                            onChange={e => setTranscription(e.target.value)}
+                            rows={20}
+                            className="w-full p-3 border rounded-lg text-stone-900"
+                            placeholder="The full text of the story goes here..."
+                            style={{ color: '#111', background: '#fff', caretColor: '#111' }}
+                        />
+                    </div>
                 </fieldset>
 
-                <div className="flex justify-end gap-4 pt-6 border-t mt-6">
+
+                <div className="flex justify-end gap-4 pt-6 mt-6">
                     <Link href={`/story/${initialStory.id}`} className="px-6 py-2 rounded-lg border border-stone-300 font-semibold hover:bg-stone-100">Cancel</Link>
                     <button type="submit" disabled={isSubmitting} className="px-6 py-2 rounded-lg bg-stone-800 text-white font-semibold disabled:bg-stone-300 hover:bg-stone-900">
                         {isSubmitting ? 'Saving...' : 'Save Changes'}
