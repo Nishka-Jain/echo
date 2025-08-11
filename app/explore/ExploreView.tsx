@@ -187,9 +187,11 @@ export default function ExploreView() {
                             {viewMode === 'map' && (
                                 <div className="animate-fade-in">
                                     <div className="flex flex-col md:flex-row gap-6 max-w-full">
-                                        <aside className="w-full md:w-1/3 lg:w-1/4 h-[70vh]">
-                                            <div className="overflow-y-auto border border-stone-200 rounded-lg h-full bg-white">
-                                                {filteredStories.length > 0 ? (
+                                    <aside className="w-full md:w-1/3 lg:w-1/4 h-52 md:h-[70vh]">
+                                        {/* Make this div relative to position the gradient inside it */}
+                                        <div className="relative overflow-y-auto border border-stone-200 rounded-lg h-full bg-white">
+                                            {filteredStories.length > 0 ? (
+                                                <>
                                                     <ul className="divide-y divide-stone-200">
                                                         {filteredStories.map(story => (
                                                             <li key={story.id}>
@@ -200,11 +202,16 @@ export default function ExploreView() {
                                                             </li>
                                                         ))}
                                                     </ul>
-                                                ) : (
-                                                    <p className="text-center text-stone-500 p-4">No stories match your search.</p>
-                                                )}
-                                            </div>
-                                        </aside>
+                                                    
+                                                    {/* --- GRADIENT FADE ELEMENT --- */}
+                                                    {/* This div creates the fade effect at the bottom */}
+                                                    <div className="sticky bottom-0 h-10 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+                                                </>
+                                            ) : (
+                                                <p className="text-center text-stone-500 p-4">No stories match your search.</p>
+                                            )}
+                                        </div>
+                                    </aside>
                                         <section className="w-full md:w-2/3 lg:w-3/4 h-[70vh] rounded-xl overflow-hidden shadow-md border border-stone-200">
                                             <StoryMap 
                                                 stories={filteredStories} 
