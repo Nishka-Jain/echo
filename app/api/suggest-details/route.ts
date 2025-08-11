@@ -14,7 +14,7 @@ export async function POST(request: Request) {
 
     const prompt = `
       Analyze the following story transcript. Your task is to:
-      1. Generate a concise, two-line summary of the story. The summary should capture the main essence and emotion.
+      1. Generate a concise, one-line summary of the story. The summary should capture the main essence and emotion.
       2. Suggest between 5 and 8 relevant tags that categorize the content. Tags should be single words or short two-word phrases (e.g., "Family Recipe", "Childhood Memory").
 
       Transcript:
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
       Please provide the output strictly in the following JSON format:
       {
-        "summary": "Your two-line summary here.",
+        "summary": "Your one-line summary here.",
         "tags": ["Tag1", "Tag2", "Tag3"]
       }
     `;
