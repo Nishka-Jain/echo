@@ -209,8 +209,17 @@ export default function StoryClientPage({ story }: { story: Story | null }) {
                         <div className="space-y-8">
                             {/* The photo is only rendered if it exists */}
                             {story.photoUrl && (
-                                <div className="w-full max-w-md mx-auto"> {/* Optionally add max-w-md and mx-auto for better centering of smaller images */}
-                                    <Image src={story.photoUrl} alt={story.title} width={100} height={100} className="rounded-lg object-cover w-full shadow-md" />
+                                // Add `relative` for the `fill` prop and control the aspect ratio
+                                <div className="relative w-full max-w-md mx-auto aspect-square overflow-hidden rounded-lg shadow-md">
+                                    <Image 
+                                        fill // Use `fill` to make the image fill the parent div
+                                        src={story.photoUrl} 
+                                        alt={story.title} 
+                                        quality={95} // Set the desired quality
+                                        className="object-cover" // `object-cover` ensures it covers the area without distortion
+                                        // The `sizes` prop helps Next.js pick the right image size for the user's screen
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                    />
                                 </div>
                             )}
 

@@ -40,8 +40,6 @@ async function getStory(id: string): Promise<Story | null> {
     }
 }
 
-// FIX: The type for props is now defined directly in the function signature
-// and the 'id' is destructured immediately.
 type tParams = Promise<{ id: string }>;
 export default async function StoryPage(props: { params: tParams}) {
     const { id } = await props.params;
