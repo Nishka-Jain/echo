@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut, updateProfile } from 'firebase/auth';
+import { onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut, updateProfile, createUserWithEmailAndPassword } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from '@/lib/firebase';
@@ -21,6 +21,7 @@ interface AuthContextType {
     newPhoto?: File | null; 
     photoPosition?: string;
   }) => Promise<void>;
+  signUp: (name: string, email: string, password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,6 +30,50 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const signUp = async (name: string, email: string, password: string) => {
+    try {
+      // Step A: Create the user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
+
+      // The default profile picture from your modal
+      const defaultPhotoURL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a8a29e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='12' cy='7' r='4'%3E%3C/circle%3E%3C/svg%3E";
+
+      // Step B: Update the Firebase Auth profile
+      await updateProfile(firebaseUser, {
+        displayName: name,
+        photoURL: defaultPhotoURL,
+      });
+      const newUserProfile: UserProfile = {
+        ...firebaseUser, // Spread the full user object
+        displayName: name,
+        photoURL: defaultPhotoURL,
+        photoPosition: 'object-center',
+      };
+      const docData = {
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        displayName: name,
+        photoURL: defaultPhotoURL,
+        photoPosition: 'object-center',
+      };
+  
+      // 3. Save the "clean" object to Firestore.
+      const userDocRef = doc(db, "users", firebaseUser.uid);
+      await setDoc(userDocRef, docData);
+
+      // Step D: Manually update the local state. This is the key!
+      // This forces an immediate UI update with the correct data.
+      setUser(newUserProfile);
+      
+      closeAuthModal();
+
+    } catch (error) {
+      // Re-throw the error so the modal can catch it and display a message
+      console.error("Error during sign up:", error);
+      throw error;
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -107,7 +152,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const value = { user, isLoading, signInWithGoogle, logout, openAuthModal, updateUserProfile };
+  const value = { user, isLoading, signInWithGoogle, logout, openAuthModal, updateUserProfile, signUp  };
 
   return (
     <AuthContext.Provider value={value}>

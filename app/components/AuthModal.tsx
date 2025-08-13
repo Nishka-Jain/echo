@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, fetchSignInMethodsForEmail } from 'firebase/auth';
+import { signInWithEmailAndPassword, fetchSignInMethodsForEmail} from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { X, Mail, Lock, User } from 'lucide-react';
 
@@ -22,7 +22,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [suggestGoogleSignIn, setSuggestGoogleSignIn] = useState(false);
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, signUp } = useAuth(); // Add signUp
 
   const defaultPhotoURL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a8a29e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='12' cy='7' r='4'%3E%3C/circle%3E%3C/svg%3E";
 
@@ -83,11 +83,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
       if (isLoginView) {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(userCredential.user, {
-            displayName: name,
-            photoURL: defaultPhotoURL,
-        });
+        await signUp(name, email, password);
       }
       onClose();
     } catch (err: any) {
