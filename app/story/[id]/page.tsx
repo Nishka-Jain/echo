@@ -29,6 +29,7 @@ async function getStory(id: string): Promise<Story | null> {
               specificYear: data.specificYear,
               authorId: data.authorId,
               transcription: data.transcription,
+              promptCategoryLabel: data.promptCategoryLabel, 
             };
             return storyData;
         } else {

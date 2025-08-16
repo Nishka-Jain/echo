@@ -175,7 +175,12 @@ export default function StoryClientPage({ story }: { story: Story | null }) {
 
                     <article>
                     <header className="mb-12 border-b border-stone-200 pb-8">
-                            <h1 className="text-4xl md:text-6xl font-serif text-stone-900 tracking-tight">{story.title}</h1>
+                            <h1 className="text-4xl md:text-6xl font-serif text-stone-900 tracking-tight -ml-1.5">{story.title}</h1>
+                            {story.promptCategoryLabel && (
+                                <p className="mt-4 text-lg font-semibold text-amber-800 tracking-wide">
+                                    {`Cupertino Stories: ${story.promptCategoryLabel}`}
+                                </p>
+                            )}
                             
                             <div className="mt-6 flex items-center gap-2 text-lg text-stone-600">
                                 <UserCircle size={20} />

@@ -102,7 +102,6 @@ export default function ProfilePage() {
                             photoUrl: data.photoUrl,
                             tags: data.tags || [],
                             location: data.location,
-                            // ✨ These fields fix the time period issue
                             dateType: data.dateType,
                             startYear: data.startYear,
                             endYear: data.endYear,
@@ -110,7 +109,8 @@ export default function ProfilePage() {
                             transcription: data.transcription,
                             language: data.language,
                             createdAt: data.createdAt?.toDate().toISOString(),
-                            authorId: data.authorId
+                            authorId: data.authorId,
+                            promptCategoryLabel: data.promptCategoryLabel,
                         } as Story;
                     });
 

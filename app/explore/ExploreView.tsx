@@ -91,7 +91,9 @@ export default function ExploreView() {
                 story.speaker?.toLowerCase().includes(searchLower) ||
                 story.summary?.toLowerCase().includes(searchLower) ||
                 story.transcription?.toLowerCase().includes(searchLower) ||
-                story.tags?.some(tag => tag.toLowerCase().includes(searchLower))
+                story.tags?.some(tag => tag.toLowerCase().includes(searchLower))||
+                story.promptCategoryLabel?.toLowerCase().includes(searchLower) ||
+                (story.promptCategoryLabel && 'cupertino stories'.includes(searchLower))  
             );
             const matchesLanguage = selectedLanguage ? story.language === selectedLanguage : true;
             return matchesSearch && matchesLanguage;

@@ -23,6 +23,7 @@ export type Story = {
   endYear?: number | null;
   specificYear?: number | null;
   language?: string;
+  promptCategoryLabel?: string; 
 };
 
 export type UserProfile = User & {

@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
-import { Mic, Upload, CheckCircle, ArrowRight, ArrowLeft, Pencil, Info, ImagePlus, X, Plus, PartyPopper, Loader2, Languages, Camera, UploadCloud, UserCircle} from 'lucide-react';
+import { CheckCircle, X, Plus, ArrowRight, ArrowLeft, Pencil, CalendarDays, Tag, PartyPopper, Loader2, Languages, Camera, UploadCloud, UserCircle, Building, Home, Milestone, ChevronLeft, ChevronRight, List } from 'lucide-react';
 import AudioRecorder from '@/app/components/AudioRecorder';
 import { db, storage } from '@/lib/firebase';
-import { collection, addDoc } from "firebase/firestore"; 
+import { collection, addDoc } from "firebase/firestore";
 import Image from 'next/image';
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import Navbar from '@/app/components/Navbar';
@@ -16,12 +16,64 @@ import type { Place } from '@/app/components/LocationSearch';
 import toast from 'react-hot-toast';
 import Modal from '@/app/components/Modal';
 import RandomPromptGenerator from '@/app/components/RandomPromptGenerator';
+import PromptDisplay from '@/app/components/PromptDisplay';
 
 
 const InstagramIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>;
 const FacebookIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>;
 const XIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="m9.5 9.5 5 5"/><path d="m14.5 9.5-5 5"/></svg>;
-
+type PromptSection = {
+    subheading: string;
+    prompts: string[];
+};
+const CATEGORY_DETAILS = {
+    'life-before-1960': { label: "The Early Days (Before 1960)" },
+    'life-1960-1980':  { label: "A Time of Growth (1960-1980)" },
+    'life-1980-2000':  { label: "The Tech Boom (1980-2000)" },
+    'life-since-2000':   { label: "The Modern Era (2000-Present)" },
+    'org-history':       { label: "Organization History" },
+    'org-volunteer':     { label: "Volunteer/Employee Story" },
+    'personal-growth':   { label: "Personal Growth & Reflections" },
+    'defining-moment':   { label: "A Defining Moment" },
+    'none':              { label: "Cupertino Story" } // A fallback for "own topic"
+};
+const PROMPTS = {
+    'org-history': [
+      { subheading: "Founding & Early Years", prompts: ["How and when was the organization/business started?", "Who were the founders, and what motivated them to start it?", "What was the original mission or purpose?"] },
+      { subheading: "Growth & Change", prompts: ["How did the organization/business evolve over time?", "What were some turning points—positive or challenging?", "How have customer needs or community expectations changed?"] },
+      { subheading: "Community Impact", prompts: ["How has it contributed to Cupertino or the surrounding area?", "Are there memorable partnerships, projects, or events?"] },
+      { subheading: "Looking Ahead", prompts: ["What do you see as the biggest challenges and opportunities in the future?", "If you could pass along one lesson from the organization’s history, what would it be?"] },
+    ],
+    'org-volunteer': [
+      { subheading: "Personal Story", prompts: ["How did you first become involved?", "What attracted you to this organization/business?"] },
+      { subheading: "Role & Experience", prompts: ["What was your role, and what did a typical day look like?", "Can you share a memorable story from your time here?"] },
+      { subheading: "Impact", prompts: ["How has the experience affected your personal or professional growth?", "In what ways do you think your work made a difference?"] },
+      { subheading: "Reflections", prompts: ["What advice would you give to someone new to this organization/business?", "If you could change one thing about your time here, what would it be?"] },
+    ],
+    'life-before-1960': [
+      { subheading: "Life in Early Cupertino", prompts: ["What brought your family to Cupertino?", "What did the town look like—homes, farms, orchards, streets?", "How did people earn a living?", "What schools, churches, or gathering places do you remember?", "How did neighbors interact—was there a strong sense of community?", "What were transportation and shopping like?", "What traditions or events were important to residents?", "How do you think life here compared to nearby towns?"] },
+    ],
+    'life-1960-1980': [
+      { subheading: "A Time of Growth (1960-1980)", prompts: ["What changes did you see in the community during the 1960s–80s?", "How did the city’s incorporation (1955) affect daily life?", "What new businesses, schools, or landmarks do you remember opening?", "How did orchards, farmland, and open space change?", "How did new residents shape the community’s culture?", "What local events or controversies stand out from that period?"] },
+    ],
+    'life-1980-2000': [
+      { subheading: "The Tech Boom (1980-2000)", prompts: ["How did the tech boom change the city’s character?", "What new neighborhoods or developments do you remember?", "How did schools, parks, and public spaces evolve?", "Were there challenges from growth—traffic, housing, costs?", "What cultural or recreational opportunities emerged?"] },
+    ],
+    'life-since-2000': [
+      { subheading: "The Modern Era (2000-Present)", prompts: ["How has diversity influenced the city’s culture and economy?", "How has technology—from smartphones to remote work—shaped daily life?", "What has changed about housing and affordability?", "How has community engagement evolved (festivals, city meetings, volunteering)?", "What do you think makes Cupertino unique today?", "Looking ahead, what do you hope Cupertino will preserve or improve?"] },
+    ],
+    'personal-growth': [
+        { subheading: "Formative Moments", prompts: ["Think about a time in your life you felt truly proud of yourself. What did you accomplish?", "Who has been the most influential person in your life, and what is the most important lesson they taught you?", "Describe a moment or experience that fundamentally changed the way you see the world."] },
+        { subheading: "Challenges & Turning Points", prompts: ["What is the biggest challenge you've had to overcome, and how did you get through it?", "Can you share a story about a time you failed at something? What did that failure teach you?", "Was there a turning point where you decided to make a significant change in your life? What led to that decision?"] },
+        { subheading: "Wisdom & Lessons Learned", prompts: ["What is one piece of advice you would give to your younger self?", "What belief or value do you hold most dear, and how has it guided your decisions?", "How has your definition of success or happiness changed over the years?"] },
+        { subheading: "Reflections", prompts: ["When you look back on your life so far, what are you most grateful for?", "What do you hope your legacy will be, or how do you want to be remembered by others?"] },
+      ],
+    'defining-moment': [
+        { subheading: "A Pivotal Event", prompts: ["Think about a single event that you feel changed Cupertino the most. What was it, and what do you remember about it?", "Was there a time the community came together for a celebration, a protest, or to overcome a challenge (like a natural disaster)? Tell me that story."] },
+        { subheading: "Shared Memories", prompts: ["Describe your memory of a major local or national event and how it was experienced here (e.g., the Loma Prieta earthquake, a major election, a cultural milestone).", "Tell me about the opening or closing of a place that was important to the community (like Vallco Mall, a beloved park, or a major employer).", "What is a story you tell your family or friends that starts with, 'I remember that one time when...' in Cupertino?"] },
+    ],
+  };
+  
 const footerLinks = [
   { href: '/about', label: 'About' },
   { href: '/submit', label: 'Submit' },
@@ -38,9 +90,8 @@ const socialLinks = [
 const Stepper = ({ currentStep, steps }: { currentStep: number, steps: string[] }) => {
     return (
         <div className="w-full">
-            {/* --- Mobile View: Compact bar with current step text below --- */}
+            {/* --- Mobile View --- */}
             <div className="md:hidden">
-                {/* The visual bar of circles and connecting lines */}
                 <div className="flex items-center">
                     {steps.map((step, index) => {
                         const stepNumber = index + 1;
@@ -48,11 +99,9 @@ const Stepper = ({ currentStep, steps }: { currentStep: number, steps: string[] 
                         const isActive = currentStep === stepNumber;
                         return (
                             <React.Fragment key={index}>
-                                {/* Circle */}
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-colors shrink-0 ${(isCompleted || isActive) ? 'bg-stone-800 text-white' : 'bg-stone-200 text-stone-500'}`}>
                                     {isCompleted ? <CheckCircle size={16} /> : stepNumber}
                                 </div>
-                                {/* Connecting line (unless it's the last step) */}
                                 {index < steps.length - 1 && (
                                     <div className={`flex-auto border-t-2 transition-colors mx-2 ${isCompleted ? 'border-stone-800' : 'border-stone-200'}`}></div>
                                 )}
@@ -60,19 +109,17 @@ const Stepper = ({ currentStep, steps }: { currentStep: number, steps: string[] 
                         );
                     })}
                 </div>
-                {/* Text for the current step, displayed below the bar */}
                 <p className="mt-4 text-center text-sm font-medium text-stone-800">
                     Step {currentStep}: {steps[currentStep - 1]}
                 </p>
             </div>
 
-            {/* --- Desktop View: Full Horizontal Stepper (Unchanged) --- */}
+            {/* --- Desktop View --- */}
             <div className="hidden md:flex w-full items-start justify-between">
                 {steps.map((step, index) => {
                     const stepNumber = index + 1;
                     const isCompleted = currentStep > stepNumber;
                     const isActive = currentStep === stepNumber;
-
                     return (
                         <React.Fragment key={index}>
                             <div className="flex flex-col items-center text-center w-1/5 flex-shrink min-w-0">
@@ -91,30 +138,33 @@ const Stepper = ({ currentStep, steps }: { currentStep: number, steps: string[] 
         </div>
     );
 };
+const PromptListPreview: React.FC<{ sections: PromptSection[] }> = ({ sections }) => {
+    return (
+      <div className="mt-8 p-6 bg-stone-50 border border-stone-200 rounded-lg animate-fade-in">
+        <h3 className="text-lg font-semibold text-stone-800 mb-4">Your Selected Prompts:</h3>
+        <div className="space-y-4 text-stone-700">
+          {sections.map(section => (
+            <div key={section.subheading}>
+              <h4 className="font-semibold text-stone-800 mb-2">{section.subheading}</h4>
+              <ul className="list-disc list-inside space-y-2 pl-2">
+                {/* ✨ This is the line we fixed ✨ */}
+                {section.prompts.map((prompt: string, i: number) => <li key={i}>{prompt}</li>)}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
-// --- Alternating fun facts and progress messages for loading state ---
+// --- Fun facts and progress messages ---
 const FUN_FACTS = [
   "Did you know? The word 'echo' comes from Greek mythology, where Echo was a nymph who could only repeat the words of others.",
   "Over 40% of the world's 7,000+ languages are endangered and may disappear within the next century.",
   "Every two weeks, another language is lost somewhere in the world.",
-  "Recording stories helps preserve culture and memory for future generations.",
-  "Some languages have no written form and can only be preserved through audio recordings.",
-  "The oldest known audio recording is from 1860, using a device called a phonautograph.",
-  "Your story could help researchers and communities revive lost languages!",
-  "Language is the key to understanding history, identity, and belonging.",
 ];
-
-const PROGRESS_MESSAGES = [
-  "Hang tight, we're transcribing your story...",
-  "Just a moment more!",
-  "We're working on it...",
-  "Almost there!",
-  "Thank you for your patience.",
-  "Almost done!",
-];
-
-// Alternates between progress messages and fun facts
-const ALTERNATING_ITEMS: (string | number | bigint | boolean | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined)[] = [];
+const PROGRESS_MESSAGES = ["Hang tight, we're transcribing your story...", "Just a moment more!", "We're working on it...", "Almost there!"];
+const ALTERNATING_ITEMS: (string | React.ReactNode)[] = [];
 for (let i = 0; i < Math.max(FUN_FACTS.length, PROGRESS_MESSAGES.length); i++) {
   if (i < PROGRESS_MESSAGES.length) ALTERNATING_ITEMS.push(PROGRESS_MESSAGES[i]);
   if (i < FUN_FACTS.length) ALTERNATING_ITEMS.push(FUN_FACTS[i]);
@@ -132,9 +182,7 @@ function TranscriptionLoadingFacts() {
     <div className="w-full h-48 p-4 bg-stone-50 rounded-lg flex flex-col items-center justify-center gap-3 text-stone-600 animate-fade-in">
       <Loader2 size={24} className="animate-spin mb-2" />
       <p className="font-semibold text-base">Generating transcription... this may take a minute.</p>
-      <div className="mt-4 text-center text-sm text-black italic max-w-xl">
-        {ALTERNATING_ITEMS[index]}
-      </div>
+      <div className="mt-4 text-center text-sm text-black italic max-w-xl">{ALTERNATING_ITEMS[index]}</div>
     </div>
   );
 }
@@ -155,48 +203,63 @@ export default function SubmitPage() {
     const [customTag, setCustomTag] = useState('');
     const [location, setLocation] = useState<Place | null>(null);
     const [summary, setSummary] = useState('');
-
-    
     const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
     const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const { user } = useAuth();
-    
     const [dateType, setDateType] = useState<'period' | 'year'>('period');
     const [startYear, setStartYear] = useState('');
     const [endYear, setEndYear] = useState('');
     const [specificYear, setSpecificYear] = useState('');
-
     const [stream, setStream] = useState<MediaStream | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [newPhoto, setNewPhoto] = useState<File | null>(null);
-
-    const steps = ["Who's Speaking", "Record Audio", "Review Transcription", "Add Details", "Review & Submit"];
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
-    
-
     const [transcription, setTranscription] = useState('');
     const [transcriptionStatus, setTranscriptionStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle');
-
     const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
     const [suggestedSummary, setSuggestedSummary] = useState('');
     const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false);
-
     const [translatedText, setTranslatedText] = useState('');
     const [translationStatus, setTranslationStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle');
-    const [targetLanguage, setTargetLanguage] = useState('English'); 
-    const commonLanguages = [
-        "English", "Spanish", "French", "German", "Mandarin Chinese", "Cantonese", "Japanese", "Korean", 
-        "Italian", "Portuguese", "Russian", "Arabic", "Hindi", "Bengali", "Punjabi", "Marathi",
-        "Telugu", "Tamil", "Gujarati", "Kannada", "Urdu", "Persian (Farsi)", "Turkish", "Vietnamese", 
-        "Thai", "Malay", "Indonesian", "Filipino", "Dutch", "Swedish", "Norwegian", "Danish", 
-        "Finnish", "Greek", "Hebrew", "Polish", "Ukrainian", "Czech", "Hungarian", "Romanian", "Swahili"
-    ].sort(); // Sort them alphabetically
-
+    const [targetLanguage, setTargetLanguage] = useState('English');
+    const commonLanguages = ["English", "Spanish", "French", "German", "Mandarin Chinese", "Cantonese", "Japanese", "Korean", "Italian", "Portuguese", "Russian", "Arabic", "Hindi", "Bengali", "Punjabi", "Marathi", "Telugu", "Tamil", "Gujarati", "Kannada", "Urdu", "Persian (Farsi)", "Turkish", "Vietnamese", "Thai", "Malay", "Indonesian", "Filipino", "Dutch", "Swedish", "Norwegian", "Danish", "Finnish", "Greek", "Hebrew", "Polish", "Ukrainian", "Czech", "Hungarian", "Romanian", "Swahili"].sort();
     const [language, setLanguage] = useState('');
     const [otherLanguage, setOtherLanguage] = useState('');
+    const [mainPromptCategory, setMainPromptCategory] = useState(''); // 'life' or 'org'
+    const [finalPromptKey, setFinalPromptKey] = useState(''); // e.g., 'life-before-1960'
+
+    
+    // ✨ 1. ADD NEW STATE for the checkbox and prompt selection
+    const [isCupertinoStory, setIsCupertinoStory] = useState(false);
+    const [selectedCupertinoPrompt, setSelectedCupertinoPrompt] = useState('');
+
+    // ✨ 2. MAKE THE STEPS ARRAY DYNAMIC based on the checkbox state
+    const baseSteps = ["Who's Speaking", "Record Audio", "Review Transcription", "Add Details", "Review & Submit"];
+    const cupertinoPromptStep = "Cupertino Prompts";
+    const steps = isCupertinoStory
+      ? [baseSteps[0], cupertinoPromptStep, ...baseSteps.slice(1)]
+      : baseSteps;
+
+    // ✨ 3. CREATE STEP OFFSETS for easier conditional logic. This object holds the correct
+    // step number for each section, adjusting automatically if the new step is added.
+    const stepOffsets = {
+        who: 1,
+        prompts: isCupertinoStory ? 2 : -1, // -1 means this step isn't active
+        record: isCupertinoStory ? 3 : 2,
+        transcribe: isCupertinoStory ? 4 : 3,
+        details: isCupertinoStory ? 5 : 4,
+        review: isCupertinoStory ? 6 : 5,
+    };
+
+    const selectedPrompts = useMemo(() => {
+        if (!finalPromptKey || !PROMPTS[finalPromptKey as keyof typeof PROMPTS]) {
+            return [];
+        }
+        return PROMPTS[finalPromptKey as keyof typeof PROMPTS];
+    }, [finalPromptKey]);
 
     useEffect(() => {
         setIsMounted(true);
@@ -206,7 +269,6 @@ export default function SubmitPage() {
         if (stream && videoRef.current) {
             videoRef.current.srcObject = stream;
         }
-        // Cleanup function to stop the camera
         return () => {
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
@@ -289,13 +351,10 @@ export default function SubmitPage() {
         if (!videoRef.current || !canvasRef.current) return;
         const canvas = canvasRef.current;
         const video = videoRef.current;
-        
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
-        
         const context = canvas.getContext('2d');
         context?.drawImage(video, 0, 0, canvas.width, canvas.height);
-
         canvas.toBlob((blob) => {
             if (blob) {
                 const newFile = new File([blob], "speaker-photo.jpg", { type: "image/jpeg" });
@@ -303,7 +362,6 @@ export default function SubmitPage() {
                 setPhotoPreviewUrl(URL.createObjectURL(newFile));
             }
         }, 'image/jpeg');
-
         stopCameraStream();
     };
 
@@ -317,12 +375,10 @@ export default function SubmitPage() {
         try {
             await toast.promise(
                 (async () => {
-                    // Upload audio to Firebase Storage
                     const audioRef = ref(storage, `stories/audio/${Date.now()}-${audioFile.name}`);
                     const audioSnapshot = await uploadBytes(audioRef, audioFile);
                     const url = await getDownloadURL(audioSnapshot.ref);
                     setAudioFirebaseUrl(url);
-                    // Send URL and mimeType to API
                     const response = await fetch('/api/transcribe', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -369,17 +425,19 @@ export default function SubmitPage() {
     };
 
     const handleNext = () => {
-        if (currentStep === 2) {
+        // Use the new step offset to trigger transcription at the correct time
+        if (currentStep === stepOffsets.record) {
             handleGenerateTranscription();
         }
         if (currentStep < steps.length) {
             setCurrentStep(currentStep + 1);
         }
     };
+
     useEffect(() => {
         const generateSuggestions = async () => {
-            // Only run on step 4, if we have a transcript, and if we haven't already fetched suggestions.
-            if (currentStep === 4 && transcription && !isGeneratingSuggestions && suggestedTags.length === 0) {
+            // Use the new step offset to trigger suggestions on the details page
+            if (currentStep === stepOffsets.details && transcription && !isGeneratingSuggestions && suggestedTags.length === 0) {
                 setIsGeneratingSuggestions(true);
                 try {
                     const response = await fetch('/api/suggest-details', {
@@ -387,13 +445,10 @@ export default function SubmitPage() {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ transcription }),
                     });
-    
                     if (!response.ok) throw new Error('API call failed');
-    
                     const data = await response.json();
                     setSuggestedSummary(data.summary || '');
                     setSuggestedTags(data.tags || []);
-    
                 } catch (error) {
                     console.error("Error fetching AI suggestions:", error);
                     toast.error("Could not generate AI suggestions.");
@@ -402,25 +457,27 @@ export default function SubmitPage() {
                 }
             }
         };
-    
         generateSuggestions();
-    }, [currentStep, transcription]);
+    }, [currentStep, transcription, isGeneratingSuggestions, suggestedTags.length, stepOffsets.details]);
 
     const handleBack = () => currentStep > 1 && setCurrentStep(currentStep - 1);
 
+    // ✨ 4. UPDATE VALIDATION LOGIC to include the new conditional step
     const isStepValid = (() => {
-        if (currentStep === 1) return speakerName.trim() !== '';
-        if (currentStep === 2) return !!audioFile;
-        if (currentStep === 3) return transcriptionStatus === 'success' || transcriptionStatus === 'error';
-        if (currentStep === 4) {
+        if (currentStep === stepOffsets.who) return speakerName.trim() !== '';
+        if (isCupertinoStory && currentStep === stepOffsets.prompts) return finalPromptKey !== '';
+        if (currentStep === stepOffsets.record) return !!audioFile;
+        if (currentStep === stepOffsets.transcribe) return transcriptionStatus === 'success' || transcriptionStatus === 'error';
+        if (currentStep === stepOffsets.details) {
             const isDateProvided = (dateType === 'period' && startYear.trim() !== '') || (dateType === 'year' && specificYear.trim() !== '');
             return storyTitle.trim() !== '' && !!location && selectedTags.length > 0 && !!language && isDateProvided;
         }
-        return true;
+        return true; // For the final review step
     })();
     
     const isSubmittable = !!(audioFirebaseUrl && storyTitle && speakerName && !!location && selectedTags.length > 0 && !!language);
 
+    // ✨ 5. UPDATE SUBMISSION DATA to include Cupertino-specific info
     const handleFinalSubmit = async () => {
         if (!isSubmittable || !user) {
             alert("You must be logged in to submit a story.");
@@ -435,7 +492,8 @@ export default function SubmitPage() {
                 photoUrl = await getDownloadURL(photoSnapshot.ref);
             }
             const finalLanguage = language === 'Other' ? otherLanguage.trim() : language;
-            const storyData = { 
+            
+            const storyData: any = { // Use 'any' to dynamically add properties
                 title: storyTitle,
                 age: speakerAge,
                 pronouns: speakerPronouns,
@@ -455,6 +513,14 @@ export default function SubmitPage() {
                 endYear: dateType === 'period' ? Number(endYear) : null,
                 specificYear: dateType === 'year' ? Number(specificYear) : null,
             };
+
+            // Add the new Cupertino data if the checkbox was checked
+            if (isCupertinoStory) {
+                storyData.isCupertinoStory = true;
+                storyData.cupertinoPromptCategory = finalPromptKey; // Save the key
+                storyData.promptCategoryLabel = CATEGORY_DETAILS[finalPromptKey as keyof typeof CATEGORY_DETAILS]?.label || 'Cupertino Story';
+            }
+
             await addDoc(collection(db, "stories"), storyData);
             setIsSubmitted(true);
         } catch (error) {
@@ -465,6 +531,7 @@ export default function SubmitPage() {
         }
     };
     
+    // ✨ 6. UPDATE FORM RESET to clear the new state variables
    const handleResetForm = () => {
       setCurrentStep(1);
       setStoryTitle('');
@@ -483,18 +550,21 @@ export default function SubmitPage() {
       setTranslatedText('');
       setTranslationStatus('idle');
       setIsSubmitted(false);
+      // Reset new state
+      setIsCupertinoStory(false);
+      setMainPromptCategory('');
+      setFinalPromptKey('');
+      setIsSubmitted(false);
     }
+
     if (!isMounted) {
         return null;
     }
+    
     return (
         <div className="bg-white min-h-screen font-sans">
             <Navbar />
-            <Modal 
-                isOpen={isPromptModalOpen} 
-                onClose={() => setIsPromptModalOpen(false)}
-                title="Prompts To Get Started"
-            >
+            <Modal isOpen={isPromptModalOpen} onClose={() => setIsPromptModalOpen(false)} title="Prompts To Get Started">
                 <RandomPromptGenerator />
             </Modal>
 
@@ -504,22 +574,12 @@ export default function SubmitPage() {
                         <div className="bg-white rounded-xl shadow-md border border-stone-200 text-center p-8 sm:p-16 animate-fade-in flex flex-col items-center">
                             <PartyPopper className="h-16 w-16 text-green-500" />
                             <h2 className="mt-6 font-serif text-3xl sm:text-4xl text-stone-900">Thank You!</h2>
-                            <p className="mt-4 text-lg text-stone-600 max-w-xl">
-                                Your story has been successfully submitted. We're honored to be entrusted with this piece of your history.
-                            </p>
-                            
+                            <p className="mt-4 text-lg text-stone-600 max-w-xl">Your story has been successfully submitted. We're honored to be entrusted with this piece of your history.</p>
                             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-                                <button 
-                                    type="button" 
-                                    onClick={handleResetForm}
-                                    className="w-full sm:w-auto p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-stone-800 text-white transition-all font-semibold hover:bg-stone-900"
-                                >
+                                <button type="button" onClick={handleResetForm} className="w-full sm:w-auto p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-stone-800 text-white transition-all font-semibold hover:bg-stone-900">
                                     Submit Another Story
                                 </button>
-                                <Link 
-                                    href="/explore"
-                                    className="w-full sm:w-auto p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-stone-100 text-stone-800 border border-stone-300 hover:bg-stone-100 transition-all font-semibold"
-                                >
+                                <Link href="/explore" className="w-full sm:w-auto p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-stone-100 text-stone-800 border border-stone-300 hover:bg-stone-100 transition-all font-semibold">
                                     Explore More Stories
                                 </Link>
                             </div>
@@ -529,14 +589,8 @@ export default function SubmitPage() {
                             <div className="text-center mb-14">
                                 <h1 className="text-4xl sm:text-5xl font-serif text-stone-900">Record a Memory</h1>
                                 <p className="mt-4 text-lg text-stone-600">Follow our guided process to capture and preserve an important story.</p>
-
-                                {/* ✨ ADD THIS BUTTON ✨ */}
-                                <button 
-                                type="button"
-                                onClick={() => setIsPromptModalOpen(true)}
-                                className="mt-6 font-semibold text-stone-700 hover:text-stone-900 transition-colors underline decoration-2 underline-offset-4"
-                                >
-                                Feeling Stuck? Try a Prompt
+                                <button type="button" onClick={() => setIsPromptModalOpen(true)} className="mt-6 font-semibold text-stone-700 hover:text-stone-900 transition-colors underline decoration-2 underline-offset-4">
+                                    Feeling Stuck? Try a Prompt
                                 </button>
                             </div>
 
@@ -551,8 +605,10 @@ export default function SubmitPage() {
 
                               <div className="p-6 sm:p-8">
                                 <form onSubmit={(e) => e.preventDefault()}>
+                                    {/* ✨ 7. UPDATE STEP CONDITIONS to use the stepOffsets object */}
+
                                     {/* Step 1: Who's Speaking */}
-                                    {currentStep === 1 && (
+                                    {currentStep === stepOffsets.who && (
                                         <div className="space-y-6 animate-fade-in">
                                             <div>
                                                 <label htmlFor="speakerName" className="block text-sm font-medium text-stone-900 mb-1">Speaker Name <span className="text-red-500">*</span></label>
@@ -566,15 +622,9 @@ export default function SubmitPage() {
                                                 <label className="block text-sm font-medium text-stone-700">Photo of Speaker <span className="text-stone-500">(Optional)</span></label>
                                                 <div className="mt-2 p-6 rounded-lg border border-stone-200 bg-stone-50 text-center">
                                                     <div className="w-65 h-65 mx-auto bg-stone-200 rounded-lg flex items-center justify-center relative overflow-hidden shadow-inner">
-                                                        {photoPreviewUrl && !stream && (
-                                                            <Image src={photoPreviewUrl} alt="Speaker preview" fill className="object-cover" />
-                                                        )}
-                                                        {stream && (
-                                                            <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
-                                                        )}
-                                                        {!photoPreviewUrl && !stream && (
-                                                            <UserCircle className="h-16 w-16 text-stone-400" />
-                                                        )}
+                                                        {photoPreviewUrl && !stream && <Image src={photoPreviewUrl} alt="Speaker preview" fill className="object-cover" />}
+                                                        {stream && <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover" />}
+                                                        {!photoPreviewUrl && !stream && <UserCircle className="h-16 w-16 text-stone-400" />}
                                                         <canvas ref={canvasRef} className="hidden" />
                                                     </div>
                                                     <div className="mt-4">
@@ -584,91 +634,135 @@ export default function SubmitPage() {
                                                             <button type="button" onClick={stopCameraStream} className="p-2 text-stone-500 hover:text-stone-800"><X size={20}/></button>
                                                           </div>
                                                         ) : newPhoto ? (
-                                                            <div className="flex items-center justify-center gap-2">
-                                                                <p className="text-sm text-stone-600">Photo selected.</p>
-                                                                <button type="button" onClick={() => { setSpeakerPhoto(null); setPhotoPreviewUrl(null); }} className="font-semibold text-xs text-red-500 hover:underline">Remove</button>
-                                                            </div>
+                                                            <div className="flex items-center justify-center gap-2"><p className="text-sm text-stone-600">Photo selected.</p><button type="button" onClick={() => { setSpeakerPhoto(null); setPhotoPreviewUrl(null); }} className="font-semibold text-xs text-red-500 hover:underline">Remove</button></div>
                                                         ) : (
                                                             <div className="flex items-center justify-center gap-2">
                                                                 <input id="photo-upload" type="file" className="sr-only" accept="image/*" onChange={handlePhotoChange} />
-                                                                <label htmlFor="photo-upload" className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-stone-600 bg-white border border-stone-300 rounded-lg hover:bg-stone-100 cursor-pointer">
-                                                                    <UploadCloud size={14}/> Upload File
-                                                                </label>
-                                                                <button type="button" onClick={startCamera} className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-stone-600 bg-white border border-stone-300 rounded-lg hover:bg-stone-100">
-                                                                    <Camera size={14}/> Use Camera
-                                                                </button>
+                                                                <label htmlFor="photo-upload" className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-stone-600 bg-white border border-stone-300 rounded-lg hover:bg-stone-100 cursor-pointer"><UploadCloud size={14}/> Upload File</label>
+                                                                <button type="button" onClick={startCamera} className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-stone-600 bg-white border border-stone-300 rounded-lg hover:bg-stone-100"><Camera size={14}/> Use Camera</button>
                                                             </div>
                                                         )}
                                                     </div>
                                                 </div>
                                             </div>
+
+                                            {/* ✨ 8. ADD THE NEW CHECKBOX UI */}
+                                            <div className="flex items-center space-x-3 mt-4 p-4 bg-stone-50 border border-stone-200 rounded-lg">
+                                                <input
+                                                    type="checkbox"
+                                                    id="cupertinoStory"
+                                                    checked={isCupertinoStory}
+                                                    onChange={(e) => setIsCupertinoStory(e.target.checked)}
+                                                    className="h-4 w-4 rounded border-gray-300 text-stone-600 focus:ring-stone-500 cursor-pointer"
+                                                />
+                                                <label htmlFor="cupertinoStory" className="text-sm font-medium text-stone-700 cursor-pointer">
+                                                    I want to add my story to Cupertino Stories.
+                                                </label>
+                                            </div>
                                         </div>
                                     )}
-                                    {/* Other steps remain the same */}
-                                    {currentStep === 2 && (
-                                        <div className="animate-fade-in">
-                                            {!user ? (
-                                            <div className="text-center text-stone-600 p-8">
-                                                <strong>Sign in to record and upload an audio memory. Once you have an account, you can edit or delete any submissions.</strong>
-                                            </div>
-                                            ) : (
-                                            <>
-                                                {/* ✨ ADD THE NEW COMPONENT HERE ✨ */}
-                                                <RandomPromptGenerator /> 
-                                                
-                                                <AudioRecorder onRecordingComplete={setAudioFile} />
-                                                
-                                                {audioFile && (
-                                                <div className="mt-6 p-3 bg-green-50 border border-green-200 text-green-800 rounded-lg flex items-center gap-3 text-sm">
-                                                    <CheckCircle size={20} />
-                                                    <span>File ready: <strong>{audioFile.name}</strong></span>
+
+                                    {/* ✨ 9. ADD THE NEW STEP UI for Cupertino Prompts */}
+                                    {isCupertinoStory && currentStep === stepOffsets.prompts && (
+                                        <div className="space-y-8 animate-fade-in">
+                                            {/* Main Category Selection */}
+                                            <div className="space-y-4">
+                                                <h3 className="text-lg font-semibold text-stone-800">What is your story about?</h3>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <button type="button" onClick={() => { setMainPromptCategory('life'); setFinalPromptKey(''); }} className={`p-6 text-left rounded-lg border-2 flex items-center gap-4 transition-all ${mainPromptCategory === 'life' ? 'border-stone-800 bg-stone-50 ring-2 ring-stone-800 ring-offset-2' : 'border-stone-300 hover:border-stone-500'}`}>
+                                                        <Home size={24} className="text-stone-600"/>
+                                                        <div>
+                                                            <h4 className="font-semibold">Life in Cupertino</h4>
+                                                            <p className="text-sm text-stone-600">A personal story about living here.</p>
+                                                        </div>
+                                                    </button>
+                                                    <button type="button" onClick={() => { setMainPromptCategory('org'); setFinalPromptKey(''); }} className={`p-6 text-left rounded-lg border-2 flex items-center gap-4 transition-all ${mainPromptCategory === 'org' ? 'border-stone-800 bg-stone-50 ring-2 ring-stone-800 ring-offset-2' : 'border-stone-300 hover:border-stone-500'}`}>
+                                                        <Building size={24} className="text-stone-600"/>
+                                                        <div>
+                                                            <h4 className="font-semibold">An Organization or Business</h4>
+                                                            <p className="text-sm text-stone-600">A story about a local group.</p>
+                                                        </div>
+                                                    </button>
+                                                    <button type="button" onClick={() => { setMainPromptCategory(''); setFinalPromptKey('personal-growth'); }} className={`p-6 text-left rounded-lg border-2 flex items-center gap-4 transition-all ${finalPromptKey === 'personal-growth' ? 'border-stone-800 bg-stone-50 ring-2 ring-stone-800 ring-offset-2' : 'border-stone-300 hover:border-stone-500'}`}>
+                                                        <Milestone size={24} className="text-stone-600"/>
+                                                        <div>
+                                                            <h4 className="font-semibold">Personal Growth & Reflections</h4>
+                                                            <p className="text-sm text-stone-600">A story about your life journey.</p>
+                                                        </div>
+                                                    </button>
+                                                    <button type="button" onClick={() => { setMainPromptCategory(''); setFinalPromptKey('defining-moment'); }} className={`p-6 text-left rounded-lg border-2 flex items-center gap-4 transition-all ${finalPromptKey === 'defining-moment' ? 'border-stone-800 bg-stone-50 ring-2 ring-stone-800 ring-offset-2' : 'border-stone-300 hover:border-stone-500'}`}>
+                                                        <CalendarDays size={24} className="text-stone-600"/>
+                                                        <div>
+                                                            <h4 className="font-semibold">A Defining Moment or Event</h4>
+                                                            <p className="text-sm text-stone-600">A story about a pivotal time.</p>
+                                                        </div>
+                                                    </button>
                                                 </div>
-                                                )}
-                                            </>
+                                                <button type="button" onClick={() => { setMainPromptCategory(''); setFinalPromptKey('none'); }} className="text-sm font-semibold text-stone-600 hover:text-stone-900 w-full mt-2">I'll use my own topic</button>
+                                            </div>
+
+                                            {/* Sub-Category for Life in Cupertino */}
+                                            {mainPromptCategory === 'life' && (
+                                                <div className="space-y-3 animate-fade-in">
+                                                    <h4 className="font-semibold text-stone-700">Select a time period:</h4>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                        <button type="button" onClick={() => setFinalPromptKey('life-before-1960')} className={`p-3 text-sm rounded-md border text-center ${finalPromptKey === 'life-before-1960' ? 'bg-stone-800 text-white' : 'bg-white hover:bg-stone-100'}`}>The Early Days (Before 1960)</button>
+                                                        <button type="button" onClick={() => setFinalPromptKey('life-1960-1980')} className={`p-3 text-sm rounded-md border text-center ${finalPromptKey === 'life-1960-1980' ? 'bg-stone-800 text-white' : 'bg-white hover:bg-stone-100'}`}>Growth (1960 - 1980)</button>
+                                                        <button type="button" onClick={() => setFinalPromptKey('life-1980-2000')} className={`p-3 text-sm rounded-md border text-center ${finalPromptKey === 'life-1980-2000' ? 'bg-stone-800 text-white' : 'bg-white hover:bg-stone-100'}`}>The Tech Boom (1980 - 2000)</button>
+                                                        <button type="button" onClick={() => setFinalPromptKey('life-since-2000')} className={`p-3 text-sm rounded-md border text-center ${finalPromptKey === 'life-since-2000' ? 'bg-stone-800 text-white' : 'bg-white hover:bg-stone-100'}`}>The Modern Era (2000 - Present)</button>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Sub-Category for Organization */}
+                                            {mainPromptCategory === 'org' && (
+                                                <div className="space-y-3 animate-fade-in">
+                                                    <h4 className="font-semibold text-stone-700">What is your focus?</h4>
+                                                    <div className="grid grid-cols-1 gap-3">
+                                                        <button type="button" onClick={() => setFinalPromptKey('org-history')} className={`p-4 text-left rounded-md border ${finalPromptKey === 'org-history' ? 'bg-stone-800 text-white' : 'bg-white hover:bg-stone-100'}`}>I want to share its history</button>
+                                                        <button type="button" onClick={() => setFinalPromptKey('org-volunteer')} className={`p-4 text-left rounded-md border ${finalPromptKey === 'org-volunteer' ? 'bg-stone-800 text-white' : 'bg-white hover:bg-stone-100'}`}>My experience as a volunteer/employee</button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {finalPromptKey && finalPromptKey !== 'none' && (
+                                                <PromptListPreview sections={selectedPrompts} />
                                             )}
                                         </div>
-                                        )}
-                                    {currentStep === 3 && (
-        <div className="space-y-6 text-stone-700 animate-fade-in">
-            <div>
-                <label htmlFor="transcription" className="block text-lg font-semibold text-stone-800 mb-2">
-                    Review & Edit Transcription
-                </label>
-                <p className="text-sm text-stone-500 mb-4">
-                    The AI-generated transcription is below. Please review and edit it for accuracy before proceeding.
-                </p>
-                {transcriptionStatus === 'generating' && <TranscriptionLoadingFacts />}
-                {(transcriptionStatus === 'success' || transcriptionStatus === 'error') && (
-                    <textarea
-                        id="transcription"
-                        value={transcription}
-                        onChange={(e) => setTranscription(e.target.value)}
-                        rows={10}
-                        className="w-full p-4 border border-stone-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-stone-500 whitespace-pre-wrap"
-                        placeholder={transcriptionStatus === 'error' ? 'Could not generate transcription. You can type it manually here.' : 'Edit your transcription...'}
-                    />
-                )}
-            </div>
+                                    )}
+
+                                    {/* Step 2: Record Audio */}
+                                    {currentStep === stepOffsets.record && (
+                                        <div className="animate-fade-in">
+                                            {isCupertinoStory && selectedPrompts.length > 0 && <PromptDisplay sections={selectedPrompts} />}
+                                            {!user ? (
+                                                <div className="text-center text-stone-600 p-8"><strong>Sign in to record and upload an audio memory. Once you have an account, you can edit or delete any submissions.</strong></div>
+                                            ) : (
+                                                <>
+                                                    {!isCupertinoStory && <RandomPromptGenerator />}
+                                                    <AudioRecorder onRecordingComplete={setAudioFile} />
+                                                    {audioFile && (<div className="mt-6 p-3 bg-green-50 border border-green-200 text-green-800 rounded-lg flex items-center gap-3 text-sm"><CheckCircle size={20} /><span>File ready: <strong>{audioFile.name}</strong></span></div>)}
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Step 3: Review Transcription */}
+                                    {currentStep === stepOffsets.transcribe && (
+                                        <div className="space-y-6 text-stone-700 animate-fade-in">
+                                            <div>
+                                                <label htmlFor="transcription" className="block text-lg font-semibold text-stone-800 mb-2">Review & Edit Transcription</label>
+                                                <p className="text-sm text-stone-500 mb-4">The AI-generated transcription is below. Please review and edit it for accuracy before proceeding.</p>
+                                                {transcriptionStatus === 'generating' && <TranscriptionLoadingFacts />}
+                                                {(transcriptionStatus === 'success' || transcriptionStatus === 'error') && (
+                                                    <textarea id="transcription" value={transcription} onChange={(e) => setTranscription(e.target.value)} rows={10} className="w-full p-4 border border-stone-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-stone-500 whitespace-pre-wrap" placeholder={transcriptionStatus === 'error' ? 'Could not generate transcription. You can type it manually here.' : 'Edit your transcription...'}/>
+                                                )}
+                                            </div>
                                             {transcriptionStatus === 'success' && (
                                                 <div className="pt-6 border-t border-stone-200 space-y-4">
                                                     <h3 className="text-xl font-serif font-semibold text-stone-800">Translate Transcription (Optional)</h3>
                                                     <div className="flex items-center gap-4">
-                                                        <select 
-                                                            value={targetLanguage} 
-                                                            onChange={(e) => setTargetLanguage(e.target.value)} 
-                                                            className="w-full p-3 border border-stone-300 rounded-lg bg-white"
-                                                        >
-                                                            {commonLanguages.map(lang => (<option key={lang} value={lang}>{lang}</option>))}
-                                                        </select>
-                                                        <button 
-                                                            type="button" 
-                                                            onClick={handleTranslate} 
-                                                            disabled={translationStatus === 'generating'} 
-                                                            className="p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-blue-600 text-white transition-all font-semibold disabled:bg-blue-300 hover:bg-blue-700"
-                                                        >
-                                                            {translationStatus === 'generating' ? <Loader2 size={20} className="animate-spin" /> : <Languages size={20} />}
-                                                            Translate
-                                                        </button>
+                                                        <select value={targetLanguage} onChange={(e) => setTargetLanguage(e.target.value)} className="w-full p-3 border border-stone-300 rounded-lg bg-white">{commonLanguages.map(lang => (<option key={lang} value={lang}>{lang}</option>))}</select>
+                                                        <button type="button" onClick={handleTranslate} disabled={translationStatus === 'generating'} className="p-3 px-6 rounded-lg flex items-center justify-center gap-2 bg-blue-600 text-white transition-all font-semibold disabled:bg-blue-300 hover:bg-blue-700">{translationStatus === 'generating' ? <Loader2 size={20} className="animate-spin" /> : <Languages size={20} />} Translate</button>
                                                     </div>
                                                     {translationStatus === 'generating' && (<div className="mt-2 p-4 bg-stone-50 rounded-lg flex items-center justify-center gap-3 text-stone-600"><Loader2 size={20} className="animate-spin" /><p>Translating...</p></div>)}
                                                     {translationStatus === 'success' && (<p className="mt-1 text-stone-600 whitespace-pre-wrap p-4 bg-stone-50 rounded-lg">{translatedText}</p>)}
@@ -677,7 +771,9 @@ export default function SubmitPage() {
                                             )}
                                         </div>
                                     )}
-                                    {currentStep === 4 && (
+
+                                    {/* Step 4: Add Details */}
+                                    {currentStep === stepOffsets.details && (
                                         <div className="space-y-6 animate-fade-in">
                                             {/* Story Title Input */}
                                             <div>
@@ -799,12 +895,18 @@ export default function SubmitPage() {
                                             </div>
                                         </div>
                                     )}
-                                    {currentStep === 5 && (
+
+                                    {/* Step 5: Review & Submit */}
+                                    {currentStep === stepOffsets.review && (
                                         <div className="space-y-4 text-stone-700 animate-fade-in">
                                             {audioPreviewUrl && (<div className="bg-stone-50 rounded-lg p-4"><p className="text-sm font-medium text-stone-600 mb-2">Listen to your recording:</p><audio src={audioPreviewUrl} controls className="w-full" /></div>)}
                                             <h4 className="text-lg font-semibold text-stone-800 border-b border-stone-200 pb-2 pt-4">Review your story details:</h4>
                                             <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Title:</strong> <span className="text-right">{storyTitle || 'Not provided'}</span></div>
                                             <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Speaker:</strong> <span className="text-right">{speakerName || 'Not provided'}</span></div>
+                                            {/* ✨ Add selected prompt to the review screen */}
+                                            {isCupertinoStory && (
+                                                <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Cupertino Category:</strong> <span className="text-right">{selectedCupertinoPrompt || 'None'}</span></div>
+                                            )}
                                             <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Tags:</strong> <span className="text-right">{selectedTags.join(', ') || 'None'}</span></div>
                                             <div className="flex justify-between py-3 border-b border-stone-100"><strong className="font-medium text-stone-500">Location:</strong> <span className="text-right">{location?.name || 'None'}</span></div>
                                             <div className="flex justify-between py-3 border-b border-stone-100 items-start"><strong className="font-medium text-stone-500">Photo:</strong> {photoPreviewUrl ? <img src={photoPreviewUrl} alt="Speaker preview" className="w-16 h-16 rounded-lg object-cover" /> : 'None'}</div>
