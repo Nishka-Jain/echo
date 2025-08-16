@@ -586,12 +586,9 @@ export default function SubmitPage() {
                         </div>
                     ) : (
                         <>
-                            <div className="text-center mb-14">
+                            <div className="text-center mb-12">
                                 <h1 className="text-4xl sm:text-5xl font-serif text-stone-900">Record a Memory</h1>
                                 <p className="mt-4 text-lg text-stone-600">Follow our guided process to capture and preserve an important story.</p>
-                                <button type="button" onClick={() => setIsPromptModalOpen(true)} className="mt-6 font-semibold text-stone-700 hover:text-stone-900 transition-colors underline decoration-2 underline-offset-4">
-                                    Feeling Stuck? Try a Prompt
-                                </button>
                             </div>
 
                             <div className="mb-12">
